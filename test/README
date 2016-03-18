@@ -1,0 +1,8 @@
+To run these tests from within the source tree, update your Python
+path according to:
+
+  export PYTHONPATH="..:$PYTHONPATH"
+
+To run all tests, issue the following command:
+
+  py.test

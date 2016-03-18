@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+
+""""
+Postprocess script to generate ergoregion from 2D metric fields
+
+ Description:
+ takes box size R, and resolution N, and generates a 3D data set with those parameters
+
+"""
+
+import sys, os
+from fenics import *
+from geco import *
+from geco.models import SupportBump
+
+# Get mesh
+mesh_file = [f for f in os.listdir('.') if "mesh" in f and f.endswith('xml')]
+mesh_filename = mesh_file[0]
+
+# Read mesh and reconstruct function space
+info("Reading mesh from file %s." % mesh_filename)
+mesh = Mesh(mesh_filename)
+V = FunctionSpace(mesh, "Lagrange", 1)
+
+# Create spatial coordinates
+x = SpatialCoordinate(mesh)
+r = x[0]
+z = x[1]
+
+# Identify metric field files
+fields = ["NU_", "BB_", "WW_"]
+NU = Function(V)
+BB = Function(V)
+WW = Function(V)
+UU = [NU, BB, WW]
+i = 0
+for i in range(0, 3):
+    
+    # Identify file
+    field_file = [f for f in os.listdir('.') if fields[i] in f and f.endswith('xml')]
+    field_filename = field_file[0]
+
+    # Load data
+    File(field_filename) >> UU[i]
+    
+    # Make sure we can evaluate at axis...
+    UU[i].set_allow_extrapolation(True)
+
+    i += 1
+
+# The negative of the gtt component of the metric tensor
+_gtt = - exp(2.0*NU)*(1.0 - (WW*r*BB)**2.0*exp(-4.0*NU))
+gtt  = project(_gtt, V)
+
+# Compute Ergoregion
+ergo = interpolate(SupportBump(gtt), V)
+
+# Save ergoregion
+File("ergo_%s.pvd" % "postprocess" ) << ergo
+info("ergo data saved to file ergo_%s.pvd" % "postprocess")
+

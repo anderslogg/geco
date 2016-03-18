@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# This script is useful for running computations on a
+# server or reasonably good laptop/desktop.
+
+# Get filename and demo name
+if [ "$*" == "" ]; then
+    echo "Usage: ./run <demo>.py"
+    exit 1
+fi
+DEMOFILE="$1"
+DEMONAME=`echo $1 | cut -d'.' -f1`
+
+# Get timestamp and create directory
+TIMESTAMP=`date +"%Y-%m-%d-%H-%M-%S"`
+DIRNAME="solutions/${DEMONAME}-${TIMESTAMP}"
+mkdir -p $DIRNAME
+
+# Set name of logfile
+LOGFILE="$DIRNAME/geco.log"
+
+# Run demo
+time python $DEMOFILE $DIRNAME | tee $LOGFILE
+
+# Print a nice message
+echo
+echo "Solution stored in $DIRNAME."

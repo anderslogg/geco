@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+
+"""
+ Plot user-selected columns from GECO dictionary data
+
+ 
+"""
+
+import numpy, sys, os
+from matplotlib import pyplot as plt
+
+# Load data dict
+files = [f for f in os.listdir('.') if "data" in f and f.endswith('csv')]
+data_filename = files[0]
+
+# Get and print data headers
+header = numpy.loadtxt(data_filename, dtype=str, delimiter=',')
+names = header[0,:].tolist()
+print '\n'.join(str(n) for n in names) 
+
+# Ask for data
+print
+print "Select data column names separated by a comma: "
+abscissa, ordinate = raw_input().split(',')
+
+a_index = names.index(abscissa)
+o_index = names.index(ordinate)
+
+# Get data and plot selected columns
+data = numpy.loadtxt(data_filename, delimiter=',', skiprows=1)
+data_x = data[:,a_index]
+data_y = data[:,o_index]
+
+plt.plot(data_x,data_y,'*')
+plt.xlabel(abscissa)
+plt.ylabel(ordinate)
+plt.grid(True)
+plt.show()
+plt.clf()
+
+#Add fancy axis names
+#plt.xlabel("$E_0$")
+#plt.ylabel("Ansatz Coefficient")
+
+#Add a horizontal dashed line with
+#plt.axhline(y=1,color='g',ls='dashed')

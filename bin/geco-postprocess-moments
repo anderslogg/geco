@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+
+""""
+Postprocess script to compute spatial and momentum moments
+
+ Description:
+
+
+"""
+
+import sys, os
+from fenics import *
+from geco import *
+
+# Choose which data to evaluate
+data = raw_input("Select data. For example type 'RHO' or 'RHO0_50': ")
+print "%s data selected" % data
+
+# Identify 2D RHO0 file
+files = [f for f in os.listdir('.') if data in f and f.endswith('xml')]
+
+# Check that we got exactly one file
+if len(files) > 1:
+    error("More than one XML file for your data %s !" %s)
+elif len(files) == 0:
+   error("Unable to find XML data for your data %s." %s)
+
+# Set data filename
+data_filename = files[0]
+
+# Set mesh filename
+R = int(data_filename.split("_")[1].split(".")[0])
+mesh_filename = "mesh_%d.xml" % R
+
+# Read mesh and reconstruct 2D function space
+info("Reading mesh from file %s." % mesh_filename)
+mesh = Mesh(mesh_filename)
+V = FunctionSpace(mesh, "Lagrange", 1)
+
+# Define spatial coordinates on mesh
+x = SpatialCoordinate(mesh)
+r = x[0]
+z = x[1]
+
+# Read data and reconstruct 2D function
+RHO = Function(V)
+File(data_filename) >> RHO
+
+# Make sure we can evaluate at axis...
+RHO.set_allow_extrapolation(True)
+
+# Compute moments
+_Ixx = 0.5*r**3.0*RHO*dx + z*z*r*RHO*dx
+_Izz = RHO*r**3.0*dx
+Ixx = assemble(_Ixx)
+Izz = assemble(_Izz)
+
+# Compute eccentricity
+if Ixx <= Izz:
+    ecc = sqrt(2.0*(Izz - Ixx)/Izz)
+    orientation = "oblate"
+else:
+    ecc = sqrt((Ixx - Izz)/(Ixx - 0.5*Izz))
+    orientation = "prolate"    
+    
+
+# Print result
+print "Spatial moment Ixx = %g" % Ixx
+print "Spatial moment Izz = %g" % Izz
+print "The distribution is %s"  % orientation
+print "Eccentricity e = %g"     % ecc

@@ -1,0 +1,392 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import sys
+
+from PySide import QtGui as qt
+from PySide import QtCore as qtcore
+
+import geco, fenics
+
+# Number of ansatzes to allow in linear combination
+num_ansatzes = 2
+
+# Number of parameters to allow in input
+num_parameters = 5
+
+# Solver parameters
+solver_parameters = [("tolerance",     (1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8)),
+                     ("radius",        (25, 50, 100, 1000)),
+                     ("resolution",    (32, 64, 128, 256)),
+                     ("resolution_3d", (8, 16, 32, 64, 128, 256)),
+                     ("num_steps",     (10, 20, 30, 40, 50))]
+
+class GECo(qt.QWidget):
+
+    def __init__(self):
+        super(GECo, self).__init__()
+        self.init()
+
+    def init(self):
+
+        # Create main window
+        self.setGeometry(300, 300, 250, 150)
+        self.setWindowTitle("Gothenburg Einstein solver Collection")
+
+        # Create empty storage for solution
+        self.old_solution = None
+        self.old_solver = None
+
+        # Create empty storage for inputs
+        self.model_input = {}
+        self.solver_input = {}
+
+        # Create layout (populate main window)
+        self.create_layout()
+
+        # Show main window
+        self.show()
+
+    def create_layout(self):
+
+        # Create vertical box
+        self.vbox = qt.QVBoxLayout()
+        self.vbox.addStretch(1)
+        self.setLayout(self.vbox)
+
+        # Create horisontal box
+        self.hbox = qt.QHBoxLayout()
+        self.hbox.addStretch(1)
+        self.vbox.addLayout(self.hbox)
+
+        # Create left and right vertical boxes
+        separator = qt.QFrame()
+        separator.setFrameStyle(qt.QFrame.VLine)
+        self.vboxL = qt.QVBoxLayout()
+        self.vboxR = qt.QVBoxLayout()
+        self.vboxL.addStretch(1)
+        self.vboxR.addStretch(1)
+        self.hbox.addLayout(self.vboxL)
+        self.hbox.addWidget(separator)
+        self.hbox.addLayout(self.vboxR)
+
+        # Create contents
+        #self.create_logo()
+        self.create_solver_selection()
+        self.create_model_input()
+        self.create_solver_input()
+        self.create_buttons()
+
+    def create_logo(self):
+
+        # Create label for logo
+        pixmap = qt.QPixmap("../../misc/geco_small.png")
+        label = qt.QLabel()
+        label.setPixmap(pixmap)
+
+        # Add to layout
+        self.vboxL.addWidget(label)
+
+    def create_buttons(self):
+
+        # Create solve button
+        solve_button = qt.QPushButton("Solve")
+        solve_button.clicked.connect(self.run_solver)
+
+        # Create reset button
+        reset_button = qt.QPushButton("Reset")
+        reset_button.clicked.connect(self.reset)
+
+        # Create quit button
+        quit_button = qt.QPushButton("Quit")
+        quit_button.clicked.connect(qtcore.QCoreApplication.instance().quit)
+
+        # Add to layout
+        vbox = qt.QVBoxLayout()
+        vbox.addWidget(solve_button)
+        vbox.addWidget(reset_button)
+        vbox.addWidget(quit_button)
+        self.vboxR.addLayout(vbox)
+
+    def create_solver_selection(self):
+
+        # Create solver input
+        solver_selection = qt.QComboBox()
+        for solver in geco.solvers:
+            solver_selection.addItem(solver)
+
+        # Connect activation
+        solver_selection.activated[str].connect(self.set_ansatzes)
+
+        # Add to layout
+        w = qt.QLabel("Equation")
+        self.vboxL.addWidget(w)
+        self.vboxL.addWidget(solver_selection)
+
+        # Store solver input so we can read it later
+        self.solver_selection = solver_selection
+
+    def create_solver_input(self):
+
+        # Add label
+        w = qt.QLabel("")
+        self.vboxR.addWidget(w)
+
+        # Add group box
+        gbox = qt.QGroupBox()
+        gbox.setTitle("Solver parameters")
+        vbox = qt.QVBoxLayout(gbox)
+        self.vboxR.addWidget(gbox)
+
+        # Add inputs for solver parameters (assume same for all solvers)
+        for parameter, values in solver_parameters:
+
+            # Create label and input
+            label = qt.QLabel(parameter)
+            w = qt.QComboBox()
+            for value in values:
+                w.addItem(str(value))
+
+            # Add to layout
+            hbox = qt.QHBoxLayout()
+            hbox.addWidget(label)
+            hbox.addWidget(w)
+            vbox.addLayout(hbox)
+
+            # Store input
+            self.solver_input[parameter] = w
+
+            # Reset initial guess when necessary
+            if parameter in ("radius", "resolution"):
+                w.activated[str].connect(self.reset)
+
+    def create_model_input(self):
+
+        # Get currently selected solver
+        solver_name = self.get_solver_name()
+
+        # Add label
+        w = qt.QLabel("Matter model")
+        self.vboxL.addWidget(w)
+
+        # Add inputs for ansatz names
+        hbox_ = qt.QHBoxLayout()
+        for i in range(num_ansatzes):
+            w = qt.QComboBox()
+            w.activated[str].connect(self.set_model_parameters)
+            hbox_.addWidget(w)
+            self.model_input[(i, "ansatz")] = w
+        self.vboxL.addLayout(hbox_)
+
+        # Add inputs for ansatz coefficients
+        hbox_ = qt.QHBoxLayout()
+        for i in range(num_ansatzes):
+            w = qt.QDoubleSpinBox()
+            w.setRange(0.0, 1.0)
+            w.setDecimals(2)
+            w.setSingleStep(0.01)
+            if i == 0:
+                w.setValue(1.0)
+            else:
+                w.setValue(0.0)
+            hbox_.addWidget(w)
+            self.model_input[(i, "coefficient")] = w
+        self.vboxL.addLayout(hbox_)
+
+        # Create outer box for parameters
+        hbox = qt.QHBoxLayout()
+
+        # Add empty parameter inputs
+        for i in range(num_ansatzes):
+
+            # Create inner box for parameters
+            gbox = qt.QGroupBox()
+            gbox.setTitle("Ansatz parameters")
+            vbox_ = qt.QVBoxLayout(gbox)
+
+            # Create empty parameter input
+            self.model_input[(i, "parameters")] = []
+
+            # Add parameters
+            for j in range(num_parameters):
+
+                # Create label and input box
+                label = qt.QLabel("")
+                parameter_input = qt.QDoubleSpinBox()
+                parameter_input.setRange(-20.0, 20.0)
+                parameter_input.setDecimals(3)
+                parameter_input.setSingleStep(0.1**2)
+                parameter_input.setValue(0.0)
+
+                # Add to layout
+                hbox_ = qt.QHBoxLayout()
+                hbox_.addWidget(label)
+                hbox_.addWidget(parameter_input)
+                vbox_.addLayout(hbox_)
+
+                # Store parameter input so we can read it later
+                self.model_input[(i, "parameters")].append((label, parameter_input))
+
+            # Add to layout
+            hbox.addWidget(gbox)
+
+        # Add to layout
+        self.vboxL.addLayout(hbox)
+
+        # Set ansatzes
+        self.set_ansatzes()
+
+        # Set model parameters
+        self.set_model_parameters()
+
+        return
+
+    def set_ansatzes(self):
+
+        # Get currently selected solver
+        solver_name = self.get_solver_name()
+
+        # Repopulate list of ansatzes for current solver
+        for i in range(num_ansatzes):
+            w = self.model_input[(i, "ansatz")]
+            w.clear()
+            for ansatz in geco.ansatzes:
+                if ansatz.lower().startswith(solver_name + "-"):
+                    w.addItem(ansatz)
+
+        # Set model parameters
+        self.set_model_parameters()
+
+    def set_model_parameters(self):
+
+        # Get currently selected solver
+        solver_name = self.get_solver_name()
+
+        # Set inputs for ansatz parameters
+        for i in range(num_ansatzes):
+
+            # Get currently selected ansatz
+            ansatz_name = self.get_ansatz_name(i)
+
+            # Initialize ansatz to get parameters
+            ansatz = geco.MaterialModel(ansatz_name)
+
+            # Iterate over parameters for ansats
+            ansatz_parameters = sorted(p for p in ansatz.parameters)
+            parameter_inputs = self.model_input[(i, "parameters")]
+            for j in range(num_parameters):
+
+                # Get parameter name and value
+                if j < len(ansatz_parameters):
+                    name = ansatz_parameters[j]
+                    value = ansatz.parameters[name]
+                else:
+                    name = "[unused]"
+                    value = 0.0
+
+                # Extract widgets
+                label, parameter_input = parameter_inputs[j]
+
+                # Set name and value
+                label.setText(name)
+                parameter_input.setValue(value)
+
+    def get_solver_name(self):
+        return geco.solver_name(self.solver_selection.currentText())
+
+    def get_ansatz_name(self, i):
+        return self.model_input[(i, "ansatz")].currentText()
+
+    def run_solver(self):
+
+        # Get currently selected solver
+        solver_name = self.get_solver_name()
+
+        # Iterate over ansatzes and set parameters
+        terms = []
+        for i in range(num_ansatzes):
+
+            # Get currently selected ansatz
+            ansatz_name = self.get_ansatz_name(i)
+
+            # Create ansatz
+            ansatz = geco.MaterialModel(ansatz_name)
+
+            # Read coefficient
+            coefficient = self.model_input[(i, "coefficient")].value()
+
+            # Read and set parameters for this ansatz
+            ansatz_parameters = sorted(p for p in ansatz.parameters)
+            parameter_inputs = self.model_input[(i, "parameters")]
+            for j in range(num_parameters):
+                if j < len(ansatz_parameters):
+                    label, parameter_input = parameter_inputs[j]
+                    parameter_name = ansatz_parameters[j]
+                    parameter_value = parameter_input.value()
+                    ansatz.parameters[parameter_name] = parameter_value
+
+            # Add ansatz
+            if coefficient > 0.0:
+                term = fenics.Constant(coefficient)*ansatz
+                terms.append(term)
+
+        # Sum models
+        model = terms[0]
+        for term in terms[1:]:
+            model = model + term
+
+        # Create solver
+        if solver_name == "ev":
+            solver = geco.EinsteinVlasovSolver()
+        elif solver_name == "vp":
+            solver = geco.VlasovPoissonSolver()
+        else:
+            solver = geco.EinsteinVlasovSolverRot()
+
+        # Set solver parameters
+        solver.parameters.output.plot_solution = False
+        for parameter, values in solver_parameters:
+
+            # Get current value as text
+            value = self.solver_input[parameter].currentText()
+
+            # Convert to right type
+            if isinstance(solver.parameters.discretization[parameter], int):
+                value = int(value)
+            else:
+                value = float(value)
+
+            # Set parameter value
+            solver.parameters.discretization[parameter] = value
+
+        # Print summary of parameters
+        #fenics.info("")
+        #fenics.info("Solver parameters")
+        #fenics.info("-----------------")
+        #fenics.info(solver.parameters, True)
+        #fenics.info("")
+
+        # Invalidate old solution when changing solver
+        if self.old_solver != solver_name:
+            self.reset()
+
+        # Solve using previous solution as starting guess (if any)
+        solution = solver.solve(model, self.old_solution)
+
+        # Store solution
+        self.old_solution = solution
+        self.old_solver = solver_name
+
+    def reset(self):
+        self.old_solution = None
+        fenics.info("Resetting initial guess for nonlinear iterations.")
+
+def main():
+
+    # Launch application
+    application = qt.QApplication(sys.argv)
+    geco = GECo()
+    sys.exit(application.exec_())
+
+if __name__ == "__main__":
+    main()

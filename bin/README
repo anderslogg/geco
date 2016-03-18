@@ -1,0 +1,4 @@
+To run the program from within the source tree, update your Python
+path according to:
+
+  export PYTHONPATH="..:$PYTHONPATH"
