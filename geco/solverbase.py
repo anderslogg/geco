@@ -4,6 +4,7 @@ import os, sys, math, numpy
 from os.path import join as pj
 
 from dolfin import *
+from mshr import *
 from ufl.algorithms import extract_coefficients
 
 from models import *
@@ -65,17 +66,36 @@ class SolverBase:
             solution_dir = sys.argv[-1]
             self.parameters.output.solution_directory = solution_dir
 
-    def _read_mesh(self):
+    def _generate_mesh(self):
 
         # Get parameters
         R = self.parameters.discretization.radius
         N = self.parameters.discretization.resolution
-        geometry_dir = self.parameters.output.geometry_directory
-        mesh_prefix = self.parameters.discretization.mesh_prefix
 
-        # Read from file
-        mesh_file = pj(geometry_dir, "%s_%d_%d_mesh.xml.gz" % (mesh_prefix, R, N))
-        mesh = Mesh(mesh_file)
+        # Define domain
+        circle = Circle(Point(0, 0), R)
+        rectangle = Rectangle(Point(0, -2*R), Point(2*R, 2*R))
+        domain = circle*rectangle
+
+        # Generate mesh
+        mesh = generate_mesh(domain, N)
+
+        return mesh
+
+    def _generate_mesh_annulus(self, R, N):
+
+        # Get parameters
+        R = self.parameters.discretization.radius
+        N = self.parameters.discretization.resolution
+
+        # Define domain
+        big_circle = Circle(Point(0, 0), 2*R)
+        circle = Circle(Point(0, 0), R)
+        rectangle = Rectangle(Point(0, -4*R), Point(4*R, 4*R))
+        domain = big_circle*rectangle - circle
+
+        # Generate mesh
+        mesh = generate_mesh(domain, N)
 
         return mesh
 
@@ -175,12 +195,10 @@ class SolverBase:
         R = self.parameters.discretization.radius
         N = self.parameters.discretization.resolution
         suffix = self.parameters.output.suffix
-        geometry_dir = self.parameters.output.geometry_directory
         solution_dir = self.parameters.output.solution_directory
 
         # Generate solutions
-        f = pj(geometry_dir, "halfannulus_%d_%d_mesh.xml.gz" % (R, N))
-        annulus_mesh = Mesh(f)
+        annulus_mesh = self._generate_mesh_annulus(R, N)
         Z = FunctionSpace(annulus_mesh, "Lagrange", 1)
         _solutions = [interpolate(solution, Z) for solution in solutions]
 

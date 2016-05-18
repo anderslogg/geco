@@ -92,8 +92,8 @@ class EinsteinVlasovSolver(SolverBase):
         # Workaround for geometric round-off errors
         parameters.allow_extrapolation = True
 
-        # Read mesh and create function space
-        mesh = self._read_mesh()
+        # Generate mesh and create function space
+        mesh = self._generate_mesh()
         V = FunctionSpace(mesh, "Lagrange", 1)
 
         # Create initial data
@@ -197,8 +197,8 @@ class EinsteinVlasovSolver(SolverBase):
         Fs = [(F - L) for F, L in zip(Fs, Ls)]
 
         # Create matrices and vectors
-        As = [u.vector().factory().create_matrix() for u in U]
-        bs = [u.vector().factory().create_vector() for u in U]
+        As = [u.vector().factory().create_matrix(mpi_comm_world()) for u in U]
+        bs = [u.vector().factory().create_vector(mpi_comm_world()) for u in U]
         Ys = [u.vector().copy() for u in U]
 
         # Assemble matrices and apply boundary conditions
@@ -208,10 +208,10 @@ class EinsteinVlasovSolver(SolverBase):
         # Create linear solver
         preconditioners = [pc for pc in krylov_solver_preconditioners()]
         if "amg" in preconditioners:
-            solver = LinearSolver("gmres", "amg")
+            solver = LinearSolver(mpi_comm_world(), "gmres", "amg")
         else:
             warning("Missing AMG preconditioner, using ILU.")
-            solver = LinearSolver("gmres")
+            solver = LinearSolver(mpi_comm_world(), "gmres")
 
         # Set linear solver parameters
         solver.parameters["relative_tolerance"] = self.parameters.discretization.krylov_tolerance
