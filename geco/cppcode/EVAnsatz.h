@@ -18,6 +18,9 @@ namespace dolfin
 
       // Add rotation parameter
       parameters.add("rotation", true);
+
+      // Add particle mass parameter
+      parameters.add("particle_mass", 1.0);
     }
 
     // Note: We need to implement both eval functions (with and
@@ -135,20 +138,19 @@ namespace dolfin
       double I4 = 0.0;
 
       // Compute integration limits for h-integral
-      const double ha = K1;
+      const double ha = _particle_mass*K1;
       const double hb = E0;
       const double dh = (hb - ha) / static_cast<double>(n);
       if (dh <= 0.0) error("Strange stuff: dh <= 0.0");
 
       // Integrate over h
-#pragma omp parallel for default(shared) reduction(+:I0,I1,I2,I3,I4)
-      for (size_t i = 0; i < n; i++)
+      for (std::size_t i = 0; i < n; i++)
       {
         // Compute integration variable
         const double h = ha + static_cast<double>(i)*dh + 0.5*dh;
 
         // Check expression for integration limit
-        const double K2 = h*h / (K1*K1) - 1.0;
+        const double K2 = h*h / (K1*K1) - _particle_mass*_particle_mass;
         if (K2 < 0.0) error("Strange stuff: K2 < 0.0");
 
         // Compute integration limits for s-integral
@@ -164,7 +166,7 @@ namespace dolfin
         if (ds < 0.0) error("Strange stuff: ds < 0.0");
 
         // Integrate over s
-        for (size_t j = 0; j < n; j++)
+        for (std::size_t j = 0; j < n; j++)
         {
           // Compute integration variable
           const double s = sa + static_cast<double>(j)*ds + 0.5*ds;
@@ -233,6 +235,7 @@ namespace dolfin
     {
       _resolution = resolution;
       _rotation = parameters["rotation"];
+      _particle_mass = parameters["particle_mass"];
     }
 
     // The parameters
@@ -248,6 +251,9 @@ namespace dolfin
 
     // Rotating or not
     bool _rotation;
+
+    // Particle Mass
+    double _particle_mass;
 
     // Radius of support
     mutable double _R;
