@@ -123,9 +123,10 @@ class SolverBase:
             self.data.update(ansatz.parameters.to_dict())
 
         # Print data
-        info("")
-        info(_dict2table(self.data, "data"), True)
-        info("")
+        if MPI.rank(mpi_comm_world()) == 0:
+            info("")
+            info(_dict2table(self.data, "data"), True)
+            info("")
 
     def _save_data(self):
         "Save data to file"

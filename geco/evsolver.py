@@ -338,6 +338,7 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Get radius of support and compute areal radius of support
         r0 = max([ansatz.radius_of_support() for ansatz in ansatzes])
+        r0 = MPI.max(mpi_comm_world(), r0)
         R0 = r0*(1.0 + m / (2.0*r0))**2
 
         # Compute Buchdahl quantity
