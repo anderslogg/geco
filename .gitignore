@@ -1,0 +1,13 @@
+*~
+*.blg
+*.bak
+*.rel
+*.tdo
+*.pvd
+*.vtu
+*.pyc
+.DS_Store
+solutions/
+build*
+dist*
+*.egg-info
