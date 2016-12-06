@@ -105,7 +105,11 @@ namespace dolfin
 	      const Array<double>& x) const
     {
       // We want WW non-negative
-      if (WW < - DOLFIN_EPS) error("Strange stuff: WW is negative");
+      if (WW < -10*DOLFIN_EPS) 
+	{
+	    std::cout << "WW:" << WW << "\n";
+	    error("Strange stuff: WW is negative");
+	}
 
       // Get coordinates
       const double rho = x[0];
@@ -163,7 +167,13 @@ namespace dolfin
 
         // Compute step size for s-integral
         const double ds = (sb - sa) / static_cast<double>(n);
-        if (ds < 0.0) error("Strange stuff: ds < 0.0");
+        if (ds < -10.0*DOLFIN_EPS) 
+	  {
+	    std::cout << "BB:" << BB << "\n";
+	    std::cout << "sb:" << sb << "\n";
+	    std::cout << "ds:" << ds << "\n";
+	    error("Strange stuff: ds < 0.0");
+	  }
 
         // Integrate over s
         for (std::size_t j = 0; j < n; j++)
