@@ -11,6 +11,8 @@ from geco import *
 solver = EinsteinVlasovSolver()
 solver.parameters.output.plot_solution = False
 solver.parameters.discretization.radius = 50
+solver.parameters.discretization.resolution = 64
+solver.parameters.discretization.num_steps = 25
 
 # Create ansatz for initial guess
 model = MaterialModel("EV-E-Polytropic-L-Polytropic")
