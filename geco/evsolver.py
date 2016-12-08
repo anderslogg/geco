@@ -94,7 +94,7 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Generate mesh and create function space
         mesh = self._generate_mesh()
-        V = FunctionSpace(mesh, "Lagrange", 2)
+        V = FunctionSpace(mesh, "Lagrange", 1)
 
         # Create initial data
         U = _init(e0, V)
@@ -199,7 +199,7 @@ class EinsteinVlasovSolver(SolverBase):
         # Create matrices and vectors
         As = [u.vector().factory().create_matrix(mpi_comm_world()) for u in U]
         bs = [u.vector().factory().create_vector(mpi_comm_world()) for u in U]
-        Ys = [u.vector().copy() for u in U]      
+        Ys = [u.vector().copy() for u in U]
 
         # Assemble matrices and apply boundary conditions
         [assemble(a, tensor=A) for (a, A) in zip(as_, As)]
@@ -208,10 +208,10 @@ class EinsteinVlasovSolver(SolverBase):
         # Create linear solver
         preconditioners = [pc for pc in krylov_solver_preconditioners()]
         if "amg" in preconditioners:
-            solver = LinearSolver(mpi_comm_world(), "gmres", "amg")  
+            solver = LinearSolver(mpi_comm_world(), "gmres", "amg")
         else:
             warning("Missing AMG preconditioner, using ILU.")
-            solver = LinearSolver(mpi_comm_world(), "gmres")           
+            solver = LinearSolver(mpi_comm_world(), "gmres")
 
         # Set linear solver parameters
         solver.parameters["relative_tolerance"] = self.parameters.discretization.krylov_tolerance
@@ -255,10 +255,10 @@ class EinsteinVlasovSolver(SolverBase):
                 Ys[i] *= theta
                 X += Ys[i]
 
-            ## # Plot density distribution
-            ## project(density, mesh=mesh, function=RHO)
-            ## if plot_iteration:
-            ##     plot(RHO, title="Density")
+            # Plot density distribution
+            project(density, mesh=mesh, function=RHO)
+            if plot_iteration:
+                plot(RHO, title="Density")
 
             # Compute residual
             info("Computing residual")
