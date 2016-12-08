@@ -33,11 +33,12 @@ class VlasovPoissonSolver(SolverBase):
         e0 = ansatzes[0].parameters.E0
 
         # Get discretization parameters
-        m             = self.parameters.discretization.mass
-        maxiter       = self.parameters.discretization.maxiter
-        theta         = self.parameters.discretization.theta
-        tol           = self.parameters.discretization.tolerance
-        num_steps     = self.parameters.discretization.num_steps
+        m         = self.parameters.discretization.mass
+        maxiter   = self.parameters.discretization.maxiter
+        theta     = self.parameters.discretization.theta
+        tol       = self.parameters.discretization.tolerance
+        num_steps = self.parameters.discretization.num_steps
+        degree    = self.parameters.discretization.degree
 
         # Get output parameters
         plot_iteration = self.parameters.output.plot_iteration
@@ -47,7 +48,7 @@ class VlasovPoissonSolver(SolverBase):
 
         # Generate mesh and create function space
         mesh = self._generate_mesh()
-        V = FunctionSpace(mesh, "Lagrange", 1)
+        V = FunctionSpace(mesh, "Lagrange", degree)
 
         # Create initial data
         U = _init(e0, m, V)

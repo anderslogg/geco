@@ -85,6 +85,7 @@ class EinsteinVlasovSolver(SolverBase):
         theta     = self.parameters.discretization.theta
         tol       = self.parameters.discretization.tolerance
         num_steps = self.parameters.discretization.num_steps
+        degree    = self.parameters.discretization.degree
 
         # Get output parameters
         plot_iteration = self.parameters.output.plot_iteration
@@ -94,7 +95,7 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Generate mesh and create function space
         mesh = self._generate_mesh()
-        V = FunctionSpace(mesh, "Lagrange", 1)
+        V = FunctionSpace(mesh, "Lagrange", degree)
 
         # Create initial data
         U = _init(e0, V)
@@ -341,6 +342,9 @@ class EinsteinVlasovSolver(SolverBase):
         r0 = MPI.max(mpi_comm_world(), r0)
         R0 = r0*(1.0 + m / (2.0*r0))**2
 
+        # Get minimum value of WW
+        min_WW = max([ansatz.min_WW() for ansatz in ansatzes])
+
         # Compute Buchdahl quantity
         Gamma = 2.0*m / R0
 
@@ -371,4 +375,5 @@ class EinsteinVlasovSolver(SolverBase):
                      "gamma": Gamma,
                      "total_angular_momentum": J,
                      "ergo_region": ergo_region,
-                     "gtt_max": gtt_max}
+                     "gtt_max": gtt_max,
+                     "min_WW": min_WW}
