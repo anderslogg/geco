@@ -105,11 +105,8 @@ namespace dolfin
 	      const Array<double>& x) const
     {
       // We want WW non-negative
-      if (WW < -10*DOLFIN_EPS) 
-	{
-	    std::cout << "WW:" << WW << "\n";
-	    error("Strange stuff: WW is negative");
-	}
+      _min_WW = std::min(_min_WW, WW);
+      //WW = std::max(0.0, WW);
 
       // Get coordinates
       const double rho = x[0];
@@ -167,7 +164,7 @@ namespace dolfin
 
         // Compute step size for s-integral
         const double ds = (sb - sa) / static_cast<double>(n);
-        if (ds < -10.0*DOLFIN_EPS) 
+        if (ds < -10.0*DOLFIN_EPS)
 	  {
 	    std::cout << "BB:" << BB << "\n";
 	    std::cout << "sb:" << sb << "\n";
@@ -232,12 +229,19 @@ namespace dolfin
     void reset()
     {
       _R = 0;
+      _min_WW = 0;
     }
 
     // Return radius of support
     double radius_of_support() const
     {
       return _R;
+    }
+
+    // Return minimum value of WW
+    double min_WW() const
+    {
+      return _min_WW;
     }
 
     // Set integration parameters
@@ -267,6 +271,9 @@ namespace dolfin
 
     // Radius of support
     mutable double _R;
+
+    // Minimum value of WW (should not be negative)
+    mutable double _min_WW;
 
     // The fields
     std::shared_ptr<const Function> _NU;
