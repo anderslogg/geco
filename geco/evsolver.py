@@ -85,6 +85,7 @@ class EinsteinVlasovSolver(SolverBase):
         theta     = self.parameters.discretization.theta
         tol       = self.parameters.discretization.tolerance
         num_steps = self.parameters.discretization.num_steps
+        R         = self.parameters.discretization.radius
 
         # Get output parameters
         plot_iteration = self.parameters.output.plot_iteration
@@ -94,6 +95,7 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Generate mesh and create function space
         mesh = self._generate_mesh()
+        #mesh = Mesh('meshfile_old.xml.gz')
         V = FunctionSpace(mesh, "Lagrange", 1)
 
         # Create initial data
@@ -120,8 +122,11 @@ class EinsteinVlasovSolver(SolverBase):
         NU_R, BB_R, MU_R, WW_R = _flat(m, J)
 
         # Create subdomains for boundaries
-        axis  = CompiledSubDomain("on_boundary && x[0] < 1e-10")
-        infty = CompiledSubDomain("on_boundary && x[0] > 1e-10")
+        eps = 1e-10
+        axis_test  = "x[0] < eps"
+        infty_test = "x[0] > eps || x[0]*x[0] + x[1]*x[1] > (R - eps)*(R - eps)"
+        axis  = CompiledSubDomain("on_boundary && %s" % axis_test, eps=eps)
+        infty = CompiledSubDomain("on_boundary && %s" % infty_test, eps=eps, R=R)
 
         # Create boundary condition on axis for MU
         class AxisValueMU(Expression):
