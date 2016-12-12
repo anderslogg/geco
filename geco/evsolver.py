@@ -96,7 +96,6 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Generate mesh and create function space
         mesh = self._generate_mesh()
-        #mesh = Mesh('meshfile_old.xml.gz')
         V = FunctionSpace(mesh, "Lagrange", degree)
 
         # Create initial data

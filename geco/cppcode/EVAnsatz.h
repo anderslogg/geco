@@ -106,7 +106,7 @@ namespace dolfin
     {
       // We want WW non-negative
       _min_WW = std::min(_min_WW, WW);
-      //WW = std::max(0.0, WW);
+      WW = std::max(0.0, WW);
 
       // Get coordinates
       const double rho = x[0];
