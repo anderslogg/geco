@@ -68,34 +68,50 @@ class SolverBase:
 
     def _generate_mesh(self):
 
+        # Note that we generate the mesh with unit radius and
+        # then scale the mesh so as not to confiuse the mshr
+        # resolution...
+
         # Get parameters
         R = self.parameters.discretization.radius
         N = self.parameters.discretization.resolution
 
-        # Define domain
-        circle = Circle(Point(0, 0), R)
-        rectangle = Rectangle(Point(0, -2*R), Point(2*R, 2*R))
+        # Define domain (unit half disk)
+        circle = Circle(Point(0, 0), 1)
+        rectangle = Rectangle(Point(0, -2), Point(2, 2))
         domain = circle*rectangle
 
         # Generate mesh
         mesh = generate_mesh(domain, N)
 
+        # Scale mesh
+        x = mesh.coordinates()
+        x *= R
+
         return mesh
 
     def _generate_mesh_annulus(self, R, N):
+
+        # Note that we generate the mesh with unit radius and
+        # then scale the mesh so as not to confiuse the mshr
+        # resolution...
 
         # Get parameters
         R = self.parameters.discretization.radius
         N = self.parameters.discretization.resolution
 
         # Define domain
-        big_circle = Circle(Point(0, 0), 2*R)
-        circle = Circle(Point(0, 0), R)
-        rectangle = Rectangle(Point(0, -4*R), Point(4*R, 4*R))
+        big_circle = Circle(Point(0, 0), 2)
+        circle = Circle(Point(0, 0), 1)
+        rectangle = Rectangle(Point(0, -4), Point(4, 4))
         domain = big_circle*rectangle - circle
 
         # Generate mesh
         mesh = generate_mesh(domain, N)
+
+        # Scale mesh
+        x = mesh.coordinates()
+        x *= R
 
         return mesh
 

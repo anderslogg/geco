@@ -19,4 +19,3 @@ model.parameters.rotation = True
 
 # Compute solution
 solution = solver.solve(model)
-
