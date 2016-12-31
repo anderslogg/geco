@@ -5,7 +5,7 @@ double ansatz(double E, double L) const
   if (E0 <= E)
     return 0.0;
 
-  if (_rotation && L <= 0.0)
+  if (_rotation && L < 0.0)
     return 0.0;
 
   return std::pow(E0 - E, k)*(1.0 / L0)*std::exp(pm*std::pow(L / L0, 2.0));
