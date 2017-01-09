@@ -122,28 +122,30 @@ class EinsteinVlasovSolver(SolverBase):
         NU_R, BB_R, MU_R, WW_R = _flat(m, J)
 
         # Create subdomains for boundaries
-        eps = 1e-10
-        axis_test  = "x[0] < eps"
-        infty_test = "x[0] > eps || x[0]*x[0] + x[1]*x[1] > (R - eps)*(R - eps)"
-        axis  = CompiledSubDomain("on_boundary && %s" % axis_test, eps=eps)
-        infty = CompiledSubDomain("on_boundary && %s" % infty_test, eps=eps, R=R)
+        eps = 1e-6
+        axis_test = "x[0] < eps"
+        infty_test = "x[0]*x[0] + x[1]*x[1] > (R - eps)*(R - eps)"
+        axis  = CompiledSubDomain(axis_test, eps=eps)
+        infty = CompiledSubDomain(infty_test, eps=eps, R=R)
 
         # Create boundary condition on axis for MU
         class AxisValueMU(Expression):
-            def eval(self, values, x):
-                BB_value = self.BB(x)
-                NU_value = self.NU(x)
-                values[0] = math.log(BB_value) - NU_value
+            def eval_cell(self, values, x, cell):
+                BB_values = values.copy()
+                NU_values = values.copy()
+                self.BB.eval_cell(BB_values, x, cell)
+                self.NU.eval_cell(NU_values, x, cell)
+                values[0] = math.log(BB_values[0]) - NU_values[0]
         MU_a = AxisValueMU(degree=1)
         MU_a.BB = BB
         MU_a.NU = NU
 
         # Create boundary conditions
-        bci_NU = (0, DirichletBC(V, NU_R, infty))
-        bci_BB = (1, DirichletBC(V, BB_R, infty))
-        bci_MU = (2, DirichletBC(V, MU_R, infty))
-        bci_WW = (3, DirichletBC(V, WW_R, infty))
-        bca_MU = (2, DirichletBC(V, MU_a, axis))
+        bci_NU = (0, DirichletBC(V, NU_R, infty, method="pointwise"))
+        bci_BB = (1, DirichletBC(V, BB_R, infty, method="pointwise"))
+        bci_MU = (2, DirichletBC(V, MU_R, infty, method="pointwise"))
+        bci_WW = (3, DirichletBC(V, WW_R, infty, method="pointwise"))
+        bca_MU = (2, DirichletBC(V, MU_a, axis,  method="pointwise"))
         bc0 = DirichletBC(V, 0.0, DomainBoundary())
 
         # Collect boundary conditions
@@ -243,7 +245,7 @@ class EinsteinVlasovSolver(SolverBase):
                 # Assemble right-hand side
                 assemble(Ls[i], tensor=bs[i])
 
-				# Apply boundary condition(s)
+	        # Apply boundary condition(s)
                 [bc.apply(bs[i]) for j, bc in bcs if j == i]
 
                 # Extra left-hand side assembly for B equation
