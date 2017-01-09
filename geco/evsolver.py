@@ -213,10 +213,10 @@ class EinsteinVlasovSolver(SolverBase):
         # Create linear solver
         preconditioners = [pc for pc in krylov_solver_preconditioners()]
         if "amg" in preconditioners:
-            solver = LinearSolver(mpi_comm_world(), "gmres", "amg")
+            solver = LinearSolver(mpi_comm_world(), "bicgstab", "hypre_amg")            
         else:
             warning("Missing AMG preconditioner, using ILU.")
-            solver = LinearSolver(mpi_comm_world(), "gmres")
+            solver = LinearSolver(mpi_comm_world(), "bicgstab")
 
         # Set linear solver parameters
         solver.parameters["relative_tolerance"] = self.parameters.discretization.krylov_tolerance
