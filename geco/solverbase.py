@@ -156,6 +156,10 @@ class SolverBase:
     def _save_data(self):
         "Save data to file"
 
+        # Do this only on processor 0
+        if MPI.rank(mpi_comm_world()) > 0:
+            return
+        
         # Get parameters
         solution_dir = self.parameters.output.solution_directory
 
@@ -206,10 +210,11 @@ class SolverBase:
             f = File(pj(solution_dir, "%s_%d%s.xml" % (name, R, suffix)))
             f << solution
 
-        # Save solutions in VTK format
+        # Save solutions to XDMF format
         for solution, name in zip(solutions, names):
-            f = File(pj(solution_dir, "%s_%d%s.pvd" % (name, R, suffix)))
-            f << solution
+            f = XDMFFile(mpi_comm_world(),
+                         pj(solution_dir, "%s_%d%s.xdmf" % (name, R, suffix)))
+            f.write(solution)
 
     def _save_flat(self, solutions, names):
         "Save flat solutions on external annulus to file"
@@ -228,10 +233,11 @@ class SolverBase:
         Z = FunctionSpace(annulus_mesh, "Lagrange", 1)
         _solutions = [interpolate(solution, Z) for solution in solutions]
 
-        # Save solutions
+        # Save solutions to XDMF format
         for _solution, name in zip(_solutions, names):
-            f = File(pj(solution_dir, "%s_R_%d%s.pvd" % (name, R, suffix)))
-            f << _solution
+            f = XDMFFile(mpi_comm_world(),
+                         pj(solution_dir, "%s_R_%d%s.xdmf" % (name, R, suffix)))
+            f.write(_solution)
 
     def _save_solution_3d(self, RHO):
         "Save 3D solution to file"
