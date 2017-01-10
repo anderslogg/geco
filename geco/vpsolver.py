@@ -158,8 +158,7 @@ class VlasovPoissonSolver(SolverBase):
 
             # Plot density distribution
             project(density, mesh=mesh, function=RHO)
-            if plot_iteration:
-                plot(RHO, title="Density")
+            self._plot_density(RHO)
 
             # Compute residual
             info("Computing residual")

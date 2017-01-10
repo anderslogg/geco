@@ -21,6 +21,9 @@ class SolverBase:
 
     def __init__(self):
 
+        # Make FEniCS info print only on one processor
+        parameters.std_out_all_processes = False
+
         # Set up directories
         library_dir  = os.path.dirname(os.path.abspath(__file__))
         geometry_dir = os.path.join(library_dir, "geometries")
@@ -67,6 +70,11 @@ class SolverBase:
             solution_dir = sys.argv[-1]
             self.parameters.output.solution_directory = solution_dir
 
+        # Check whether plotting should be disabled
+        self._dolfin_noplot = False
+        if "DOLFIN_NOPLOT" in os.environ:
+            info("Plotting disabled (DOLFIN_NOPLOT set).")
+            
     def _generate_mesh(self):
 
         # Note that we generate the mesh with unit radius and
@@ -268,9 +276,20 @@ class SolverBase:
         "Plot solution"
 
         # Check whether to plot solution
-        if not self.parameters.output.plot_solution: return
+        if self._dolfin_noplot or not self.parameters.output.plot_solution:
+            return
 
         # Plot solutions
         for solution, name in zip(solutions, names):
             plot(solution, title=name)
         interactive()
+
+    def _plot_density(self, RHO):
+        "Plot density during iterations"
+
+        # Check whether to plot iteration
+        if self._dolfin_noplot or not self.parameters.output.plot_solution:
+            return
+
+        # Plot density
+        plot(RHO, title="Density")
