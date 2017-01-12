@@ -126,13 +126,20 @@ class SolverBase:
 
     def _postprocess(self, ansatzes, solutions, flat_solutions, names):
 
-        self._print_data(ansatzes)
-        self._save_data()
-        self._save_solutions(solutions, names)
-        self._save_flat(flat_solutions, names)
-        self._save_solution_3d(solutions[-1])
-        self._save_point_cloud(solutions[-1])
-        self._plot_solutions(solutions[:-1], names[:-1])
+        # File access sometimes fails in parallel and crashes the
+        # solution, in particular the call to os.makedirs, so wrap
+        # this in a try/except.
+
+        try:
+            self._print_data(ansatzes)
+            self._save_solutions(solutions, names)
+            self._save_flat(flat_solutions, names)
+            self._save_solution_3d(solutions[-1])
+            self._save_point_cloud(solutions[-1])
+            self._plot_solutions(solutions[:-1], names[:-1])
+            self._save_data() # do this last as it may break            
+        except:
+            warning("Postprocessing failed: %s" % str(sys.exc_info()[0]))
 
     def _print_data(self, ansatzes):
         "Pretty-print data"
