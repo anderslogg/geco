@@ -20,7 +20,7 @@ def test_vp():
 
     # Check results
     C = data["ansatz_coefficient"]
-    assert(abs(C - 0.004028486781679339) < eps)
+    assert(abs(C - 0.0027841502772863623) < eps)
 
 def test_ev():
     "Test EV solver, non-rotating"
@@ -44,7 +44,7 @@ def test_ev():
 
     # Check results
     C = data["ansatz_coefficient"]
-    assert(abs(C - 0.0009446730442945077) < eps)
+    assert(abs(C - 0.0007798089721151605) < eps)
 
 def test_evr():
     "Test EV solver, rotating"
@@ -67,7 +67,7 @@ def test_evr():
 
     # Check results
     C = data["ansatz_coefficient"]
-    assert(abs(C - 0.001967494113626517) < eps)
+    assert(abs(C - 0.0015973635377758526) < eps)
 
 def test_evr_gaussian():
     "Test EV solver, rotating, with E-Poly : L-Guassian ansatz"
@@ -103,7 +103,7 @@ def test_evr_gaussian():
 
     # Check results
     C = data["ansatz_coefficient"]
-    assert(abs(C - 0.01639897309654446) < eps)
+    assert(abs(C - 0.01637260340798612) < eps)
 
 if __name__ == "__main__":
 
