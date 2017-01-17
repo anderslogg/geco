@@ -8,7 +8,7 @@ double ansatz(double E, double L) const
   if (!_rotation)
     L = std::abs(L);
 
-  if (L <= L0)
+  if (L < L0)
     return 0.0;
 
   return std::pow(E0 - E, k)*std::pow(L - L0, l);
