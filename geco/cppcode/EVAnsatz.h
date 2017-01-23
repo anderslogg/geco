@@ -117,7 +117,7 @@ namespace dolfin
       const double K1 = exp(NU);
 
       // Check cut-off
-      if (K1 >= E0)
+      if (_particle_mass*K1 >= E0)
       {
         values[0] = 0.0;
         values[1] = 0.0;
@@ -205,7 +205,7 @@ namespace dolfin
       values[1] =  2.0*pi*exp(2.0*XI)*std::pow(BB, -3)*I1;                        // Integral for PHI_11
       values[2] =  2.0*pi*exp(2.0*XI)*std::pow(BB, -3)*I2;                        // Integral for PHI_33
       values[3] = -2.0*pi*exp(2.0*XI)*std::pow(BB, -1)*rho*I3;                    // Integral for PHI_03
-      values[4] =  2.0*pi*exp(2.0*MU - 2.0*NU)*I4;                                // Integral for the rest density
+      values[4] =  2.0*pi*exp(2.0*MU - 2.0*NU)*_particle_mass*I4;                 // Integral for the rest density
 
       // Update radius of support
       const double R = std::sqrt(x[0]*x[0] + x[1]*x[1]);
