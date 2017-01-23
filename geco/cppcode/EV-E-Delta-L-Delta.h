@@ -17,7 +17,7 @@ double ansatz(double E, double L) const
   if (L >= L0 + l)
     return 0.0; 
 
-  return 1.0;
+  return 1.0/(4*e*l);
 }
 
 void init_parameters()
@@ -25,7 +25,7 @@ void init_parameters()
   parameters.add("E0", 0.9);
   parameters.add("L0", 0.0);
   parameters.add("e",  0.1);
-  parameters.add("l",  0.05);
+  parameters.add("l",  0.1);
 }
 
 void read_parameters()
