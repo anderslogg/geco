@@ -21,7 +21,7 @@ model = MaterialModel("EV-E-Polytropic-L-Polytropic")
 model.parameters.E0 = 0.92
 model.parameters.k = 0.0
 model.parameters.l = 0.0
-model.parameters.particle_mass = 0.9
+model.parameters.particle_mass = 1.0
 
 # Compute solution for initial guess
 solution = solver.solve(model)
