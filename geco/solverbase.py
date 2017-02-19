@@ -74,6 +74,9 @@ class SolverBase:
         self._dolfin_noplot = False
         if "DOLFIN_NOPLOT" in os.environ:
             info("Plotting disabled (DOLFIN_NOPLOT set).")
+
+        # List of residuals so far
+        self._residuals = []
             
     def _generate_mesh(self):
 
@@ -284,6 +287,24 @@ class SolverBase:
         # Save solution
         filename = pj(solution_dir, "point_cloud_%d%s.xdmf" % (R, suffix))
         rho.save_data(filename)
+
+    def _save_residual(self, residual):
+        "Save residual to file"
+
+        # Store residual
+        self._residuals.append(residual)
+
+        # Get parameters
+        solution_dir = self.parameters.output.solution_directory        
+
+        # Create directory if it does not yet exist
+        if not os.path.exists(solution_dir):
+            os.makedirs(solution_dir)
+
+        # Write residuals
+        filename = pj(solution_dir, "residuals.csv")
+        with open(filename, "w") as f:
+            f.write(",".join("%.16g" % r for r in self._residuals))
 
     def _plot_solutions(self, solutions, names):
         "Plot solution"

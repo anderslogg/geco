@@ -273,6 +273,7 @@ class EinsteinVlasovSolver(SolverBase):
             residuals = [norm(f, "linf") for f in fs]
             residual = max(r for r in residuals)
             info("||F|| = %.3g (%.3g, %.3g, %.3g, %.3g)" % tuple([residual] + residuals))
+            self._save_residual(residual)
             end()
 
             # Check for convergence
