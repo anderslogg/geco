@@ -35,7 +35,6 @@ class VlasovPoissonSolver(SolverBase):
         # Get discretization parameters
         m         = self.parameters.discretization.mass
         maxiter   = self.parameters.discretization.maxiter
-        theta     = self.parameters.discretization.theta
         tol       = self.parameters.discretization.tolerance
         num_steps = self.parameters.discretization.num_steps
         degree    = self.parameters.discretization.degree
@@ -151,6 +150,7 @@ class VlasovPoissonSolver(SolverBase):
             solver.solve(A, Y, b)
 
             # Damped fixed-point update of solution vector
+            theta = self._get_theta()
             X = U.vector()
             X *= (1.0 - theta)
             Y *= theta

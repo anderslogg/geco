@@ -39,6 +39,7 @@ class SolverBase:
         self.parameters.discretization.add("radius", 25)
         self.parameters.discretization.add("maxiter", 1000)
         self.parameters.discretization.add("theta", 1.0)
+        self.parameters.discretization.add("adaptive_theta", False)
         self.parameters.discretization.add("tolerance", 1e-3)
         self.parameters.discretization.add("krylov_tolerance", 1e-9)
         self.parameters.discretization.add("num_steps", 10)
@@ -77,6 +78,11 @@ class SolverBase:
 
         # List of residuals so far
         self._residuals = []
+
+        # Initialize adaptive relaxation (using bisection)
+        self._theta = 1.0
+        self._theta_max = None
+        self._theta_init = False
             
     def _generate_mesh(self):
 
@@ -126,6 +132,47 @@ class SolverBase:
         x *= R
 
         return mesh
+
+    def _get_theta(self):
+        "Try to find optimal theta"
+
+        # If not adaptive theta, just return numerical value
+        if not self.parameters.discretization.adaptive_theta:
+            return self.parameters.discretization.theta        
+
+        # Check whether it's time to get started
+        if not self._theta_init:
+            
+            # If we don't have enough residuals, keep going
+            if len(self._residuals) < 5:
+                return self._theta
+
+            # If we haven't reached asymptotic regime, keep going
+            r1, r2, r3 = self._residuals[-3:]
+            if abs(r1/r2 - r2/r3) > 0.05:
+                return self._theta
+
+            info("Initializing adaptive relaxation")
+            self._theta_init = True
+
+        # If residual increases, set right end-point and decrease theta
+        if self._residuals[-1] > self._residuals[-2]:
+            self._theta_max = self._theta
+            self._theta *= 0.5
+            info("Residual increasing, setting theta_max = %.3g" % self._theta_max)
+
+        # Find right end-point by carefully increasing theta
+        elif self._theta_max is None:
+            self._theta *= 1.05
+
+        # Try approaching right end-point
+        else:
+            print self._theta, self._theta_max
+            self._theta = 2.0*self._theta*self._theta_max / (self._theta + self._theta_max)
+
+        info("theta = %.3g" % self._theta)
+        
+        return self._theta
 
     def _postprocess(self, ansatzes, solutions, flat_solutions, names):
 

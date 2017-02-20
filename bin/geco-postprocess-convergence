@@ -8,10 +8,16 @@ import sys
 import pylab as pl
 
 # Get filename
-if not len(sys.argv) == 2:
+if not len(sys.argv) >= 2:
     print "Usage: geco-postprocess-convergence residuals.csv"
     sys.exit(1)
 filename = sys.argv[1]
+
+# Check whether theta is given
+if len(sys.argv) == 3:
+    theta = float(sys.argv[2])
+else:
+    theta = None
 
 # Read residuals
 with open(filename, 'r') as f:
@@ -28,7 +34,10 @@ R = pl.exp(p[1])*L**K
 # Plot residuals
 pl.semilogy(k, r, 'r-o')
 pl.semilogy(K, R, '--')
-pl.title("Convergence of residual: L = %.3g" % L)
+if theta is None:
+    pl.title("Convergence of residual: L = %.3g" % L)
+else:
+    pl.title("Convergence of residual: L = %.3g theta = %g" % (L, theta))
 pl.xlabel("Iteration")
 pl.ylabel("Residual")
 pl.grid(True)
