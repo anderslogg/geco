@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# This is a utility script for plotting the convergence of the
+# residual. Usage: geco-postprocess-convergence residuals.csv.
+
+import sys
+import pylab as pl
+
+# Get filename
+if not len(sys.argv) == 2:
+    print "Usage: geco-postprocess-convergence residuals.csv"
+    sys.exit(1)
+filename = sys.argv[1]
+
+# Read residuals
+with open(filename, 'r') as f:
+    r = [float(x) for x in f.read().split(',')]
+
+# Estimate convergence rate
+n = len(r)
+k = range(n)
+p = pl.polyfit(k[n/2:], pl.log(r[n/2:]), 1)
+L = pl.exp(p[0]) # Lipschitz-constant
+K = range(int(1.1*n))
+R = pl.exp(p[1])*L**K
+   
+# Plot residuals
+pl.semilogy(k, r, 'r-o')
+pl.semilogy(K, R, '--')
+pl.title("Convergence of residual: L = %.3g" % L)
+pl.xlabel("Iteration")
+pl.ylabel("Residual")
+pl.grid(True)
+pl.show()

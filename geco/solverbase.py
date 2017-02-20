@@ -140,7 +140,7 @@ class SolverBase:
             self._save_solution_3d(solutions[-1])
             self._save_point_cloud(solutions[-1])
             self._plot_solutions(solutions[:-1], names[:-1])
-            self._save_data() # do this last as it may break            
+            self._save_data() # do this last as it may break
         except:
             warning("Postprocessing failed: %s" % str(sys.exc_info()[0]))
 
