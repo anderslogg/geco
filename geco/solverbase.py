@@ -8,6 +8,7 @@ from mshr import *
 from ufl.algorithms import extract_coefficients
 
 from models import *
+from anderson import *
 
 def _dict2table(dict, title):
     "Convert dictionary to table"
@@ -40,6 +41,7 @@ class SolverBase:
         self.parameters.discretization.add("maxiter", 1000)
         self.parameters.discretization.add("theta", 1.0)
         self.parameters.discretization.add("adaptive_theta", False)
+        self.parameters.discretization.add("anderson_depth", 3)
         self.parameters.discretization.add("tolerance", 1e-3)
         self.parameters.discretization.add("krylov_tolerance", 1e-9)
         self.parameters.discretization.add("num_steps", 10)

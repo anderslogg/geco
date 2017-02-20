@@ -12,10 +12,9 @@ from geco import *
 
 # Create solver
 solver = VlasovPoissonSolver()
-solver.parameters.discretization.tolerance = 1e-20
-solver.parameters.discretization.krylov_tolerance = 1e-20
-solver.parameters.discretization.maxiter = 2500
-solver.parameters.discretization.adaptive_theta = True
+solver.parameters.discretization.tolerance = 1e-10
+solver.parameters.discretization.krylov_tolerance = 1e-16
+solver.parameters.discretization.anderson_depth = 9
 
 # Create ansatz
 model = MaterialModel("VP-E-Polytropic-L-Polytropic")

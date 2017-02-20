@@ -38,6 +38,7 @@ class VlasovPoissonSolver(SolverBase):
         tol       = self.parameters.discretization.tolerance
         num_steps = self.parameters.discretization.num_steps
         degree    = self.parameters.discretization.degree
+        depth     = self.parameters.discretization.anderson_depth
 
         # Get output parameters
         plot_iteration = self.parameters.output.plot_iteration
@@ -126,6 +127,9 @@ class VlasovPoissonSolver(SolverBase):
         # Set linear solver parameters
         solver.parameters["relative_tolerance"] = self.parameters.discretization.krylov_tolerance
 
+        # Initialize Anderson acceleration
+        anderson = Anderson(depth, U.vector())
+
         # Main loop
         tic()
         for iter in xrange(maxiter):
@@ -149,12 +153,15 @@ class VlasovPoissonSolver(SolverBase):
             # Solve linear system
             solver.solve(A, Y, b)
 
+            # Fixed-point iteration with Anderson acceleration
+            U.vector()[:] = anderson.update(Y)
+            
             # Damped fixed-point update of solution vector
-            theta = self._get_theta()
-            X = U.vector()
-            X *= (1.0 - theta)
-            Y *= theta
-            X += Y
+            #theta = self._get_theta()
+            #X = U.vector()
+            #X *= (1.0 - theta)
+            #Y *= theta
+            #X += Y
 
             # Plot density distribution
             project(density, mesh=mesh, function=RHO)
