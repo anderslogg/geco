@@ -64,7 +64,7 @@ class EinsteinVlasovSolver(SolverBase):
     "Solver for the axisymmetric Einstein-Vlasov equations"
 
     def __init__(self):
-        SolverBase.__init__(self)
+        SolverBase.__init__(self, "ev")
 
         # Add special parameter
         self.parameters.discretization.add("ang_mom", 0.0)

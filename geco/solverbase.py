@@ -19,7 +19,7 @@ def _dict2table(dict, title):
 
 class SolverBase:
 
-    def __init__(self):
+    def __init__(self, solver_prefix):
 
         # Make FEniCS info print only on one processor
         parameters.std_out_all_processes = False
@@ -27,7 +27,7 @@ class SolverBase:
         # Set up directories
         library_dir  = os.path.dirname(os.path.abspath(__file__))
         geometry_dir = os.path.join(library_dir, "geometries")
-        solution_dir = os.path.join("solutions", "ev")
+        solution_dir = os.path.join("solutions", solver_prefix)
 
         # Create parameter set
         self.parameters = \

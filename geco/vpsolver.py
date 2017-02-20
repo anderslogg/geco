@@ -21,7 +21,7 @@ class VlasovPoissonSolver(SolverBase):
     "Solver for the axisymmetric Vlasov-Poisson equations"
 
     def __init__(self):
-        SolverBase.__init__(self)
+        SolverBase.__init__(self, "vp")
 
     def solve(self, model, solution=None):
         "Compute solution"
@@ -166,6 +166,7 @@ class VlasovPoissonSolver(SolverBase):
             bc0.apply(f)
             residual = norm(f, "linf")
             info("||F|| = %.3g" % residual)
+            self._save_residual(residual)
             end()
 
             # Check for convergence
