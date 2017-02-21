@@ -87,6 +87,7 @@ class EinsteinVlasovSolver(SolverBase):
         num_steps = self.parameters.discretization.num_steps
         R         = self.parameters.discretization.radius
         degree    = self.parameters.discretization.degree
+        depth     = self.parameters.discretization.anderson_depth
 
         # Get output parameters
         plot_iteration = self.parameters.output.plot_iteration
@@ -223,6 +224,9 @@ class EinsteinVlasovSolver(SolverBase):
         # Set linear solver parameters
         solver.parameters["relative_tolerance"] = self.parameters.discretization.krylov_tolerance
 
+        # Initialize Anderson acceleration
+        anderson = Anderson(depth, [Ui.vector() for Ui in U])
+
         # Main loop
         tic()
         for iter in xrange(maxiter):
@@ -257,10 +261,15 @@ class EinsteinVlasovSolver(SolverBase):
                 solver.solve(As[i], Ys[i], bs[i])
 
                 # Damped fixed-point update of solution vector
-                X = U[i].vector()
-                X *= (1.0 - theta)
-                Ys[i] *= theta
-                X += Ys[i]
+                #X = U[i].vector()
+                #X *= (1.0 - theta)
+                #Ys[i] *= theta
+                #X += Ys[i]
+
+            # Fixed-point iteration with Anderson acceleration
+            Ys = anderson.update_system(Ys)
+            for Ui, Yi in zip(U, Ys):
+                Ui.vector()[:] = Yi
 
             # Plot density distribution
             project(density, mesh=mesh, function=RHO)

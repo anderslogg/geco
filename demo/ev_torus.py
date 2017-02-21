@@ -11,6 +11,8 @@ from geco import *
 solver = EinsteinVlasovSolver()
 solver.parameters.output.plot_solution = False
 solver.parameters.discretization.radius = 50
+solver.parameters.discretization.tolerance = 1e-4
+solver.parameters.discretization.anderson_depth = 0
 
 #solver.parameters.discretization.resolution = 64
 
