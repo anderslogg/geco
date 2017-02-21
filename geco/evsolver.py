@@ -72,6 +72,9 @@ class EinsteinVlasovSolver(SolverBase):
     def solve(self, model, solution=None):
         "Compute solution"
 
+        # Initialize solve
+        self._init_solve()
+        
         # Extract all ansatzes from model
         ansatzes = [c for c in extract_coefficients(model) if not isinstance(c, Constant)]
 
@@ -273,6 +276,7 @@ class EinsteinVlasovSolver(SolverBase):
 
             # Plot density distribution
             project(density, mesh=mesh, function=RHO)
+            self._save_density(RHO, iter)
             self._plot_density(RHO)            
 
             # Compute residual

@@ -60,6 +60,7 @@ class SolverBase:
         self.parameters.output.add("save_solution",      True)
         self.parameters.output.add("save_solution_3d",   False)
         self.parameters.output.add("save_point_cloud",   False)
+        self.parameters.output.add("save_iterations",    False)
 
         # Override some parameters when --hires option is given
         if len(sys.argv) > 1 and sys.argv[1] == "--hires":
@@ -85,7 +86,21 @@ class SolverBase:
         self._theta = 1.0
         self._theta_max = None
         self._theta_init = False
-            
+
+    def _init_solve(self):
+        "Initializations at the beginning of solve call"
+
+        # Get parameters
+        solution_dir = self.parameters.output.solution_directory
+
+        # Create file for saving density during iterations
+        if self.parameters.output.save_iterations:
+            self._density_file = XDMFFile(mpi_comm_world(),
+                                          pj(solution_dir, "iterations.xdmf"))
+            self._density_file.parameters.flush_output = True
+        else:
+            self._density_file = None
+        
     def _generate_mesh(self):
 
         # Note that we generate the mesh with unit radius and
@@ -337,6 +352,16 @@ class SolverBase:
         filename = pj(solution_dir, "point_cloud_%d%s.xdmf" % (R, suffix))
         rho.save_data(filename)
 
+    def _save_density(self, RHO, iter):
+        "Save density during iterations"
+
+        # Check whether to save density
+        if not self.parameters.output.save_iterations:
+            return
+        
+        # Save density to file
+        self._density_file.write(RHO, float(iter))
+        
     def _save_residual(self, residual):
         "Save residual to file"
 
