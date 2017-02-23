@@ -110,8 +110,8 @@ class EinsteinVlasovSolver(SolverBase):
         if solution is not None:
             info("Reusing function space and initial data.")
             U = solution[0:4]
-            RHO = solution[4]
             V = U[0].function_space()
+            RHO = Function(V)
             mesh = V.mesh()
 
         # Create spatial coordinates

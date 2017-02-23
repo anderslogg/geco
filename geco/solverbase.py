@@ -79,9 +79,6 @@ class SolverBase:
         if "DOLFIN_NOPLOT" in os.environ:
             info("Plotting disabled (DOLFIN_NOPLOT set).")
 
-        # List of residuals so far
-        self._residuals = []
-
         # Initialize adaptive relaxation (using bisection)
         self._theta = 1.0
         self._theta_max = None
@@ -100,6 +97,9 @@ class SolverBase:
             self._density_file.parameters.flush_output = True
         else:
             self._density_file = None
+
+        # Create list of residuals
+        self._residuals = []
         
     def _generate_mesh(self):
 
@@ -279,9 +279,13 @@ class SolverBase:
         suffix = self.parameters.output.suffix
         solution_dir = self.parameters.output.solution_directory
 
+        # Save mesh to XML format
+        f = File(pj(solution_dir, "mesh.xml.gz"))
+        f << solutions[0].function_space().mesh()
+
         # Save solutions to XML format
         for solution, name in zip(solutions, names):
-            f = File(pj(solution_dir, "%s_%d%s.xml" % (name, R, suffix)))
+            f = File(pj(solution_dir, "%s_%d%s.xml.gz" % (name, R, suffix)))
             f << solution
 
         # Save solutions to XDMF format
