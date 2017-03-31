@@ -303,7 +303,7 @@ class SolverBase:
         if not self.parameters.output.save_residuals: return
 
         # Extract field names and solution directory
-        field_names = [names[n] for n in xrange(1)]
+        field_names = [names[n] for n in xrange(4)]
         solution_dir = self.parameters.output.solution_directory        
 
         # Save solutions to XDMF format

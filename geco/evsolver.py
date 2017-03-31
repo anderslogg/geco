@@ -314,7 +314,14 @@ class EinsteinVlasovSolver(SolverBase):
                                                ansatzes, e0)
 
         # Compute residuals as functions of space
-        ## TODO: Extract integrands for Fs
+        fs = [assemble(F) for F in Fs]
+        nu_res = Function(V)
+        bb_res = Function(V)
+        mu_res = Function(V)
+        ww_res = Function(V)
+        residual_functions = [nu_res, bb_res, mu_res, ww_res]
+        for fres, f in zip(residual_functions, fs):
+            fres.vector()[:] = f 
 
         # Post processing
         solutions = (NU, BB, MU, WW, RHO)
