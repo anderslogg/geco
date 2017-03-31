@@ -61,6 +61,7 @@ class SolverBase:
         self.parameters.output.add("save_solution_3d",   False)
         self.parameters.output.add("save_point_cloud",   False)
         self.parameters.output.add("save_iterations",    False)
+        self.parameters.output.add("save_residuals",     False)        
 
         # Override some parameters when --hires option is given
         if len(sys.argv) > 1 and sys.argv[1] == "--hires":
@@ -191,7 +192,7 @@ class SolverBase:
         
         return self._theta
 
-    def _postprocess(self, ansatzes, solutions, flat_solutions, names):
+    def _postprocess(self, ansatzes, solutions, flat_solutions, names, residual_functions):
 
         # File access sometimes fails in parallel and crashes the
         # solution, in particular the call to os.makedirs, so wrap
@@ -200,6 +201,7 @@ class SolverBase:
         try:
             self._print_data(ansatzes)
             self._save_solutions(solutions, names)
+            self._save_residual_functions(residual_functions, names)
             self._save_flat(flat_solutions, names)
             self._save_solution_3d(solutions[-1])
             self._save_point_cloud(solutions[-1])
@@ -293,6 +295,22 @@ class SolverBase:
             f = XDMFFile(mpi_comm_world(),
                          pj(solution_dir, "%s_%d%s.xdmf" % (name, R, suffix)))
             f.write(solution)
+
+    def _save_residual_functions(self, residual_functions, names):
+        "Save residual functions to file"
+
+        # Check whether to save residuals
+        if not self.parameters.output.save_residuals: return
+
+        # Extract field names and solution directory
+        field_names = [names[n] for n in xrange(1)]
+        solution_dir = self.parameters.output.solution_directory        
+
+        # Save solutions to XDMF format
+        for resf, fname in zip(residual_functions, field_names):
+            f = XDMFFile(mpi_comm_world(),
+                         pj(solution_dir, "%s_residual.xdmf" % fname))
+            f.write(resf)
 
     def _save_flat(self, solutions, names):
         "Save flat solutions on external annulus to file"

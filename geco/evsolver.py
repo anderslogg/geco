@@ -313,11 +313,14 @@ class EinsteinVlasovSolver(SolverBase):
                                                r, z, V,
                                                ansatzes, e0)
 
+        # Compute residuals as functions of space
+        ## TODO: Extract integrands for Fs
+
         # Post processing
         solutions = (NU, BB, MU, WW, RHO)
         flat_solutions = (NU_R, BB_R, MU_R, WW_R)
         names = ("NU", "BB", "MU", "WW", "RHO")
-        self._postprocess(ansatzes, solutions, flat_solutions, names)
+        self._postprocess(ansatzes, solutions, flat_solutions, names, residual_functions)
 
         # Print nice message
         info("Solver complete.")
