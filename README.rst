@@ -49,9 +49,9 @@ Authors
 
 GECo is written by
 
-   Ellery Ames <ellery@chalmers.se>
+   Ellery Ames <ellery@kth.se>
    Anders Logg <logg@chalmers.se>
 
 with valuable theoretical / modeling / algorithmic input from
 
-   Håkan Andreasson <hand@chalmers.se>
+   Hï¿½kan Andreasson <hand@chalmers.se>
