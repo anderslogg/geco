@@ -297,10 +297,12 @@ class EinsteinVlasovSolver(SolverBase):
         info("Iterations finished in %g seconds." % toc())
 
         # Check whether iteration converged
+        solution_converged = False
         if iter == maxiter - 1:
             warning("*** ITERATIONS FAILED TO CONVERGE")
         else:
             info("SOLUTION CONVERGED")
+            solution_converged = True
         info("")
         info("Iterations converged to within a tolerance of %g." % tol)
         info("Number of iterations was %g." % iter)
@@ -311,10 +313,11 @@ class EinsteinVlasovSolver(SolverBase):
                                                P00, P11, P33, P03,
                                                C, _mass, rest_mass,
                                                r, z, V,
-                                               ansatzes, e0)
+                                               ansatzes, e0, solution_converged)
 
         # Compute residuals as functions of space
         fs = [assemble(F) for F in Fs]
+        [bc0.apply(f) for f in fs]        
         nu_res = Function(V)
         bb_res = Function(V)
         mu_res = Function(V)
@@ -339,7 +342,7 @@ class EinsteinVlasovSolver(SolverBase):
                                           P00, P11, P33, P03,
                                           C, _mass, rest_mass,
                                           r, z, V,
-                                          ansatzes, e0):
+                                          ansatzes, e0, solution_converged):
         "Compute interesting properties of solution"
 
         # Compute final unscaled mass and scale ansatz coefficient
@@ -405,4 +408,5 @@ class EinsteinVlasovSolver(SolverBase):
                      "total_angular_momentum": J,
                      "ergo_region": ergo_region,
                      "gtt_max": gtt_max,
-                     "min_WW": min_WW}
+                     "min_WW": min_WW,
+                     "solution_converged": solution_converged}
