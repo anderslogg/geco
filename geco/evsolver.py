@@ -309,10 +309,10 @@ class EinsteinVlasovSolver(SolverBase):
         info("")
 
         # Compute and store solution characteristics
-        self._compute_solution_characteristics(NU, BB, MU, WW,
+        self._compute_solution_characteristics(NU, BB, MU, WW, RHO,
                                                P00, P11, P33, P03,
                                                C, _mass, rest_mass,
-                                               r, z, V,
+                                               r, z, V, R,
                                                ansatzes, e0, solution_converged)
 
         # Compute residuals as functions of space
@@ -338,10 +338,10 @@ class EinsteinVlasovSolver(SolverBase):
         return NU, BB, MU, WW, RHO, self.data
 
     def _compute_solution_characteristics(self,
-                                          NU, BB, MU, WW,
+                                          NU, BB, MU, WW, RHO,
                                           P00, P11, P33, P03,
                                           C, _mass, rest_mass,
-                                          r, z, V,
+                                          r, z, V, R,
                                           ansatzes, e0, solution_converged):
         "Compute interesting properties of solution"
 
@@ -374,27 +374,25 @@ class EinsteinVlasovSolver(SolverBase):
         r0 = MPI.max(mpi_comm_world(), r0)
         R0 = r0*(1.0 + m / (2.0*r0))**2
 
+        # Reflection plane radii of support
+        rmax = min(2*r0, R)
+        rvals = numpy.linspace(0,rmax,10000)
+        deltar = rmax/10000.
+        RHOvals = numpy.array([RHO(r,0) for r in rvals])
+        rp_support = numpy.where(RHOvals > 1e-7)[0] # TODO: How to choose the 'vacuum threshold'?
+        r_inner = min(rp_support)*deltar
+        r_outer = max(rp_support)*deltar
+        r_peak  = rvals[numpy.argmax(RHOvals)]
+
+        # Rcirc
+        Rcirc_func = project(r*BB*exp(-NU), V)
+        Rcirc = Rcirc_func(r_outer, 0.0)
+        
         # Get minimum value of WW
         min_WW = max([ansatz.min_WW() for ansatz in ansatzes])
 
         # Compute Buchdahl quantity
         Gamma = 2.0*m / R0
-
-        # Compute asymptotic expressions for mass and angular momentum
-        # Expressions for M and J at infinity
-        Minf = project(0.5*sqrt(r*r + z*z)*(exp(2.0*NU) - 1.0), V)
-        Jinf = project(0.5*sqrt(r*r + z*z)*(r*r + z*z)*WW*BB*BB*exp(-2.0*NU), V)
-
-        # Compute Minf and Jinf at a set of points
-        R = self.parameters.discretization.radius
-        rlist = numpy.linspace(r0, R, 5)
-        mlist = [Minf(r, 0) for r in rlist]
-        jlist = [Jinf(r, 0) for r in rlist]
-
-        # Print values of Minf and Jinf
-        info("rlist = (%.16g,%.16g,%.16g,%.16g,%.16g)" % tuple(rlist))
-        info("mlist = (%.16g,%.16g,%.16g,%.16g,%.16g)" % tuple(mlist))
-        info("jlist = (%.16g,%.16g,%.16g,%.16g,%.16g)" % tuple(jlist))
 
         # Store values in dictionary
         self.data = {"ansatz_coefficient": float(C),
@@ -405,6 +403,10 @@ class EinsteinVlasovSolver(SolverBase):
                      "frac_binding_energy": Eb,
                      "central_redshift": Zc,
                      "gamma": Gamma,
+                     "Rcirc": Rcirc,
+                     "r_inner": r_inner,
+                     "r_outer": r_outer,
+                     "r_peak": r_peak,
                      "total_angular_momentum": J,
                      "ergo_region": ergo_region,
                      "gtt_max": gtt_max,
