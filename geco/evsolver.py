@@ -379,7 +379,7 @@ class EinsteinVlasovSolver(SolverBase):
         rvals = numpy.linspace(0,rmax,10000)
         deltar = rmax/10000.
         RHOvals = numpy.array([RHO(r,0) for r in rvals])
-        rp_support = numpy.where(RHOvals > 1e-7)[0] # TODO: How to choose the 'vacuum threshold'?
+        rp_support = numpy.where(RHOvals > 1e-3)[0] #'vacuum threshold' chosen to agree with 'eye-ball'
         r_inner = min(rp_support)*deltar
         r_outer = max(rp_support)*deltar
         r_peak  = rvals[numpy.argmax(RHOvals)]
