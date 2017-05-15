@@ -380,9 +380,15 @@ class EinsteinVlasovSolver(SolverBase):
         deltar = rmax/10000.
         RHOvals = numpy.array([RHO(r,0) for r in rvals])
         rp_support = numpy.where(RHOvals > 1e-3)[0] #'vacuum threshold' chosen to agree with 'eye-ball'
-        r_inner = min(rp_support)*deltar
-        r_outer = max(rp_support)*deltar
-        r_peak  = rvals[numpy.argmax(RHOvals)]
+        try:
+            r_inner = min(rp_support)*deltar
+            r_outer = max(rp_support)*deltar
+            r_peak  = rvals[numpy.argmax(RHOvals)]
+        except ValueError:
+            print ("Issue with matter support, setting NA value for rho.")
+            r_inner = NA
+            r_outer = NA
+            r_peak = NA
 
         # Rcirc
         Rcirc_func = project(r*BB*exp(-NU), V)
