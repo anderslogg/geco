@@ -114,7 +114,7 @@ class SolverBase:
 
         # Define domain (unit half disk)
         circle = Circle(Point(0, 0), 1)
-        rectangle = Rectangle(Point(0, -2), Point(2, 2))
+        rectangle = Rectangle(Point(0, 0), Point(2, 2))
         domain = circle*rectangle
 
         # Generate mesh
@@ -139,7 +139,7 @@ class SolverBase:
         # Define domain
         big_circle = Circle(Point(0, 0), 2)
         circle = Circle(Point(0, 0), 1)
-        rectangle = Rectangle(Point(0, -4), Point(4, 4))
+        rectangle = Rectangle(Point(0, 0), Point(4, 4))
         domain = big_circle*rectangle - circle
 
         # Generate mesh
