@@ -97,7 +97,7 @@ class VlasovPoissonSolver(SolverBase):
         density = C*_density
 
         # Define unscaled and scaled mass
-        _mass = 2.0*pi*_density*r*dx
+        _mass = 2*2*pi*_density*r*dx
         mass  = C*_mass
 
         # Create trial and test functions

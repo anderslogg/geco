@@ -181,12 +181,12 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Define rest density and mass
         rest_density = C*_Phi[4]
-        rest_mass    = 2*pi*rest_density*r*dx
+        rest_mass    = 2*2*pi*rest_density*r*dx
 
         # Define density and mass
         _density = BB*(_P00 + _P11 + _P33*(1.0 - (r*BB)**2*WW**2*exp(-4*NU)))
         density  = C*_density
-        _mass    = 2.0*pi*_density*r*dx
+        _mass    = 2*2*pi*_density*r*dx
         mass     = C*_mass
 
         # Create trial and test functions
@@ -354,7 +354,7 @@ class EinsteinVlasovSolver(SolverBase):
         rm = assemble(rest_mass)
 
         # Compute total angular momentum
-        J = assemble(-2.0*pi*exp(-4.0*NU)*BB*(P03 + (r*BB)**2*WW*P33)*r*dx)
+        J = assemble(-2*2*pi*exp(-4.0*NU)*BB*(P03 + (r*BB)**2*WW*P33)*r*dx)
 
         # Compute gtt component of the metric tensor
         gtt = project(-exp(2.0*NU)*(1.0 - (WW*r*BB)**2*exp(-4.0*NU)), V)

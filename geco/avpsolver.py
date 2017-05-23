@@ -221,7 +221,7 @@ class AdaptiveVlasovPoissonSolver:
         rho = C*_rho
 
         # Define unscaled and scaled mass
-        _mass = 2*pi*_rho*r*dx
+        _mass = 2*2*pi*_rho*r*dx
         mass  = C*_mass
 
         # Create boundary conditions
