@@ -386,9 +386,9 @@ class EinsteinVlasovSolver(SolverBase):
             r_peak  = rvals[numpy.argmax(RHOvals)]
         except ValueError:
             print ("Issue with matter support, setting NA value for rho.")
-            r_inner = NA
-            r_outer = NA
-            r_peak = NA
+            r_inner = 'na'
+            r_outer = 'na'
+            r_peak  = 'na'
 
         # Rcirc
         Rcirc_func = project(r*BB*exp(-NU), V)
