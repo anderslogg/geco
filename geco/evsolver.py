@@ -390,9 +390,22 @@ class EinsteinVlasovSolver(SolverBase):
             r_outer = 'na'
             r_peak  = 'na'
 
+        # Matter boundary related characteristics
+        
         # Rcirc
         Rcirc_func = project(r*BB*exp(-NU), V)
-        Rcirc = Rcirc_func(r_outer, 0.0)
+        
+        if isinstance(r_outer, float):
+            Rcirc = Rcirc_func(r_outer, 0.0)
+            Zo    = 1.0/sqrt(abs(gtt(r_outer,0))) - 1.0
+        else:
+            Rcirc =  0.0
+            Zo = 0.0
+        if isinstance(r_peak, float):
+            Zp    = 1.0/sqrt(abs(gtt(r_peak,0))) - 1.0
+        else:
+            Zp = 0.0    
+            
         
         # Get minimum value of WW
         min_WW = max([ansatz.min_WW() for ansatz in ansatzes])
@@ -408,6 +421,8 @@ class EinsteinVlasovSolver(SolverBase):
                      "rest_mass": rm,
                      "frac_binding_energy": Eb,
                      "central_redshift": Zc,
+                     "outer_redshift": Zo,
+                     "peak_redshift": Zp,                     
                      "gamma": Gamma,
                      "Rcirc": Rcirc,
                      "r_inner": r_inner,
@@ -418,3 +433,23 @@ class EinsteinVlasovSolver(SolverBase):
                      "gtt_max": gtt_max,
                      "min_WW": min_WW,
                      "solution_converged": solution_converged}
+
+"""
+    def m_over_Rcirc(self, density)
+        "Finds maximum of m_over_R as function of r and returns (max, r_max)"
+
+        # Create subdomain
+        class ReflectionPlane(SubDomain):
+            def inside(self, x, on_boundary):
+                return x[1] < DOLFIN_EPS
+
+        markers = FacetFunctionSizet(mesh, 0)
+        ReflectionPlane().mark(markers, 1);
+
+        # Assemble mass on reflection plane
+        ds = ds(subdomain_data=markers)
+        assemble(2*pi*density*x[0]*ds(1))
+
+        # Want Mrf(r). 
+"""
+        
