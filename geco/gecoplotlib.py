@@ -174,6 +174,41 @@ def normalized_central_redshift_vs_frac_binding_energy(sol_dirs, labels):
 
     plt.show()
 
+def frac_binding_energy_vs_normalized_central_redshift(sol_dirs, labels):
+    "Plots the normalized redshift vs fractional binding energy"
+
+    for sol_dir in sol_dirs:
+
+        try:
+            e0_index = get_data_index('E0', sol_dir)            
+            Zc_index = get_data_index('central_redshift', sol_dir)    
+            Eb_index = get_data_index('frac_binding_energy', sol_dir)
+        except ValueError:
+            print "Desired data not found in '%s'" %(sol_dir)
+            continue             
+            
+        e0_data, zc_data, eb_data = \
+          np.loadtxt(sol_dir + '/data.csv', delimiter=',', skiprows=1, \
+          usecols=(e0_index, Zc_index, Eb_index), \
+          unpack=True)
+
+        e0_iter = np.array([e0_data]).reshape(-1)
+        eb_iter = np.array([eb_data]).reshape(-1)
+        zc_iter = np.array([zc_data]).reshape(-1)           
+        zc_norm = [rsd/(1. + rsd) for rsd in zc_iter]
+          
+        plt.plot(zc_norm, eb_iter, ':ro')
+
+        if labels:
+            for label, x, y in zip(e0_iter, zc_norm, eb_iter):
+                plt.annotate(str(label), xy=(x, y), xytext=(-2, 2),
+                            textcoords='offset points', ha='left', va='bottom')         
+        
+    plt.ylabel('Fractional Binding Energy $E_b$')
+    plt.xlabel('Normalized Central Redshift, $Z_c/(1 + Z_c)$')
+
+    plt.show()    
+
 def normalized_central_redshift_vs_M_squared_over_J(sol_dirs):
     "Plots the normalized redshift vs M^2/J"
 
