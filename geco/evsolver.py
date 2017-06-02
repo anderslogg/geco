@@ -289,6 +289,10 @@ class EinsteinVlasovSolver(SolverBase):
             self._save_residual(residual)
             end()
 
+            # Check that matter is compactly supported
+            if ansatz.radius_of_support() >= R - DOLFIN_EPS:
+                raise ValueError("Matter is no longer compactly supported.")
+
             # Check for convergence
             if residual < tol and iter > 0:
                 break
@@ -399,7 +403,7 @@ class EinsteinVlasovSolver(SolverBase):
             Rcirc = Rcirc_func(r_outer, 0.0)
             Zo    = 1.0/sqrt(abs(gtt(r_outer,0))) - 1.0
         else:
-            Rcirc =  0.0
+            Rcirc =  R
             Zo = 0.0
         if isinstance(r_peak, float):
             Zp    = 1.0/sqrt(abs(gtt(r_peak,0))) - 1.0
