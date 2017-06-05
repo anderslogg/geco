@@ -2,23 +2,25 @@
 
 """
 GECo Data Plot
+============================================================================
 
 A collection of tools for plotting data from GECo and adaptivesolver.py
 solutions or a sequence of such solutions. 
 
-TODO: Rewrite with following structure
-
-def list_properties(sol_dir)
-   # lists all avaliable properties for plotting
-
-def gecoplot(sol_dir, xaxis, yaxis, [labels, converged_only])
-   # plots specified data with specified labels
-   # automatically looks up appropriate axis names based on specified data
+TODO: add derived data, such as r_inner/r_outer plotting capabilitites.
 
 
-Usage: Handy when combined with jupyter notebooks! 
+Usage: 
+-----------
+list_data(data_files)
+ # print list of data that can be plotted
 
-Last Modified:  June 2 2017
+gecoplot(data_files, 'E0', 'frac_binding_energy', labels='ergo_region', legend=None, converged_only=True)
+ # plots Eb vs E0 and labels the points by whether they contain an ergo_region. 
+ # only plots converged solutions.
+
+
+Last Modified:  June 5 2017
 
 """
 import numpy as np
@@ -26,6 +28,25 @@ import sys, os, glob
 from matplotlib import pyplot as plt
 from matplotlib import rc
 from matplotlib import rcParams
+
+
+axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$', 'Rcirc': 'Coefficient of $g_{\phi \phi}$', 
+                 'adaptive_theta': 'Adaptive Damping Parameter', 'anderson_depth': 'Anderson Depth',
+                 'ang_mom': 'What is this?', 'ansatz_coefficient': 'Ansatz Coefficient', 
+                'areal_radius_of_support': 'Radius of support in areal-like coordinates',
+                'central_redshift' : 'Central Redshift $Z_c$', 'degree': 'Degree of the ???', 
+                'ergo_region': 'Whether an ergo region is present', 'frac_binding_energy': 'Fractional Binding Energy $E_b$',
+                'gamma': 'A compactness parameter $2M/R$', 'gtt_max': 'Maximum of the $g_{tt}$ component', 
+                'k':'Exponent of the energy part of the distribution', 
+                'l':'Exponent of the momentum part of the distribution', 
+                'krylov_tolerance' : 'Krylov Tolerance', 'mass': 'Total Mass of the Solution', 
+                 'outer_redshift': 'Redshift of a photon launched from the surface of the distribution, $Z_o$',
+                 'peak_redshift': 'Redshift of a photon launched from the center of the distribution, $Z_p$',
+                'particle_mass': 'Particle Mass', 'r_inner': 'Inner radius of distribution',
+                'r_outer': 'Outer radius of distribution','r_peak': 'Radius of peak of distribution',
+                'radius_of_support': 'Coordinate Radius of Support','rest_mass': 'Rest Mass', 
+                 'solution_converged':'Whether the solution converged','total_angular_momentum':'Total Angular Momentum'}
+    
 
 def get_data_index(data, sol_dir):
     "Returns the column number corresponding to data in the solution sol_dir"
@@ -38,6 +59,114 @@ def get_data_index(data, sol_dir):
         return data_index
     except ValueError:
         raise ValueError
+
+
+def list_data(data_files):
+    # Lists data available for plotting
+    
+    headers = []
+    warning = False
+    
+    # Find union of all data quantities
+    for data_file in data_files:
+        header = np.genfromtxt(data_file, max_rows=1, delimiter=',', dtype=str)
+        headers = list(set(headers).union(header))
+        
+        # If non-overlapping dq, print warning. 
+        if not all(header == sorted(headers)):
+            warning = True
+               
+    for h in np.sort(headers):
+        print(h)
+      
+    if warning:
+        print("Warning: Not all data files contain all the listed data")
+
+
+def look_up_labels(xdata, ydata, labels):
+    # Returns names for xdata, ydata, and labels
+    
+    label_name = ''
+    xlabel = ''
+    ylabel = ''
+    try:
+        xlabel = axes_label_dict[xdata]
+        ylabel = axes_label_dict[ydata]    
+    
+        if labels is not None:
+            label_name = axes_label_dict[labels]
+    except KeyError:
+        print('Names for requested quantity have not been entered in  axes_label_dict.')
+        print('Returning blank names for some requested quantities.')        
+        
+    return xlabel, ylabel, label_name
+
+
+def gecoplot(data_files, xdata, ydata, labels=None, legend=None, converged_only=True):
+    # plots ydata vs xdata for data in data_files. 
+    # Options: labels, legend, converged_only
+    # TODO: add legend and different coloring abilities. Might require more structure in the input files though...
+
+    for data_file in data_files: 
+
+        # look up index for requested data
+        try:
+            xd_index = get_data_index(xdata, data_file)
+            yd_index = get_data_index(ydata, data_file)
+            
+            x_data, y_data = \
+              np.loadtxt(data_file, delimiter=',', skiprows=1, \
+                         usecols=(xd_index, yd_index), unpack=True)
+
+            if labels is not None:
+                label_index = get_data_index(labels, data_file)
+                if labels == 'ergo_region' or labels == 'solution_converged':
+                    typ = bool
+                else:
+                    typ = float
+                label_data = np.genfromtxt(data_file, delimiter=',', skip_header=1, \
+                                           usecols=(label_index), unpack=True, dtype = typ)
+                
+            if converged_only:
+                sc_index = get_data_index('solution_converged', data_file)
+                sc_data = np.genfromtxt(data_file, delimiter=',', skip_header=1, \
+                                           usecols=(sc_index), unpack=True, dtype = bool)
+                
+        except ValueError:
+            print( "Desired data not found in '%s'" %(sol_dir))
+            continue 
+
+        x_iter  = np.array([x_data]).reshape(-1)
+        y_iter  = np.array([y_data]).reshape(-1)    
+
+        if converged_only:
+            # drop un-converged solutions
+            #converged_data = sc_iter == True
+            sc_iter = np.array([sc_data]).reshape(-1)                
+            x_iter = x_iter[np.where(sc_iter == True)]
+            y_iter = y_iter[np.where(sc_iter == True)]
+          
+        plt.plot(x_iter, y_iter, ':ro')
+
+        if labels is not None:
+            label_iter = np.array([label_data]).reshape(-1)
+            for label, x, y in zip(label_iter, x_iter, y_iter):
+                plt.annotate(str(label), xy=(x, y), xytext=(-2, 2),
+                            textcoords='offset points', ha='left', va='bottom')         
+        
+    # Look up axes labels   
+    xlabel, ylabel, label_name = look_up_labels(xdata, ydata, labels)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+
+    plt.show() 
+
+
+
+########################################################################
+########################################################################
+# OLD FUNCTIONS
+        
 
 def normalized_redshift_vs_radius_ratio(sol_dirs, labels):
     "Plots the normalized redshift vs the ri/ro, as in Ansorg et al."
