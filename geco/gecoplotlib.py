@@ -7,17 +7,19 @@ GECo Data Plot
 A collection of tools for plotting data from GECo and adaptivesolver.py
 solutions or a sequence of such solutions. 
 
-TODO: add derived data, such as r_inner/r_outer plotting capabilitites.
-
 
 Usage: 
 -----------
 list_data(data_files)
  # print list of data that can be plotted
 
-gecoplot(data_files, 'E0', 'frac_binding_energy', labels='ergo_region', legend=None, converged_only=True)
+list_derived_data()
+ # print list of derived quantities available to plot
+
+gecoplot(data_files, 'E0', 'frac_binding_energy', labels='ergo_region', legend=None, converged_only=True, verbose=False)
  # plots Eb vs E0 and labels the points by whether they contain an ergo_region. 
  # only plots converged solutions.
+ # won't warn when data is missing from certain files. To change set verbose=True
 
 
 Last Modified:  June 5 2017
@@ -45,17 +47,24 @@ axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$', 'Rcirc': 'Coefficient of $g_{\phi
                 'particle_mass': 'Particle Mass', 'r_inner': 'Inner radius of distribution',
                 'r_outer': 'Outer radius of distribution','r_peak': 'Radius of peak of distribution',
                 'radius_of_support': 'Coordinate Radius of Support','rest_mass': 'Rest Mass', 
-                 'solution_converged':'Whether the solution converged','total_angular_momentum':'Total Angular Momentum'}
+                 'solution_converged':'Whether the solution converged','total_angular_momentum':'Total Angular Momentum',
+                'ri/ro': 'Inner radius of support over outer radius of support',
+                'normalized_central_redshift': 'Normalized Central Redshift $Z_c/(1 + Z_c)$'}
+
+    
+derived_quantities = {'ri/ro': [['r_inner','r_outer'], 'df_radius_ratio'],
+                        'normalized_central_redshift':[['central_redshift'], 'df_normalized_central_redshift']}
     
 
-def get_data_index(data, sol_dir):
-    "Returns the column number corresponding to data in the solution sol_dir"
+def get_data_index(data_file, data):
+    "Returns the column number corresponding to data in the solution data_file"
 
-    header = np.loadtxt(sol_dir + '/data.csv', dtype=str, delimiter=',')
-    names = header[0,:].tolist()
-    names = [s[2:-1] for s in names] # strips b'...' in python3
+    header = np.genfromtxt(data_file, max_rows = 1, dtype=str, delimiter=',').tolist()
+#    print(header)
+#    names = header[0,:].tolist()
+#    names = [s[2:-1] for s in names] # strips b'...' in python3
     try:
-        data_index = names.index(data)
+        data_index = header.index(data)
         return data_index
     except ValueError:
         raise ValueError
@@ -83,6 +92,14 @@ def list_data(data_files):
         print("Warning: Not all data files contain all the listed data")
 
 
+def list_derived_data():
+    # Lists derived data available for plotting
+    
+    # Find union of all data quantities
+    for k in derived_quantities.keys():
+        print(k)       
+
+
 def look_up_labels(xdata, ydata, labels):
     # Returns names for xdata, ydata, and labels
     
@@ -102,7 +119,60 @@ def look_up_labels(xdata, ydata, labels):
     return xlabel, ylabel, label_name
 
 
-def gecoplot(data_files, xdata, ydata, labels=None, legend=None, converged_only=True):
+def get_data(data_file, data_name):
+    # returns data from file if available
+    
+    # retrieve names of available data
+    header = np.genfromtxt(data_file, max_rows=1, delimiter=',', dtype=str)
+    
+    # if requested data is in list of names retrieve the data
+    if data_name in header:
+        
+        if data_name == 'ergo_region' or data_name == 'solution_converged':
+            typ = bool
+        else:
+            typ = float
+            
+        data_index = get_data_index( data_file, data_name)
+        data = np.genfromtxt(data_file, delimiter=',', skip_header=1, dtype = typ,\
+                         usecols=(data_index), unpack=True)
+      
+    # else look in the list of available derived quantities
+    elif data_name in derived_quantities.keys():
+        
+        #print('  Retrieving data for derived quantity...')
+        
+        # get fundamental data
+        fdata = derived_quantities[data_name][0]
+        derived_data = []
+        for dname in fdata:
+            data_index = get_data_index(data_file, dname)
+            data = np.genfromtxt(data_file, delimiter=',', skip_header=1,\
+                         usecols=(data_index), unpack=True)
+            data = np.array([data])
+            derived_data = np.append(derived_data, data)
+        
+        
+        derived_data = derived_data.reshape(len(fdata), len(data))                    
+            
+        # compute derived thing according to some formula... (also stored in derived _dict?)
+        func_handle = derived_quantities[data_name][1]
+        if func_handle == 'df_radius_ratio':
+            data = df_radius_ratio(derived_data)
+        elif func_handle == 'df_normalized_central_redshift':
+            data = df_normalized_central_redshift(derived_data)
+        else:
+            print("A function for this quantity has not been defined.")
+    
+    # else print an warning message
+    else: 
+        print('Quantity not found.')
+
+
+    return np.array([data]).reshape(-1)
+
+
+def gecoplot(data_files, xdata, ydata, labels=None, legend=None, converged_only=True, verbose=False):
     # plots ydata vs xdata for data in data_files. 
     # Options: labels, legend, converged_only
     # TODO: add legend and different coloring abilities. Might require more structure in the input files though...
@@ -111,46 +181,30 @@ def gecoplot(data_files, xdata, ydata, labels=None, legend=None, converged_only=
 
         # look up index for requested data
         try:
-            xd_index = get_data_index(xdata, data_file)
-            yd_index = get_data_index(ydata, data_file)
             
-            x_data, y_data = \
-              np.loadtxt(data_file, delimiter=',', skiprows=1, \
-                         usecols=(xd_index, yd_index), unpack=True)
+            x_data = get_data(data_file, xdata)
+            y_data = get_data(data_file, ydata)
 
             if labels is not None:
-                label_index = get_data_index(labels, data_file)
-                if labels == 'ergo_region' or labels == 'solution_converged':
-                    typ = bool
-                else:
-                    typ = float
-                label_data = np.genfromtxt(data_file, delimiter=',', skip_header=1, \
-                                           usecols=(label_index), unpack=True, dtype = typ)
+                label_data = np.round(get_data(data_file, labels),2)
                 
             if converged_only:
-                sc_index = get_data_index('solution_converged', data_file)
-                sc_data = np.genfromtxt(data_file, delimiter=',', skip_header=1, \
-                                           usecols=(sc_index), unpack=True, dtype = bool)
+                sc_data = get_data(data_file, 'solution_converged')
                 
         except ValueError:
-            print( "Desired data not found in '%s'" %(sol_dir))
-            continue 
-
-        x_iter  = np.array([x_data]).reshape(-1)
-        y_iter  = np.array([y_data]).reshape(-1)    
+            if verbose:
+                print( "Desired data not found in '%s'" %(data_file))
+            continue  
 
         if converged_only:
             # drop un-converged solutions
-            #converged_data = sc_iter == True
-            sc_iter = np.array([sc_data]).reshape(-1)                
-            x_iter = x_iter[np.where(sc_iter == True)]
-            y_iter = y_iter[np.where(sc_iter == True)]
+            x_data = x_data[np.where(sc_data == True)]
+            y_data = y_data[np.where(sc_data == True)]
           
-        plt.plot(x_iter, y_iter, ':ro')
+        plt.plot(x_data, y_data, ':ro')
 
         if labels is not None:
-            label_iter = np.array([label_data]).reshape(-1)
-            for label, x, y in zip(label_iter, x_iter, y_iter):
+            for label, x, y in zip(label_data, x_data, y_data):
                 plt.annotate(str(label), xy=(x, y), xytext=(-2, 2),
                             textcoords='offset points', ha='left', va='bottom')         
         
@@ -159,9 +213,27 @@ def gecoplot(data_files, xdata, ydata, labels=None, legend=None, converged_only=
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
 
-    plt.show() 
+    plt.show()
 
 
+def df_radius_ratio(arg_array):
+    # Takes an arg_array consisting of 
+    # arg_array = [r_inner, r_outer]
+    # where r_inner and r_outer are possibly lists of values.
+    
+    r_inner = np.array(arg_array[0]).reshape(-1)
+    r_outer = np.array(arg_array[1]).reshape(-1)
+
+    return [ri/ro for ri, ro in zip(r_inner, r_outer)]
+
+
+def df_normalized_central_redshift(arg_array):
+    # Takes an arg_array consisting of 
+    # arg_array = [central_redshift]
+    
+    zc_data = np.array(arg_array[0]).reshape(-1)
+
+    return [zc/(1.+zc) for zc in zc_data] 
 
 ########################################################################
 ########################################################################
