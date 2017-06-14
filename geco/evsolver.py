@@ -379,9 +379,9 @@ class EinsteinVlasovSolver(SolverBase):
         R0 = r0*(1.0 + m / (2.0*r0))**2
 
         # Reflection plane radii of support
-        rmax = min(2*r0, R)
-        rvals = numpy.linspace(0,rmax,10000)
-        deltar = rmax/10000.
+        r_res = 10000
+        rvals = numpy.linspace(0,r0,r_res)
+        deltar = r0/r_res
         RHOvals = numpy.array([RHO(r,0) for r in rvals])
         rp_support = numpy.where(RHOvals > 1e-3)[0] #'vacuum threshold' chosen to agree with 'eye-ball'
         try:
@@ -399,18 +399,17 @@ class EinsteinVlasovSolver(SolverBase):
         # Rcirc
         Rcirc_func = project(r*BB*exp(-NU), V)
         
-        if isinstance(r_outer, float):
+        if isinstance(r_outer, float):            
             Rcirc = Rcirc_func(r_outer, 0.0)
-            Zo    = 1.0/sqrt(abs(gtt(r_outer,0))) - 1.0
+            zamo_Zo = 1.0 - exp(NU(r_outer, 0.0))
         else:
-            Rcirc =  R
-            Zo = 0.0
+            Rcirc   =  R
+            zamo_Zo = 0.0
         if isinstance(r_peak, float):
-            Zp    = 1.0/sqrt(abs(gtt(r_peak,0))) - 1.0
+            zamo_Zp = 1.0 - exp(NU(r_peak, 0.0))
         else:
-            Zp = 0.0    
-            
-        
+            zamo_Zp = 0.0    
+                  
         # Get minimum value of WW
         min_WW = max([ansatz.min_WW() for ansatz in ansatzes])
 
@@ -425,8 +424,8 @@ class EinsteinVlasovSolver(SolverBase):
                      "rest_mass": rm,
                      "frac_binding_energy": Eb,
                      "central_redshift": Zc,
-                     "outer_redshift": Zo,
-                     "peak_redshift": Zp,                     
+                     "zamo_redshift_outer": zamo_Zo,
+                     "zamo_redshift_peak": zamo_Zp,                     
                      "gamma": Gamma,
                      "Rcirc": Rcirc,
                      "r_inner": r_inner,
