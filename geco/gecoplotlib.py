@@ -49,11 +49,15 @@ axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$', 'Rcirc': 'Coefficient of $g_{\phi
                 'radius_of_support': 'Coordinate Radius of Support','rest_mass': 'Rest Mass', 
                  'solution_converged':'Whether the solution converged','total_angular_momentum':'Total Angular Momentum',
                 'ri/ro': 'Inner radius of support over outer radius of support',
-                'normalized_central_redshift': 'Normalized Central Redshift $Z_c/(1 + Z_c)$'}
+                'normalized_central_redshift': 'Normalized Central Redshift $Z_c/(1 + Z_c)$',
+                'M_squared_over_J': 'Mass squared over the total angular momentum',
+                'M_over_Rcirc': 'Mass over Rcirc'}
 
     
 derived_quantities = {'ri/ro': [['r_inner','r_outer'], 'df_radius_ratio'],
-                        'normalized_central_redshift':[['central_redshift'], 'df_normalized_central_redshift']}
+                      'normalized_central_redshift':[['central_redshift'], 'df_normalized_central_redshift'],
+                      'M_squared_over_J':[['mass', 'total_angular_momentum'], 'df_M_squared_over_J'],
+                      'M_over_Rcirc':[['mass', 'Rcirc'], 'df_M_over_Rcirc']}                      
     
 
 def get_data_index(data_file, data):
@@ -161,6 +165,10 @@ def get_data(data_file, data_name):
             data = df_radius_ratio(derived_data)
         elif func_handle == 'df_normalized_central_redshift':
             data = df_normalized_central_redshift(derived_data)
+        elif func_handle == 'df_M_squared_over_J':
+            data = df_M_squared_over_J(derived_data)
+        elif func_handle == 'df_M_over_Rcirc':
+            data = df_M_over_Rcirc(derived_data)            
         else:
             print("A function for this quantity has not been defined.")
     
@@ -186,7 +194,7 @@ def gecoplot(data_files, xdata, ydata, labels=None, legend=None, converged_only=
             y_data = get_data(data_file, ydata)
 
             if labels is not None:
-                label_data = np.round(get_data(data_file, labels),2)
+                label_data = np.round(get_data(data_file, labels),3)
                 
             if converged_only:
                 sc_data = get_data(data_file, 'solution_converged')
@@ -233,7 +241,26 @@ def df_normalized_central_redshift(arg_array):
     
     zc_data = np.array(arg_array[0]).reshape(-1)
 
-    return [zc/(1.+zc) for zc in zc_data] 
+    return [zc/(1.+zc) for zc in zc_data]
+
+def df_M_squared_over_J(arg_array):
+    # Takes an arg_array consisting of 
+    # arg_array = [Mass, total_angular_momentum]
+    
+    mass = np.array(arg_array[0]).reshape(-1)
+    angm = np.array(arg_array[1]).reshape(-1)
+
+    return [m*m/j for m, j in zip(mass, angm)]
+
+
+def df_M_over_Rcirc(arg_array):
+    # Takes an arg_array consisting of 
+    # arg_array = [Mass, Rcirc]
+    
+    mass  = np.array(arg_array[0]).reshape(-1)
+    rcirc = np.array(arg_array[1]).reshape(-1)
+
+    return [m/r for m, r in zip(mass, rcirc)]
 
 ########################################################################
 ########################################################################
