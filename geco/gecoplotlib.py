@@ -85,14 +85,17 @@ def list_data(data_files):
         header = np.genfromtxt(data_file, max_rows=1, delimiter=',', dtype=str)
         headers = list(set(headers).union(header))
         
-        # If non-overlapping dq, print warning. 
-        if not all(header == sorted(headers)):
+        # If non-overlapping, print warning.
+        if not len(headers) == len(header):
+            warning = True
+        elif not all(header == sorted(headers)):
             warning = True
                
     for h in np.sort(headers):
         print(h)
       
     if warning:
+        print()
         print("Warning: Not all data files contain all the listed data")
 
 
