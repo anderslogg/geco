@@ -30,6 +30,7 @@ import sys, os, glob
 from matplotlib import pyplot as plt
 from matplotlib import rc
 from matplotlib import rcParams
+import matplotlib
 
 
 axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$', 'Rcirc': 'Coefficient of $g_{\phi \phi}$', 
@@ -57,7 +58,10 @@ axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$', 'Rcirc': 'Coefficient of $g_{\phi
 derived_quantities = {'ri/ro': [['r_inner','r_outer'], 'df_radius_ratio'],
                       'normalized_central_redshift':[['central_redshift'], 'df_normalized_central_redshift'],
                       'M_squared_over_J':[['mass', 'total_angular_momentum'], 'df_M_squared_over_J'],
-                      'M_over_Rcirc':[['mass', 'Rcirc'], 'df_M_over_Rcirc']}                      
+                      'M_over_Rcirc':[['mass', 'Rcirc'], 'df_M_over_Rcirc']}
+
+
+save_dir = os.path.dirname(os.path.realpath(__file__))
     
 
 def get_data_index(data_file, data):
@@ -125,6 +129,11 @@ def look_up_labels(xdata, ydata, labels):
         
     return xlabel, ylabel, label_name
 
+def set_save_dir(save_directory):
+    # Sets directory in which to store files
+    global save_dir
+    save_dir = save_directory
+    #print('files will be saved to %s' %save_dir)
 
 def get_data(data_file, data_name):
     # returns data from file if available
@@ -183,11 +192,14 @@ def get_data(data_file, data_name):
     return np.array([data]).reshape(-1)
 
 
-def gecoplot(data_files, xdata, ydata, labels=None, legend=None, converged_only=True, verbose=False):
+def gecoplot(data_files, xdata, ydata, labels=None, legend=None, converged_only=True, savefig=False, verbose=False):
     # plots ydata vs xdata for data in data_files. 
-    # Options: labels, legend, converged_only
+    # Options: labels, legend, converged_only, savefig
     # TODO: add legend and different coloring abilities. Might require more structure in the input files though...
 
+    # Set figure size
+    matplotlib.rcParams['figure.figsize'] = (20.0, 10.0)
+    
     for data_file in data_files: 
 
         # look up index for requested data
@@ -196,8 +208,11 @@ def gecoplot(data_files, xdata, ydata, labels=None, legend=None, converged_only=
             x_data = get_data(data_file, xdata)
             y_data = get_data(data_file, ydata)
 
-            if labels is not None:
-                label_data = np.round(get_data(data_file, labels),3)
+            if labels == 'ergo_region' or labels == 'solution_converged':
+                label_data = get_data(data_file, labels)
+                
+            elif labels is not None:
+                label_data = np.round(get_data(data_file, labels), 3)
                 
             if converged_only:
                 sc_data = get_data(data_file, 'solution_converged')
@@ -211,7 +226,7 @@ def gecoplot(data_files, xdata, ydata, labels=None, legend=None, converged_only=
             # drop un-converged solutions
             x_data = x_data[np.where(sc_data == True)]
             y_data = y_data[np.where(sc_data == True)]
-          
+    
         plt.plot(x_data, y_data, ':ro')
 
         if labels is not None:
@@ -223,6 +238,13 @@ def gecoplot(data_files, xdata, ydata, labels=None, legend=None, converged_only=
     xlabel, ylabel, label_name = look_up_labels(xdata, ydata, labels)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+
+    # Save file if desired
+    if savefig:
+        file_name = '%s_vs_%s.png' % (ydata, xdata)
+        save_file = os.path.join(save_dir, file_name)
+        print('Saving figure as %s' % save_file)
+        plt.savefig(save_file, dpi=100, bbox_inches='tight')
 
     plt.show()
 
