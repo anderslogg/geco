@@ -399,6 +399,8 @@ class EinsteinVlasovSolver(SolverBase):
         # Rcirc
         Rcirc_func = project(r*BB*exp(-NU), V)
         
+        # zamo_Z, the scaled ZAMO redshift
+        
         if isinstance(r_outer, float):            
             Rcirc = Rcirc_func(r_outer, 0.0)
             zamo_Zo = 1.0 - exp(NU(r_outer, 0.0))
