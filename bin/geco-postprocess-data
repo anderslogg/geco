@@ -1,0 +1,166 @@
+#!/usr/bin/env python
+
+'''
+
+geco-postprocess-data
+
+A script to obtain data from the computed solution. 
+
+Usage: run from within the solution directory. 
+ 
+'''
+
+import os
+from dolfin import *
+import numpy as np
+
+
+##############################
+##############################
+# Set up Directories
+cwd = os.getcwd()
+data_file = cwd + '/data.csv'
+
+
+##############################
+##############################
+# Some functions
+
+def get_data_index(data_file, data):
+    "Returns the column number corresponding to data in the solution data_file"
+
+    header = np.genfromtxt(data_file, max_rows = 1, dtype=str, delimiter=',').tolist()
+    try:
+        data_index = header.index(data)
+        return data_index
+    except ValueError:
+        raise ValueError
+
+
+def save_data(data_dict, cwd):
+    "Save data to file"
+
+    # Name of file
+    filename = os.path.join(cwd, "ppdata.csv")
+    info("Appending data to file %s." % filename)
+
+    # Get keys
+    keys = sorted(data_dict.keys())
+
+    # Remove ppdata if it exists
+    try:
+        os.remove(filename)
+    except OSError:
+        pass    
+
+    # Write header if not written before
+    if not os.path.isfile(filename):
+        f = open(filename, "w")
+        f.write(",".join(str(k) for k in keys) + "\n")
+        f.close()
+
+    # Append data
+    data_line=""
+    for key in keys:
+        val = data_dict[key]
+        if isinstance(val, float):
+            data_line += "%.16g" % val + ","
+        else:
+            data_line += str(val) + ","
+    data_line = data_line.strip(",")
+
+    f = open(filename, "a")
+    f.write(data_line + "\n")
+    f.close()
+
+def print_data_dict(data_dict):
+    for k in ppdata_dict.keys():
+        print(k, ppdata_dict[k])    
+
+    
+##############################
+##############################
+# Load metric functions
+
+filename = [f for f in os.listdir(cwd) if f.startswith('NU_')][0]
+R = filename.split('.')[0].split('_')[1]
+
+# Read mesh and create function space
+mesh = Mesh(cwd + '/mesh.xml.gz')
+V = FunctionSpace(mesh, 'Lagrange', 1)
+x = SpatialCoordinate(mesh)
+r = x[0]
+z = x[1]
+
+# Read and save fields and density
+NU  = Function(V)
+BB  = Function(V)
+MU  = Function(V)
+WW  = Function(V)
+RHO = Function(V)
+fields = [NU, BB, MU, WW, RHO]
+field_names = ['NU', 'BB', 'MU', 'WW', 'RHO']
+
+for f, fn in zip(fields, field_names):
+    File('%s_%s.xml.gz' % (fn, R)) >> f
+
+# Find radius of support
+data_index = get_data_index(data_file, 'radius_of_support')
+rad_of_supp = np.genfromtxt(data_file, delimiter=',', skip_header=1, usecols=(data_index))
+try:
+    rad_of_supp = rad_of_supp[-1]
+except IndexError:
+    pass
+
+
+##############################
+##############################
+# Compute post-process data
+
+# Rcirc
+Rcirc_func = project(r*BB*exp(-NU), V)
+Rcirc = Rcirc_func(rad_of_supp, 0)
+
+# Mass aspect function
+sres = 100
+slist = np.linspace(0., rad_of_supp, sres)
+masslist = []
+
+for s in slist:
+    g = Expression('s - x[0]', degree=1, s=s)
+    eta = 2*2*pi*assemble(conditional(ge(g, 0), 1, 0)*RHO*r*dx(mesh))
+    eta /= Rcirc_func(s,0)
+    masslist.append([s, eta])
+
+maximum = max(masslist, key=lambda x: x[1])
+
+# Lapse
+lapse = project(exp(NU), V)
+central_lapse = lapse(0,0)
+outer_lapse   = lapse(rad_of_supp, 0)
+
+
+
+##############################
+##############################
+# Save post-process data along with original data from converged run
+
+# Read last line of data.csv and create dictionary
+header = np.genfromtxt(data_file, max_rows=1, delimiter=',', dtype=str)
+data = np.genfromtxt(data_file, delimiter=',', dtype=None)
+data = data[-1]
+ppdata_dict = dict(zip(header, data))
+
+# Add newly computed post-process values
+ppdata_dict['Rcirc'] = Rcirc
+ppdata_dict['mass_aspect_max'] = maximum[1]
+ppdata_dict['mass_aspect_rmax'] = maximum[0]
+ppdata_dict['central_lapse'] = central_lapse
+ppdata_dict['outer_lapse'] = outer_lapse
+
+# Save
+save_data(ppdata_dict, cwd)
+
+# Print
+#print_data_dict(ppdata_dict)
+
