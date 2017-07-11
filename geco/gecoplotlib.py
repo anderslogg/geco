@@ -52,7 +52,9 @@ axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$', 'Rcirc': 'Coefficient of $g_{\phi
                 'ri/ro': 'Inner radius of support over outer radius of support',
                 'normalized_central_redshift': 'Normalized Central Redshift $Z_c/(1 + Z_c)$',
                 'M_squared_over_J': 'Mass squared over the total angular momentum',
-                'M_over_Rcirc': 'Mass over Rcirc'}
+                'M_over_Rcirc': 'Mass over Rcirc', 'zamo_redshift_peak': 'ZAMO Redshift at peak', 'zamo_redshift_outer': 'ZAMO Redshift at surface',
+                'mass_aspect_max': 'Maximum of $m(r)/R_{circ}$', 'mass_aspect_rmax': 'Radius of maximum $m(r)/R_{circ}$',
+                'central_lapse': 'Central Lapse', 'peak_lapse': 'Lapse at matter peak'}
 
     
 derived_quantities = {'ri/ro': [['r_inner','r_outer'], 'df_radius_ratio'],
