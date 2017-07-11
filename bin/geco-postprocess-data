@@ -117,6 +117,22 @@ except IndexError:
 ##############################
 # Compute post-process data
 
+# Reflection plane radii of support
+r_res = 10000
+rvals = np.linspace(0,rad_of_supp,r_res)
+deltar = rad_of_supp/r_res
+RHOvals = np.array([RHO(r,0) for r in rvals])
+support = np.where(RHOvals > 1e-6)[0] #'vacuum threshold' chosen to agree with 'eye-ball'
+try:
+    r_inner = min(support)*deltar
+    r_outer = max(support)*deltar
+    r_peak  = rvals[np.argmax(RHOvals)]
+except ValueError:
+    print ("Issue with matter support, setting NA value for rho.")
+    r_inner = 'na'
+    r_outer = 'na'
+    r_peak  = 'na'
+
 # Rcirc
 Rcirc_func = project(r*BB*exp(-NU), V)
 Rcirc = Rcirc_func(rad_of_supp, 0)
@@ -137,7 +153,18 @@ maximum = max(masslist, key=lambda x: x[1])
 # Lapse
 lapse = project(exp(NU), V)
 central_lapse = lapse(0,0)
-outer_lapse   = lapse(rad_of_supp, 0)
+peak_lapse    = lapse(r_peak, 0)
+
+
+# zamo_Z, the scaled ZAMO redshift
+if isinstance(r_outer, float):            
+    zamo_Zo = 1.0 - exp(NU(r_outer, 0.0))
+else:
+    zamo_Zo = 0.0
+if isinstance(r_peak, float):
+    zamo_Zp = 1.0 - exp(NU(r_peak, 0.0))
+else:
+    zamo_Zp = 0.0 
 
 
 
@@ -152,11 +179,13 @@ data = data[-1]
 ppdata_dict = dict(zip(header, data))
 
 # Add newly computed post-process values
-ppdata_dict['Rcirc'] = Rcirc
-ppdata_dict['mass_aspect_max'] = maximum[1]
-ppdata_dict['mass_aspect_rmax'] = maximum[0]
-ppdata_dict['central_lapse'] = central_lapse
-ppdata_dict['outer_lapse'] = outer_lapse
+ppdata_dict['Rcirc']               = Rcirc
+ppdata_dict['mass_aspect_max']     = maximum[1]
+ppdata_dict['mass_aspect_rmax']    = maximum[0]
+ppdata_dict['central_lapse']       = central_lapse
+ppdata_dict['peak_lapse']          = peak_lapse
+ppdata_dict['zamo_redshift_peak']  = zamo_Zp
+ppdata_dict['zamo_redshift_outer'] = zamo_Zo
 
 # Save
 save_data(ppdata_dict, cwd)
