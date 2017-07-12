@@ -87,10 +87,7 @@ R = filename.split('.')[0].split('_')[1]
 
 # Read mesh and create function space
 mesh = Mesh(cwd + '/mesh.xml.gz')
-V = FunctionSpace(mesh, 'Lagrange', 1)
-x = SpatialCoordinate(mesh)
-r = x[0]
-z = x[1]
+V = FunctionSpace(mesh, 'P', 1)
 
 # Read and save fields and density
 NU  = Function(V)
@@ -122,7 +119,7 @@ r_res = 10000
 rvals = np.linspace(0,rad_of_supp,r_res)
 deltar = rad_of_supp/r_res
 RHOvals = np.array([RHO(r,0) for r in rvals])
-support = np.where(RHOvals > 1e-6)[0] #'vacuum threshold' chosen to agree with 'eye-ball'
+support = np.where(RHOvals > 1e-5)[0]
 try:
     r_inner = min(support)*deltar
     r_outer = max(support)*deltar
@@ -134,8 +131,12 @@ except ValueError:
     r_peak  = 'na'
 
 # Rcirc
+x = SpatialCoordinate(mesh)
+r = x[0]
+z = x[1]
 Rcirc_func = project(r*BB*exp(-NU), V)
-Rcirc = Rcirc_func(rad_of_supp, 0)
+Rcirc_peak = Rcirc_func(r_peak, 0.0)
+Rcirc_outer = Rcirc_func(r_outer, 0.0)
 
 # Mass aspect function
 sres = 100
@@ -145,7 +146,7 @@ masslist = []
 for s in slist:
     g = Expression('s - x[0]', degree=1, s=s)
     eta = 2*2*pi*assemble(conditional(ge(g, 0), 1, 0)*RHO*r*dx(mesh))
-    eta /= Rcirc_func(s,0)
+    eta /= Rcirc_func(s, 0.0)
     masslist.append([s, eta])
 
 maximum = max(masslist, key=lambda x: x[1])
@@ -164,8 +165,14 @@ else:
 if isinstance(r_peak, float):
     zamo_Zp = 1.0 - exp(NU(r_peak, 0.0))
 else:
-    zamo_Zp = 0.0 
+    zamo_Zp = 0.0
 
+# Solution step in sequence
+try:
+    step = cwd.split('/')[-1].split('_')[-1]
+except:
+    step = 000
+    pass
 
 
 ##############################
@@ -179,13 +186,17 @@ data = data[-1]
 ppdata_dict = dict(zip(header, data))
 
 # Add newly computed post-process values
-ppdata_dict['Rcirc']               = Rcirc
+ppdata_dict['r_peak']              = r_peak
+ppdata_dict['r_outer']             = r_outer
+ppdata_dict['Rcirc_peak']          = Rcirc_peak
+ppdata_dict['Rcirc_outer']         = Rcirc_outer
 ppdata_dict['mass_aspect_max']     = maximum[1]
 ppdata_dict['mass_aspect_rmax']    = maximum[0]
 ppdata_dict['central_lapse']       = central_lapse
 ppdata_dict['peak_lapse']          = peak_lapse
 ppdata_dict['zamo_redshift_peak']  = zamo_Zp
 ppdata_dict['zamo_redshift_outer'] = zamo_Zo
+ppdata_dict['step']                = step
 
 # Save
 save_data(ppdata_dict, cwd)
