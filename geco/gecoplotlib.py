@@ -240,6 +240,7 @@ def gecoplot(data_files, xdata, ydata, labels=None, legend=None, converged_only=
     xlabel, ylabel, label_name = look_up_labels(xdata, ydata, labels)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    plt.grid()
 
     # Save file if desired
     if savefig:
