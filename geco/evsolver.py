@@ -312,6 +312,10 @@ class EinsteinVlasovSolver(SolverBase):
         info("Number of iterations was %g." % iter)
         info("")
 
+        # Compute final unscaled mass and scale ansatz coefficient
+        _m = assemble(_mass)
+        C.assign(m / _m)
+
         # Compute and store solution characteristics
         self._compute_solution_characteristics(NU, BB, MU, WW, RHO,
                                                P00, P11, P33, P03,
@@ -333,8 +337,10 @@ class EinsteinVlasovSolver(SolverBase):
         # Post processing
         solutions = (NU, BB, MU, WW, RHO)
         flat_solutions = (NU_R, BB_R, MU_R, WW_R)
+        matter_components = [project(p, V) for p in (P00, P11, P33, P03)]        
         names = ("NU", "BB", "MU", "WW", "RHO")
-        self._postprocess(ansatzes, solutions, flat_solutions, names, residual_functions)
+        matter_names = ("P00", "P11", "P33", "P03")
+        self._postprocess(ansatzes, solutions, flat_solutions, names, residual_functions, matter_components, matter_names)
 
         # Print nice message
         info("Solver complete.")
@@ -349,10 +355,8 @@ class EinsteinVlasovSolver(SolverBase):
                                           ansatzes, e0, solution_converged):
         "Compute interesting properties of solution"
 
-        # Compute final unscaled mass and scale ansatz coefficient
+        # Mass
         m = self.parameters.discretization.mass
-        _m = assemble(_mass)
-        C.assign(m / _m)
 
         # Compute rest mass
         rm = assemble(rest_mass)

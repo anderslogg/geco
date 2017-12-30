@@ -192,7 +192,7 @@ class SolverBase:
         
         return self._theta
 
-    def _postprocess(self, ansatzes, solutions, flat_solutions, names, residual_functions):
+    def _postprocess(self, ansatzes, solutions, flat_solutions, names, residual_functions, matter_components, matter_names):
 
         # File access sometimes fails in parallel and crashes the
         # solution, in particular the call to os.makedirs, so wrap
@@ -201,6 +201,7 @@ class SolverBase:
         try:
             self._print_data(ansatzes)
             self._save_solutions(solutions, names)
+            self._save_solutions(matter_components, matter_names)            
             self._save_residual_functions(residual_functions, names)
             self._save_flat(flat_solutions, names)
             self._save_solution_3d(solutions[-1])
