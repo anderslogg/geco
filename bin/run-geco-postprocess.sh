@@ -20,8 +20,9 @@ ALLSTEPS=$( ls adaptive_solver/ | grep '^step_' )
 for STEP in $ALLSTEPS
 do
     cd $CURRENTDIR/adaptive_solver/$STEP
-    geco-postprocess-data
-    # /home/fenics/shared/geco/bin/geco-postprocess-ergoregion
+    #geco-postprocess-data
+    /home/fenics/shared/geco/bin/geco-postprocess-data
+    #/home/fenics/shared/geco/bin/geco-postprocess-ergoregion
 done
 
 # Print a nice message

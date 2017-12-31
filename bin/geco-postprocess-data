@@ -13,6 +13,7 @@ Usage: run from within the solution directory.
 import os
 from dolfin import *
 import numpy as np
+from matplotlib import pyplot as plt
 
 
 ##############################
@@ -173,6 +174,72 @@ try:
 except:
     step = 000
     pass
+
+
+##############################
+##############################
+# Deficit angle by limit of proper perimeter over proper radius
+
+# Some useful quantities
+eMU = project(exp(MU), V)
+
+try:
+    peak_radius  = r_peak[-1]
+    inner_radius = r_inner[-1]
+    outer_radius = r_outer[-1]    
+except IndexError:
+    peak_radius  = r_peak
+    inner_radius = r_inner
+    outer_radius = r_outer
+
+# Estimate deficit angle from linear energy density
+data_index = get_data_index(data_file, 'rest_mass')
+rest_mass = np.genfromtxt(data_file, delimiter=',', skip_header=1, usecols=(data_index))
+try:
+    rest_mass = rest_mass[-1]
+except IndexError:
+    pass
+
+linearED = assemble(RHO*r*dx(mesh)) # this might give a closer result when the azimuthal stress is subtracted.
+linearEDII = 1.0/(2*pi*Rcirc_func(peak_radius, 0.0))
+linearEDIII = rest_mass/(2*pi*Rcirc_func(peak_radius, 0.0))
+
+# Deficit angle
+sres = 50
+slist = np.linspace(0.00001, peak_radius, sres)
+deficit_list = []
+
+def limit_function(sval, j):
+    
+    integral = 0.0
+    intres = 1000
+    ds = sval/intres
+
+    for i in xrange(intres):
+        si = 0.5*ds + i*ds
+        rp = peak_radius + si*np.cos(pi*j)
+        zp = si*np.sin(pi*j)
+        integral += exp(MU(rp, zp))
+
+    integral *= ds
+    return 2*pi*sval*eMU(peak_radius - sval, 0.0)/integral
+
+numlines = 4
+colors = ['r','g','b','m']
+angles = np.linspace(0., 1.,numlines)
+
+for j in xrange(numlines):
+    deficits = [2*pi-limit_function(s, angles[j]) for s in slist]
+    marker = colors[j].join('+')
+    plt.plot(slist, deficits, marker)
+
+save_file = os.path.join(cwd, 'deficit_angle.png')
+#plt.axvline(x=np.mean([peak_radius-inner_radius, outer_radius-peak_radius]))
+plt.axhline(y=4*pi*linearEDIII)
+plt.axhline(y=4*pi*linearEDII)
+plt.axvline(x=peak_radius-inner_radius)
+plt.savefig(save_file, dpi=100, bbox_inches='tight')
+
 
 
 ##############################
