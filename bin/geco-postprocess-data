@@ -222,7 +222,10 @@ def limit_function(sval, j):
         integral += exp(MU(rp, zp))
 
     integral *= ds
-    return 2*pi*sval*eMU(peak_radius - sval, 0.0)/integral
+    rp = peak_radius + sval*np.cos(pi*j)
+    zp = sval*np.sin(pi*j)
+    eMU.set_allow_extrapolation(True)    
+    return 2*pi*sval*eMU(rp, zp)/integral
 
 numlines = 4
 colors = ['r','g','b','m']
@@ -238,6 +241,7 @@ save_file = os.path.join(cwd, 'deficit_angle.png')
 plt.axhline(y=4*pi*linearEDIII)
 plt.axhline(y=4*pi*linearEDII)
 plt.axvline(x=peak_radius-inner_radius)
+plt.title(step)
 plt.savefig(save_file, dpi=100, bbox_inches='tight')
 
 
