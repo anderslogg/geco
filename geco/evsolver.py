@@ -6,10 +6,15 @@ from solverbase import *
 def _lhs(nu, bb, mu, ww, v0, v1, v2, v3, r,
          P00, P11, P33, P03):
 
-    a0 = dot(grad(nu), grad(v0))*r*dx
-    a1 = dot(grad(bb), grad(v1))*r*dx - bb.dx(0)*v1*dx + 8*pi*bb*P11*v1*r*dx
-    a2 = dot(grad(mu), grad(v2))*r*dx + mu.dx(0)*v2*dx
-    a3 = dot(grad(ww), grad(v3))*r*dx - 2.0*ww.dx(0)*v3*dx
+#    a0 = dot(grad(nu), grad(v0))*r*dx
+#    a1 = dot(grad(bb), grad(v1))*r*dx - bb.dx(0)*v1*dx + 8*pi*bb*P11*v1*r*dx 
+#    a2 = dot(grad(mu), grad(v2))*r*dx + mu.dx(0)*v2*dx
+#    a3 = dot(grad(ww), grad(v3))*r*dx - 2.0*ww.dx(0)*v3*dx
+
+    a0 = dot(grad(nu), grad(v0))*r*dx - nu.dx(0)*v0*dx # nu_r term added
+    a1 = dot(grad(bb), grad(v1))*r*dx - 2.0*bb.dx(0)*v1*dx + 8*pi*bb*P11*v1*r*dx # - bb.dx(0)*v1*dx
+    a2 = dot(grad(mu), grad(v2))*r*dx #+ mu.dx(0)*v2*dx
+    a3 = dot(grad(ww), grad(v3))*r*dx - 3.0*ww.dx(0)*v3*dx #- 2.0*ww.dx(0)*v3*dx
 
     return a0, a1, a2, a3
 
@@ -340,6 +345,7 @@ class EinsteinVlasovSolver(SolverBase):
         matter_components = [project(p, V) for p in (P00, P11, P33, P03)]        
         names = ("NU", "BB", "MU", "WW", "RHO")
         matter_names = ("P00", "P11", "P33", "P03")
+        
         self._postprocess(ansatzes, solutions, flat_solutions, names, residual_functions, matter_components, matter_names)
 
         # Print nice message

@@ -4,7 +4,8 @@ equations in axial symmetry."""
 from solverbase import *
 
 def _lhs(u, v, r):
-    return dot(grad(u), grad(v))*r*dx
+    #return dot(grad(u), grad(v))*r*dx
+    return dot(grad(u), grad(v))*r*dx - u.dx(0)*v*dx
 
 def _rhs(rho, v, r):
     return -4*pi*rho*v*r*dx
@@ -200,11 +201,21 @@ class VlasovPoissonSolver(SolverBase):
         # Compute and store solution characteristics
         self._compute_solution_characteristics(C, _mass, ansatzes)
 
+        # Compute residuals as functions of space
+        fs = assemble(F)
+        bc0.apply(fs)
+        U_res = Function(V)
+        U_res.vector()[:] = fs
+        residual_functions = (U_res,)
+
         # Post processing
-        solutions = (U, RHO)
+        solutions = (U,)
         flat_solutions = (U_R,)
-        names = ("U", "RHO")
-        self._postprocess(ansatzes, solutions, flat_solutions, names)
+        matter_components = (RHO,)
+        names = ("U",)
+        matter_names = ("RHO",)
+        #self._postprocess(ansatzes, solutions, flat_solutions, names)
+        self._postprocess(ansatzes, solutions, flat_solutions, names, residual_functions, matter_components, matter_names)
 
         # Print nice message
         info("Solver complete")
