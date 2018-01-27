@@ -4,8 +4,7 @@ equations in axial symmetry."""
 from solverbase import *
 
 def _lhs(u, v, r):
-    #return dot(grad(u), grad(v))*r*dx
-    return dot(grad(u), grad(v))*r*dx - u.dx(0)*v*dx
+    return dot(grad(u), grad(v))*r*dx
 
 def _rhs(rho, v, r):
     return -4*pi*rho*v*r*dx
