@@ -96,8 +96,10 @@ BB  = Function(V)
 MU  = Function(V)
 WW  = Function(V)
 RHO = Function(V)
-fields = [NU, BB, MU, WW, RHO]
-field_names = ['NU', 'BB', 'MU', 'WW', 'RHO']
+P33 = Function(V)
+P00 = Function(V)
+fields = [NU, BB, MU, WW, RHO, P33, P00]
+field_names = ['NU', 'BB', 'MU', 'WW', 'RHO', 'P33', 'P00']
 
 for f, fn in zip(fields, field_names):
     File('%s_%s.xml.gz' % (fn, R)) >> f
@@ -200,15 +202,16 @@ try:
 except IndexError:
     pass
 
-linearED = assemble(RHO*r*dx(mesh)) # this might give a closer result when the azimuthal stress is subtracted.
+linearED = 4*pi*assemble(RHO*r*dx(mesh)) # FIXME: Why is this not one??
+azimuthal_pressure = 4*pi*assemble(P33*r*dx(mesh))
+p00 = 4*pi*assemble(P00*r*dx(mesh))
 linearEDII = 1.0/(2*pi*Rcirc_func(peak_radius, 0.0))
 linearEDIII = rest_mass/(2*pi*Rcirc_func(peak_radius, 0.0))
 
-# Deficit angle
-sres = 50
-slist = np.linspace(0.00001, peak_radius, sres)
-deficit_list = []
+print('tot energy density = {:f}, azim pressure = {:f}, p00 = {:f}, rest mass = {:f}'.format(linearED, azimuthal_pressure, p00, linearEDIII))
 
+# Limit function in local polar coordinates about torus peak
+'''
 def limit_function(sval, j):
     
     integral = 0.0
@@ -217,8 +220,8 @@ def limit_function(sval, j):
 
     for i in xrange(intres):
         si = 0.5*ds + i*ds
-        rp = peak_radius + si*np.cos(pi*j)
-        zp = si*np.sin(pi*j)
+        rp = peak_radius + si*np.cos(pi*j) #local polar coord about peak
+        zp = si*np.sin(pi*j) #local polar coord about peak
         integral += exp(MU(rp, zp))
 
     integral *= ds
@@ -226,21 +229,66 @@ def limit_function(sval, j):
     zp = sval*np.sin(pi*j)
     eMU.set_allow_extrapolation(True)    
     return 2*pi*sval*eMU(rp, zp)/integral
+'''
 
+
+# Limit function in toroidal coordinates centered at peak radius. 
+def limit_function(sigma0, psi0):
+    
+    eMU.set_allow_extrapolation(True)    
+    sigma_integral = 0.0
+    psi_integral = 0.0
+    intres = 100
+    sigma_max = 20
+    ds = (sigma_max-sigma0)/intres
+    dpsi = pi/intres
+    
+    # sigma integral: proper toroidal radius
+    for i in xrange(intres):
+        si = sigma0 + 0.5*ds + i*ds
+        rp = peak_radius*np.sinh(si)/(np.cosh(si)-np.cos(psi0)) 
+        zp = peak_radius*np.sin(psi0)/(np.cosh(si)-np.cos(psi0))
+        sigma_integral += exp(MU(rp, zp))/(np.cosh(si)-np.cos(psi0))
+
+    sigma_integral *= ds
+
+    # psi integral: proper toroidal circumference
+    for k in xrange(intres):
+        psik = 0.5*dpsi + k*dpsi
+        rp = peak_radius*np.sinh(sigma0)/(np.cosh(sigma0)-np.cos(psik)) 
+        zp = peak_radius*np.sin(psik)/(np.cosh(sigma0)-np.cos(psik))
+        psi_integral += exp(MU(rp, zp))/(np.cosh(sigma0)-np.cos(psik))
+
+    psi_integral *= dpsi
+    
+    return 2*psi_integral/sigma_integral
+
+# Deficit angle
+sres = 25
+#slist = np.linspace(0.00001, peak_radius, sres)
+slist = np.linspace(1., 10, sres)
+deficit_list = []
 numlines = 4
 colors = ['r','g','b','m']
-angles = np.linspace(0., 1.,numlines)
+angles = pi*np.linspace(0., 1.,numlines)
 
 for j in xrange(numlines):
     deficits = [2*pi-limit_function(s, angles[j]) for s in slist]
     marker = colors[j].join('+')
-    plt.plot(slist, deficits, marker)
+    plt.plot(slist, deficits, marker)  
 
 save_file = os.path.join(cwd, 'deficit_angle.png')
-#plt.axvline(x=np.mean([peak_radius-inner_radius, outer_radius-peak_radius]))
+
+# Add horizontal line with estimate based on linear energy density
+#plt.axhline(y=4*pi*(linearED - azimuthal_pressure))
 plt.axhline(y=4*pi*linearEDIII)
-plt.axhline(y=4*pi*linearEDII)
-plt.axvline(x=peak_radius-inner_radius)
+#plt.axhline(y=4*pi*linearEDII)
+
+# Add vertical line showing position of boundary of matter
+sigma_supp = 2.*np.log(inner_radius + peak_radius) - 2.*np.log(peak_radius - inner_radius)
+#plt.axvline(x=peak_radius-inner_radius) #larger than maximum[0]-peak_radius, and seems to be more accurate.
+#plt.axvline(x=maximum[0]-peak_radius)
+plt.axvline(x=sigma_supp)
 plt.title(step)
 plt.savefig(save_file, dpi=100, bbox_inches='tight')
 
