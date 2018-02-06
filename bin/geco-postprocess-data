@@ -15,7 +15,6 @@ from dolfin import *
 import numpy as np
 from matplotlib import pyplot as plt
 
-
 ##############################
 ##############################
 # Set up Directories
@@ -202,16 +201,24 @@ try:
 except IndexError:
     pass
 
+# Find E0-value
+data_index = get_data_index(data_file, 'E0')
+E0 = np.genfromtxt(data_file, delimiter=',', skip_header=1, usecols=(data_index))
+try:
+    E0 = E0[-1]
+except IndexError:
+    pass
+
 linearED = 4*pi*assemble(RHO*r*dx(mesh)) # FIXME: Why is this not one??
 azimuthal_pressure = 4*pi*assemble(P33*r*dx(mesh))
 p00 = 4*pi*assemble(P00*r*dx(mesh))
 linearEDII = 1.0/(2*pi*Rcirc_func(peak_radius, 0.0))
 linearEDIII = rest_mass/(2*pi*Rcirc_func(peak_radius, 0.0))
 
-print('tot energy density = {:f}, azim pressure = {:f}, p00 = {:f}, rest mass = {:f}'.format(linearED, azimuthal_pressure, p00, linearEDIII))
+#print('tot energy density = {:f}, azim pressure = {:f}, p00 = {:f}, rest mass = {:f}'.format(linearED, azimuthal_pressure, p00, linearEDIII))
 
-# Limit function in local polar coordinates about torus peak
 '''
+# Limit function in local polar coordinates about torus peak
 def limit_function(sval, j):
     
     integral = 0.0
@@ -277,19 +284,24 @@ for j in xrange(numlines):
     marker = colors[j].join('+')
     plt.plot(slist, deficits, marker)  
 
-save_file = os.path.join(cwd, 'deficit_angle.png')
+save_file = os.path.join(cwd, 'deficit_angle_{0}.png'.format(step))
 
 # Add horizontal line with estimate based on linear energy density
-#plt.axhline(y=4*pi*(linearED - azimuthal_pressure))
-plt.axhline(y=4*pi*linearEDIII)
+plt.axhline(y=linearED - azimuthal_pressure)
+#plt.axhline(y=4*pi*linearEDIII)
 #plt.axhline(y=4*pi*linearEDII)
 
 # Add vertical line showing position of boundary of matter
-sigma_supp = 2.*np.log(inner_radius + peak_radius) - 2.*np.log(peak_radius - inner_radius)
+radii = [inner_radius, maximum[0], outer_radius]
+sigma_supp = min([2.*np.log(r + peak_radius) - 2.*np.log(np.absolute(r - peak_radius)) for r in radii])
+#sigma_supp = 2.*np.log(inner_radius + peak_radius) - 2.*np.log(peak_radius - inner_radius)
+#sigma_supp = 2.*np.log(maximum[0] + peak_radius) - 2.*np.log(maximum[0] - peak_radius)
 #plt.axvline(x=peak_radius-inner_radius) #larger than maximum[0]-peak_radius, and seems to be more accurate.
 #plt.axvline(x=maximum[0]-peak_radius)
 plt.axvline(x=sigma_supp)
-plt.title(step)
+plt.title('E0 = {0}'.format(E0))
+plt.xlabel("$\sigma")
+plt.ylabel("$\Delta \eta")
 plt.savefig(save_file, dpi=100, bbox_inches='tight')
 
 
