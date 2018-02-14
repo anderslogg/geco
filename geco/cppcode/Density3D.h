@@ -13,13 +13,16 @@ public:
   {
     dolfin_assert(_rho);
 
-    // Note that we flip the axes here to get a plot that
+    // Note: We flip the axes here to get a plot that
     // can be viewed at the same time as the xy-plane plot
     // of the density in Paraview.
 
+    // Note: For some strange reason abs() does not return
+    // anything sensible (double/int issue?) so we use our own.
+
     // Extract cylindrical coordinates
     const double s = sqrt(x[0]*x[0] + x[2]*x[2]);
-    const double z = x[1];
+    const double z = (x[1] >= 0.0 ? x[1] : -x[1]);
 
     // Evaluate at point
     values[0] = (*_rho)(s, z);
