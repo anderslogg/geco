@@ -24,7 +24,7 @@ print "Box size   D = %d" % D
 print "Resolution N = %d" % N
 
 # Identify 2D RHO file
-files = [f for f in os.listdir('.') if "RHO_" in f and f.endswith('xml')]
+files = [f for f in os.listdir('.') if "RHO_" in f and f.endswith('xml.gz')]
 
 # Check that we got exactly one file
 if len(files) > 1:
@@ -37,7 +37,7 @@ data_filename = files[0]
 
 # Set mesh filename
 R = int(data_filename.split("RHO_")[1].split(".")[0])
-mesh_filename = "mesh_%d.xml" % R
+mesh_filename = "mesh_%d.xml.gz" % R
 
 # Read mesh and reconstruct 2D function space
 info("Reading mesh from file %s." % mesh_filename)

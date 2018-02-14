@@ -16,13 +16,17 @@ Installation
 
 GECo is installed like any other Python module:
 
-    [sudo] pip install .
+    [sudo -H] pip install [--upgrade] .
 
 Alternatively, if you want to run a code against GECo without
 installing it, enter the GECo directory (this directory) and
 run the following command:
 
     export PYTHONPATH=`pwd`:$PYTHONPATH
+
+Tip for working with different directories inside a Docker container:
+
+    alias make='pushd . && cd ~/shared/geco && sudo -H pip install --upgrade . && popd'
 
 ------------
 Dependencies
