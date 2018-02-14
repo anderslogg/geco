@@ -16,7 +16,7 @@ Installation
 
 GECo is installed like any other Python module:
 
-    [sudo] python setup.py install [--prefix=<wherever>]
+    [sudo] pip install .
 
 Alternatively, if you want to run a code against GECo without
 installing it, enter the GECo directory (this directory) and
@@ -54,4 +54,4 @@ GECo is written by
 
 with valuable theoretical / modeling / algorithmic input from
 
-   H�kan Andreasson <hand@chalmers.se>
+   Håkan Andreasson <hand@chalmers.se>
