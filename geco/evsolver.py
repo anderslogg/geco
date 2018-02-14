@@ -2,6 +2,8 @@
 axial symmetry with or without net angular momentum."""
 
 from solverbase import *
+from solution import *
+import physicalquantities as pq
 
 def _lhs(nu, bb, mu, ww, v0, v1, v2, v3, r,
          P00, P11, P33, P03):
@@ -98,29 +100,39 @@ class EinsteinVlasovSolver(SolverBase):
         # Workaround for geometric round-off errors
         parameters.allow_extrapolation = True
 
-        # Generate mesh and create function space
-        mesh = self._generate_mesh()
-        V = FunctionSpace(mesh, "Lagrange", degree)
+        # Initialiaze solution
+        if solution is None:
 
-        # Create initial data
-        U = _init(e0, V)
-        RHO = Function(V)
+            # Generate mesh and create function space
+            mesh = self._generate_mesh()
+            V = FunctionSpace(mesh, "Lagrange", degree)
 
-        # Override initial data if provided
-        if solution is not None:
-            info("Reusing function space and initial data.")
-            U = solution[0:4]
-            V = U[0].function_space()
+            # Create initial data
+            NU, BB, MU, WW = _init(e0, V)
             RHO = Function(V)
-            mesh = V.mesh()
+
+        else:
+
+            info("Reusing function space and initial data.")
+
+            # Extract mesh and function space
+            mesh = solution.mesh
+            V = solution.V
+
+            # Extract initial data
+            NU = solution.NU
+            BB = solution.BB
+            MU = solution.MU
+            WW = solution.WW
+            RHO = Function(V)
+
+        # Create vector of fields
+        U = [NU, BB, MU, WW]
 
         # Create spatial coordinates
         x = SpatialCoordinate(mesh)
         r = x[0]
-        z = x[1]
-
-        # Extract solution components
-        NU, BB, MU, WW = U
+        z = x[1]       
 
         # Create asymptotically flat solutions for boundary conditions
         NU_R, BB_R, MU_R, WW_R = _flat(m, J)
@@ -179,15 +191,11 @@ class EinsteinVlasovSolver(SolverBase):
         P33 = C*_P33
         P03 = C*_P03
 
-        # Define rest density and mass
-        rest_density = C*_Phi[4]
-        rest_mass    = 2*2*pi*rest_density*r*dx
-
         # Define density and mass
         _density = BB*(_P00 + _P11 + _P33*(1.0 - (r*BB)**2*WW**2*exp(-4*NU)))
         density  = C*_density
         _mass    = 2*2*pi*_density*r*dx
-        mass     = C*_mass
+        #mass     = C*_mass
 
         # Create trial and test functions
         nu = TrialFunction(V)
@@ -244,7 +252,7 @@ class EinsteinVlasovSolver(SolverBase):
             _m = assemble(_mass)
             if _m == 0.0: error("Zero mass distribution.")
             C.assign(m / _m)
-            info("C = %.15g" % float(C))
+            info("C = %.15g" % float(C))           
 
             # Iterate over equations and solve
             for i in range(4):
@@ -312,16 +320,33 @@ class EinsteinVlasovSolver(SolverBase):
         info("Number of iterations was %g." % iter)
         info("")
 
+        # Define rest mass density
+        RMD = Function(V)
+        rest_density = C*_Phi[4]
+        project(rest_density, mesh=mesh, function=RMD)        
+
         # Compute final unscaled mass and scale ansatz coefficient
+        prescribed_mass = self.parameters.discretization.mass
         _m = assemble(_mass)
         C.assign(m / _m)
 
+        # Get radius of support and compute areal radius of support
+        r0 = max([ansatz.radius_of_support() for ansatz in ansatzes])
+        r0 = MPI.max(mpi_comm_world(), r0)
+
+        # Initialize data dict
+        self.data = {}
+        self.data["radius_of_support"] = r0
+        self.data["ansatz_coefficient"] = float(C)
+        self.data["prescribed_mass"] = prescribed_mass
+        self.data["solution_converged"] = solution_converged
+
+        # Pack solutions
+        computed_solution = Solution(NU, BB, MU, WW, RHO, P00, P11, P33, P03, RMD, self.data)
+
         # Compute and store solution characteristics
-        self._compute_solution_characteristics(NU, BB, MU, WW, RHO,
-                                               P00, P11, P33, P03,
-                                               C, _mass, rest_mass,
-                                               r, z, V, R,
-                                               ansatzes, e0, solution_converged)
+        computed_data = pq.compute_default_physical_quantities(computed_solution)
+        self.data.update(computed_data)
 
         # Compute residuals as functions of space
         fs = [assemble(F) for F in Fs]
@@ -346,120 +371,4 @@ class EinsteinVlasovSolver(SolverBase):
         # Print nice message
         info("Solver complete.")
 
-        return NU, BB, MU, WW, RHO, self.data
-
-    def _compute_solution_characteristics(self,
-                                          NU, BB, MU, WW, RHO,
-                                          P00, P11, P33, P03,
-                                          C, _mass, rest_mass,
-                                          r, z, V, R,
-                                          ansatzes, e0, solution_converged):
-        "Compute interesting properties of solution"
-
-        # Mass
-        m = self.parameters.discretization.mass
-
-        # Compute rest mass
-        rm = assemble(rest_mass)
-
-        # Compute total angular momentum
-        J = assemble(-2*2*pi*exp(-4.0*NU)*BB*(P03 + (r*BB)**2*WW*P33)*r*dx)
-
-        # Compute gtt component of the metric tensor
-        gtt = project(-exp(2.0*NU)*(1.0 - (WW*r*BB)**2*exp(-4.0*NU)), V)
-
-        # Check whether we have an ergo region
-        gtt_max = gtt.vector().max()
-        ergo_region = gtt_max > 0
-
-        # Compute fractional binding energy
-        Eb = 1.0 - m / rm
-
-        # Compute central redshift
-        Zc = 1.0/sqrt(-gtt(0,0)) - 1.0
-
-        # Get radius of support and compute areal radius of support
-        r0 = max([ansatz.radius_of_support() for ansatz in ansatzes])
-        r0 = MPI.max(mpi_comm_world(), r0)
-        R0 = r0*(1.0 + m / (2.0*r0))**2
-
-        # Reflection plane radii of support
-        r_res = 10000
-        rvals = numpy.linspace(0,r0,r_res)
-        deltar = r0/r_res
-        RHOvals = numpy.array([RHO(r,0) for r in rvals])
-        rp_support = numpy.where(RHOvals > 1e-3)[0] #'vacuum threshold' chosen to agree with 'eye-ball'
-        try:
-            r_inner = min(rp_support)*deltar
-            r_outer = max(rp_support)*deltar
-            r_peak  = rvals[numpy.argmax(RHOvals)]
-        except ValueError:
-            print ("Issue with matter support, setting NA value for rho.")
-            r_inner = 'na'
-            r_outer = 'na'
-            r_peak  = 'na'
-
-        # Matter boundary related characteristics
-        
-        # Rcirc
-        Rcirc_func = project(r*BB*exp(-NU), V)
-        
-        # zamo_Z, the scaled ZAMO redshift
-        
-        if isinstance(r_outer, float):            
-            Rcirc = Rcirc_func(r_outer, 0.0)
-            zamo_Zo = 1.0 - exp(NU(r_outer, 0.0))
-        else:
-            Rcirc   =  R
-            zamo_Zo = 0.0
-        if isinstance(r_peak, float):
-            zamo_Zp = 1.0 - exp(NU(r_peak, 0.0))
-        else:
-            zamo_Zp = 0.0    
-                  
-        # Get minimum value of WW
-        min_WW = max([ansatz.min_WW() for ansatz in ansatzes])
-
-        # Compute Buchdahl quantity
-        Gamma = 2.0*m / R0
-
-        # Store values in dictionary
-        self.data = {"ansatz_coefficient": float(C),
-                     "mass": m,
-                     "radius_of_support": r0,
-                     "areal_radius_of_support": R0,
-                     "rest_mass": rm,
-                     "frac_binding_energy": Eb,
-                     "central_redshift": Zc,
-                     "zamo_redshift_outer": zamo_Zo,
-                     "zamo_redshift_peak": zamo_Zp,                     
-                     "gamma": Gamma,
-                     "Rcirc": Rcirc,
-                     "r_inner": r_inner,
-                     "r_outer": r_outer,
-                     "r_peak": r_peak,
-                     "total_angular_momentum": J,
-                     "ergo_region": ergo_region,
-                     "gtt_max": gtt_max,
-                     "min_WW": min_WW,
-                     "solution_converged": solution_converged}
-
-"""
-    def m_over_Rcirc(self, density)
-        "Finds maximum of m_over_R as function of r and returns (max, r_max)"
-
-        # Create subdomain
-        class ReflectionPlane(SubDomain):
-            def inside(self, x, on_boundary):
-                return x[1] < DOLFIN_EPS
-
-        markers = FacetFunctionSizet(mesh, 0)
-        ReflectionPlane().mark(markers, 1);
-
-        # Assemble mass on reflection plane
-        ds = ds(subdomain_data=markers)
-        assemble(2*pi*density*x[0]*ds(1))
-
-        # Want Mrf(r). 
-"""
-        
+        return computed_solution
