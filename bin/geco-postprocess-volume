@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 
 """"
-Postprocess script to generate 3D data from 2D data
-
- Description:
- takes box size R, and resolution N, and generates a 3D data set with those parameters
-
+Postprocessing script to generate 3D data from 2D data
 """
 
 import sys, os
@@ -15,9 +11,10 @@ from geco.models import Density3D
 
 # Program input
 if len(sys.argv) != 3:
-    print "Inputs for generate3D (seperated by a space): "
-    print "box size D (integer)"
-    print "box resolution N (integer)"
+    print "Usage: geco-postprocess-volume D N"
+    print ""
+    print "D = box size (float)"
+    print "N = box resolution (integer)"
     exit(1)
 
 # Save input parameters
