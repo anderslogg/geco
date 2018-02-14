@@ -74,13 +74,19 @@ namespace dolfin
           {
             const double z0 = -_R + nz*h;
 
-            // Compute cylindrical coordinates for midpoint of box.
-            // Note rotation of coordinate system.
+            // Note: We flip the axes here to get a plot that
+            // can be viewed at the same time as the xy-plane plot
+            // of the density in Paraview.
+
+            // Note: For some strange reason abs() does not return
+            // anything sensible (double/int issue?) so we use our own.
+
+            // Compute cylindrical coordinates for midpoint of box
             const double _x = x0 + 0.5*h;
             const double _y = y0 + 0.5*h;
             const double _z = z0 + 0.5*h;
             const double s = sqrt(_x*_x + _z*_z);
-            const double z = _y;
+            const double z = (_y >= 0.0 ? _y : -_y);
 
             // Skip if point is outside of domain (sphere)
             if (sqrt(_x*_x + _y*_y + _z*_z) > 0.999*_R)
