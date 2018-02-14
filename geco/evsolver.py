@@ -90,7 +90,7 @@ class EinsteinVlasovSolver(SolverBase):
         theta     = self.parameters.discretization.theta
         tol       = self.parameters.discretization.tolerance
         num_steps = self.parameters.discretization.num_steps
-        R         = self.parameters.discretization.radius
+        R         = self.parameters.discretization.domain_radius
         degree    = self.parameters.discretization.degree
         depth     = self.parameters.discretization.anderson_depth
 
