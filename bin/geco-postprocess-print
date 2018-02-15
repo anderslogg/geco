@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+
+"""
+Postprocessing script for pretty-printing the data stored in ppdata.csv.
+"""
+
+from fenics import Table, info
+
+text = open("ppdata.csv").read()
+keys = text.split("\n")[0].split(",")
+vals = text.split("\n")[1].split(",")
+
+t = Table("Parameter")
+for k, v in zip(keys, vals):
+    t.set(k, "value", v)
+info(t, True)
