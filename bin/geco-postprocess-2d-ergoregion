@@ -35,14 +35,14 @@ WW = Function(V)
 UU = [NU, BB, WW]
 i = 0
 for i in range(0, 3):
-    
+
     # Identify file
     field_file = [f for f in os.listdir('.') if fields[i] in f and f.endswith('xml.gz')]
     field_filename = field_file[0]
 
     # Load data
     File(field_filename) >> UU[i]
-    
+
     # Make sure we can evaluate at axis...
     UU[i].set_allow_extrapolation(True)
 
@@ -56,6 +56,6 @@ gtt  = project(_gtt, V)
 ergo = interpolate(SupportBump(gtt), V)
 
 # Save ergoregion
-File("ergo_%s.pvd" % "postprocess" ) << ergo
-info("ergo data saved to file ergo_%s.pvd" % "postprocess")
-
+filename = "postprocess-2d-ergoregion.pvd"
+File(filename) << ergo
+info("Postprocessing data save to file %s" % filename)

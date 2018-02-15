@@ -56,5 +56,6 @@ V3D = FunctionSpace(mesh3d, "Lagrange", 1)
 RHO3D = interpolate(Density3D(RHO2D), V3D)
 
 # Save 3D density
-File("RHO3D_%d_%s.pvd" % (R, "postprocess") ) << RHO3D
-info("RHO3D data saved to file RHO3D_%d_%s.pvd" % (R,"postprocess"))
+filename = "postprocess-3d-density-box.pvd"
+File(filename) << RHO3D
+info("Postprocessing data save to file %s" % filename)

@@ -39,7 +39,9 @@ File(data_filename) >> RHO
 
 # Create point cloud representation
 info("Computing point cloud representation.")
-cloud_filename = "point_cloud_%d.xdmf" % size
 cloud = PointCloud(RHO, size, mass, resolution, num_points)
-cloud.save_data(cloud_filename)
-info("Point cloud representation saved to file %s." % cloud_filename)
+
+# Save to file
+filename = "postprocess-3d-pointcloud-box.xdmf"
+cloud.save_data(filename)
+info("Postprocessing data save to file %s" % filename)
