@@ -87,12 +87,28 @@ def compute_fractional_binding_energy(U):
 
     return 1.0 - m / rm
 
+def get_radius_of_support(U):
+    # get radius of support
+    r_supp = U.data["radius_of_support"]
+
+    # Take only final (converged) value if applicable
+    try:
+        r_supp = r_supp[-1]
+    except IndexError:
+        pass
+
+    return float(r_supp)
+
 # Reflection plane radii of support
-def compute_reflection_plane_support(U, rad_of_supp):
+def compute_reflection_plane_support(U):
+
+    r_supp = get_radius_of_support(U)
+
+    # compute r-values
     r_res = 10000
     thresh = 1e-3
-    deltar = rad_of_supp/r_res
-    rvals = np.linspace(0,rad_of_supp,r_res)
+    deltar = r_supp/r_res
+    rvals = np.linspace(0,r_supp,r_res)
     RHOvals = np.array([U.RHO(r,0) for r in rvals])
     support = np.where(RHOvals > thresh)[0]
     try:
@@ -100,10 +116,12 @@ def compute_reflection_plane_support(U, rad_of_supp):
         r_outer = max(support)*deltar
         r_peak  = rvals[np.argmax(RHOvals)]
     except ValueError:
-        print ("Issue with matter support, setting NA value for rho.")
-        r_inner = 'na'
-        r_outer = 'na'
-        r_peak  = 'na'
+        #print ("Issue with matter support, setting NA value for rho.")
+        if min(RHOvals) < thresh:
+            print('Density is below threshold, setting rvals to 0.0')
+        r_inner = 0.0
+        r_outer = 0.0
+        r_peak  = 0.0
 
     return [r_inner, r_peak, r_outer]
 
@@ -125,7 +143,7 @@ def compute_Rcirc_func(U):
 def compute_Rcirc_values(U, rvals):
 
     # Compute the function
-    RcircF = Rcirc_func(U)
+    RcircF = compute_Rcirc_func(U)
 
     # Set any non-float rvals to the 0.0 
     for r in rvals:
@@ -136,12 +154,17 @@ def compute_Rcirc_values(U, rvals):
     
 
 # Mass aspect function
-def compute_mass_aspect(U, rad_of_supp):
+def compute_mass_aspect(U):
 
-    Rcirc_func = Rcirc_func(U)
+    r_supp = get_radius_of_support(U)
+
+    Rcirc_func = compute_Rcirc_func(U)
+
+    x = SpatialCoordinate(U.mesh)
+    r = x[0]
     
     sres = 100
-    slist = np.linspace(0., rad_of_supp, sres)
+    slist = np.linspace(0., r_supp, sres)
     masslist = []
 
     for s in slist:
@@ -161,14 +184,24 @@ def compute_lapse_func(U):
 
     return lapse
 
-def compute_lapse_values(U, rvals, R_boundary):
+def compute_lapse_values(U, rvals):
+
+    # Get domain radius
+    try:
+        r_boundary = U.data["domain_radius"]
+    except KeyError:
+        r_boundary = U.data["radius"]
+    try:
+        r_boundary = r_boundary[-1]
+    except IndexError:
+        pass
     
-    lapse = lapse_func(U)
+    lapse = compute_lapse_func(U)
 
     # Set any non-float rvals to the boundary 
     for r in rvals:
         if not isinstance(r, float):
-          r = R_boundary
+          r = r_boundary
 
     return [lapse(r, 0.0) for r in rvals]
 
@@ -181,14 +214,24 @@ def compute_sZAMO_redshift_func(U):
     return szRS_func
 
 ## Evaluated at points in the reflection plane
-def compute_sZAMO_redshift_values(U, rvals, R_boundary):
+def compute_sZAMO_redshift_values(U, rvals):
 
-    zamo_RS_func = sZAMO_redshift_func(U)
+    # Get domain radius
+    try:
+        r_boundary = U.data["domain_radius"]
+    except KeyError:
+        r_boundary = U.data["radius"]
+    try:
+        r_boundary = r_boundary[-1]
+    except IndexError:
+        pass
+
+    zamo_RS_func = compute_sZAMO_redshift_func(U)
 
     # Set any non-float rvals to the boundary 
     for r in rvals:
         if not isinstance(r, float):
-          r = R_boundary
+          r = r_boundary
 
     return [zamo_RS_func(r, 0.0) for r in rvals]
   
