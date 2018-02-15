@@ -20,14 +20,15 @@ for k, v in zip(keys, vals):
 info(t, True)
 
 # Figure out torus geometry
-R = d["r_peak"]
-r0 = d["r_inner"]
-r1 = d["r_outer"]
+R = float(d["r_peak"])
+r0 = float(d["r_inner"])
+r1 = float(d["r_outer"])
 r = max(abs(R - r0), abs(R - r1))
-print "-------------------------------------"
+print ""
 print "Recommended values for torus geometry"
+print "-------------------------------------"
 print ""
 print "R = %.3g" % R
 print "r = %.3g" % r
 print ""
-print "%.3d %.3g" % (R, r)
+print "%.3g %.3g" % (R, r)
