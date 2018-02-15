@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+
+""""
+Postprocessing script to generate 3D ergoregion data sampled in a torus.
+"""
+
+import sys, os
+from fenics import *
+from geco import *
+from geco.models import Density3D
+from mshr import *
+
+# Program input
+if len(sys.argv) != 4:
+    print "Usage: geco-postprocess-3d-ergoregion-torus R r n"
+    print ""
+    print "R = major radius"
+    print "r = minor radius"
+    print "n = number of refinements"
+    exit(1)
+
+# Get input parameters
+R = float(sys.argv[1])
+r = float(sys.argv[2])
+n = int(sys.argv[3])
+
+# Read mesh and reconstruct 2D function space
+filename = "mesh.xml.gz"
+info("Reading mesh from file %s." % filename)
+mesh2 = Mesh(filename)
+V2 = FunctionSpace(mesh2, "Lagrange", 1)
+
+# Create 2D metric fields
+NU = Function(V2)
+BB = Function(V2)
+WW = Function(V2)
+UU = [NU, BB, WW]
+
+# Read metric field data
+fields = ["NU_", "BB_", "WW_"]
+for i, prefix in enumerate(fields):
+    filename = [f for f in os.listdir('.') if f.startswith(prefix) and f.endswith('xml.gz')][0]
+    File(filename) >> UU[i]
+    UU[i].set_allow_extrapolation(True)
+
+# Create 3D torus mesh
+info("Generating torus with R = %g and r = %g" % (R, r))
+box = Box(Point(-R - r, -r, -R - r), Point(R + r, r, R + r))
+sphere_inner = Sphere(Point(0, 0, 0), R - r)
+sphere_outer = Sphere(Point(0, 0, 0), R + r)
+geometry = box*sphere_outer - sphere_inner
+mesh3 = generate_mesh(geometry, 16)
+for k in range(n):
+    mesh3 = refine(mesh3)
+
+# Create 3D functon space
+V3 = FunctionSpace(mesh3, "Lagrange", 1)
+
+# Compute 3D ergoregion
+_gtt = - exp(2.0*NU)*(1.0 - (WW*r*BB)**2.0*exp(-4.0*NU))
+gtt  = project(_gtt, V2)
+ergo = interpolate(Density3D(gtt), V3)
+
+# Save to file
+filename = "postprocess-3d-ergoregion-torus.pvd"
+File(filename) << ergo
+info("Postprocessing data save to file %s" % filename)
