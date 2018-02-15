@@ -37,7 +37,7 @@ class SolverBase:
 
         # Discretization parameters
         self.parameters.discretization.add("mass", 1.0)
-        self.parameters.discretization.add("radius", 25)
+        self.parameters.discretization.add("domain_radius", 25)
         self.parameters.discretization.add("maxiter", 1000)
         self.parameters.discretization.add("theta", 1.0)
         self.parameters.discretization.add("adaptive_theta", False)
@@ -109,7 +109,7 @@ class SolverBase:
         # resolution...
 
         # Get parameters
-        R = self.parameters.discretization.radius
+        R = self.parameters.discretization.domain_radius
         N = self.parameters.discretization.resolution
 
         # Define domain (unit half disk)
@@ -133,7 +133,7 @@ class SolverBase:
         # resolution...
 
         # Get parameters
-        R = self.parameters.discretization.radius
+        R = self.parameters.discretization.domain_radius
         N = self.parameters.discretization.resolution
 
         # Define domain
@@ -278,7 +278,7 @@ class SolverBase:
         if not self.parameters.output.save_solution: return
 
         # Get parameters
-        R = self.parameters.discretization.radius
+        R = self.parameters.discretization.domain_radius
         suffix = self.parameters.output.suffix
         solution_dir = self.parameters.output.solution_directory
 
@@ -320,7 +320,7 @@ class SolverBase:
         if not self.parameters.output.save_solution: return
 
         # Get parameters
-        R = self.parameters.discretization.radius
+        R = self.parameters.discretization.domain_radius
         N = self.parameters.discretization.resolution
         suffix = self.parameters.output.suffix
         solution_dir = self.parameters.output.solution_directory
@@ -343,7 +343,7 @@ class SolverBase:
         if not self.parameters.output.save_solution_3d: return
 
         # Get parameters
-        R = self.parameters.discretization.radius
+        R = self.parameters.discretization.domain_radius
         suffix = self.parameters.output.suffix
         solution_dir = self.parameters.output.solution_directory
         resolution_3d = self.parameters.discretization.resolution_3d
@@ -362,7 +362,7 @@ class SolverBase:
         if not self.parameters.output.save_point_cloud: return
 
         # Get parameters
-        R = self.parameters.discretization.radius
+        R = self.parameters.discretization.domain_radius
         suffix = self.parameters.output.suffix
         solution_dir = self.parameters.output.solution_directory
         m = self.data["mass"]

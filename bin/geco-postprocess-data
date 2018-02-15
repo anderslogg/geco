@@ -12,7 +12,9 @@ Usage: run from within the solution directory.
 
 import os
 from dolfin import *
+from solution import *
 import numpy as np
+import physicalquantities as pq
 from matplotlib import pyplot as plt
 
 ##############################
@@ -21,6 +23,12 @@ from matplotlib import pyplot as plt
 cwd = os.getcwd()
 data_file = cwd + '/data.csv'
 
+# Solution step in sequence
+try:
+    step = cwd.split('/')[-1].split('_')[-1]
+except:
+    step = 000
+    pass
 
 ##############################
 ##############################
@@ -80,8 +88,18 @@ def print_data_dict(data_dict):
     
 ##############################
 ##############################
-# Load metric functions
+# Read Data dictionary
+header = np.genfromtxt(data_file, max_rows=1, delimiter=',', dtype=str)
+data_lines = np.genfromtxt(data_file, delimiter=',', dtype=None)
+data_lines = data_lines[-1]
+ppdata = dict( zip(header, data_lines))
 
+# Read some basic quantities from data dict
+rad_of_supp = ppdata['radius_of_support']
+E0 = ppdata['E0']
+rest_mass = ppdata['rest_mass']
+        
+# Load metric functions
 filename = [f for f in os.listdir(cwd) if f.startswith('NU_')][0]
 R = filename.split('.')[0].split('_')[1]
 
@@ -95,42 +113,75 @@ BB  = Function(V)
 MU  = Function(V)
 WW  = Function(V)
 RHO = Function(V)
-P33 = Function(V)
 P00 = Function(V)
-fields = [NU, BB, MU, WW, RHO, P33, P00]
-field_names = ['NU', 'BB', 'MU', 'WW', 'RHO', 'P33', 'P00']
+P11 = Function(V)
+P33 = Function(V)
+P03 = Function(V)
+RMD = Function(V)
+fields = [NU, BB, MU, WW, RHO, P00, P11, P33, P03]
+field_names = ['NU', 'BB', 'MU', 'WW', 'RHO','P00', 'P11', 'P33', 'P03']
 
 for f, fn in zip(fields, field_names):
     File('%s_%s.xml.gz' % (fn, R)) >> f
 
-# Find radius of support
-data_index = get_data_index(data_file, 'radius_of_support')
-rad_of_supp = np.genfromtxt(data_file, delimiter=',', skip_header=1, usecols=(data_index))
-try:
-    rad_of_supp = rad_of_supp[-1]
-except IndexError:
-    pass
-
+U = Solution(NU, BB, MU, WW, RHO, P00, P11, P33, P03, RMD, ppdata)
 
 ##############################
 ##############################
-# Compute post-process data
+# Compute post-process data for desired variables
 
 # Reflection plane radii of support
-r_res = 10000
-rvals = np.linspace(0,rad_of_supp,r_res)
-deltar = rad_of_supp/r_res
-RHOvals = np.array([RHO(r,0) for r in rvals])
-support = np.where(RHOvals > 1e-5)[0]
-try:
-    r_inner = min(support)*deltar
-    r_outer = max(support)*deltar
-    r_peak  = rvals[np.argmax(RHOvals)]
-except ValueError:
-    print ("Issue with matter support, setting NA value for rho.")
-    r_inner = 'na'
-    r_outer = 'na'
-    r_peak  = 'na'
+r_inner, r_peak, r_outer = pq.compute_reflection_plane_support(U)
+
+# Mass aspect function
+mass_aspect_max_r, mass_aspect_max = pq.compute_mass_aspect(U)
+
+# Quantities measured at different radii
+rvals = [0.0, r_inner, r_peak, r_outer, mass_aspect_max_r]
+# Rcirc
+Rcirc_0, Rcirc_i, Rcirc_p, Rcirc_o, Rcirc_MAmax = pq.compute_Rcirc_values(U, rvals)
+# Scaled ZAMO Redshift
+zamoZ_0, zamoZ_i, zamoZ_p, zamoZ_o, zamoZ_MAmax = pq.compute_sZAMO_redshift_values(U, rvals)
+# Lapse
+lapse_0, lapse_i, lapse_p, lapse_o, lapse_MAmax = pq.compute_lapse_values(U, rvals)
+
+##############################
+##############################
+# Save post-process data along with original data from converged run
+
+# Add newly computed post-process values
+ppdata['r_inner']                  = r_inner
+ppdata_dict['r_peak']              = r_peak
+ppdata_dict['r_outer']             = r_outer
+ppdata_dict['Rcirc_inner']         = Rcirc_i
+ppdata_dict['Rcirc_peak']          = Rcirc_p
+ppdata_dict['Rcirc_outer']         = Rcirc_o
+ppdata_dict['Rcirc_max']           = Rcirc_MAmax
+ppdata_dict['mass_aspect_max']     = mass_aspect_max
+ppdata_dict['mass_aspect_max_r']   = mass_aspect_max_r
+ppdata_dict['central_lapse']       = central_lapse
+ppdata_dict['peak_lapse']          = peak_lapse
+ppdata_dict['zamo_redshift_orig']  = zamoZ_0
+ppdata_dict['zamo_redshift_inner'] = zamoZ_i
+ppdata_dict['zamo_redshift_peak']  = zamoZ_p
+ppdata_dict['zamo_redshift_outer'] = zamoZ_o
+ppdata_dict['zamo_redshift_max']   = zamoZ_MAmax
+ppdata_dict['step']                = step
+
+# Save
+save_data(ppdata, cwd)
+
+# Print
+#print_data_dict(ppdata_dict)
+
+
+
+"""
+
+##############################
+##############################
+# OLD VERSION
+
 
 # Rcirc
 x = SpatialCoordinate(mesh)
@@ -147,11 +198,13 @@ masslist = []
 
 for s in slist:
     g = Expression('s - x[0]', degree=1, s=s)
-    eta = 2*2*pi*assemble(conditional(ge(g, 0), 1, 0)*RHO*r*dx(mesh))
+    eta = 2*2*pi*assemble(conditional(ge(g, 0), 1, 0)*RHO*r*dx(mesh)) # Doubled to account for quarter disk
+    eta *= 2 # 2m/r, is less than 1 for regular solutions
     eta /= Rcirc_func(s, 0.0)
     masslist.append([s, eta])
 
 maximum = max(masslist, key=lambda x: x[1])
+Rcirc_max = Rcirc_func(maximum[0], 0.0)
 
 # Lapse
 lapse = project(exp(NU), V)
@@ -168,6 +221,10 @@ if isinstance(r_peak, float):
     zamo_Zp = 1.0 - exp(NU(r_peak, 0.0))
 else:
     zamo_Zp = 0.0
+if isinstance(maximum[0], float):
+    zamo_Zm = 1.0 - exp(NU(maximum[0], 0.0))
+else:
+    zamo_Zm = 0.0    
 
 # Solution step in sequence
 try:
@@ -175,163 +232,5 @@ try:
 except:
     step = 000
     pass
-
-
-##############################
-##############################
-# Deficit angle by limit of proper perimeter over proper radius
-
-# Some useful quantities
-eMU = project(exp(MU), V)
-
-try:
-    peak_radius  = r_peak[-1]
-    inner_radius = r_inner[-1]
-    outer_radius = r_outer[-1]    
-except IndexError:
-    peak_radius  = r_peak
-    inner_radius = r_inner
-    outer_radius = r_outer
-
-# Estimate deficit angle from linear energy density
-data_index = get_data_index(data_file, 'rest_mass')
-rest_mass = np.genfromtxt(data_file, delimiter=',', skip_header=1, usecols=(data_index))
-try:
-    rest_mass = rest_mass[-1]
-except IndexError:
-    pass
-
-# Find E0-value
-data_index = get_data_index(data_file, 'E0')
-E0 = np.genfromtxt(data_file, delimiter=',', skip_header=1, usecols=(data_index))
-try:
-    E0 = E0[-1]
-except IndexError:
-    pass
-
-linearED = 4*pi*assemble(RHO*r*dx(mesh)) # FIXME: Why is this not one??
-azimuthal_pressure = 4*pi*assemble(P33*r*dx(mesh))
-p00 = 4*pi*assemble(P00*r*dx(mesh))
-linearEDII = 1.0/(2*pi*Rcirc_func(peak_radius, 0.0))
-linearEDIII = rest_mass/(2*pi*Rcirc_func(peak_radius, 0.0))
-
-#print('tot energy density = {:f}, azim pressure = {:f}, p00 = {:f}, rest mass = {:f}'.format(linearED, azimuthal_pressure, p00, linearEDIII))
-
-'''
-# Limit function in local polar coordinates about torus peak
-def limit_function(sval, j):
-    
-    integral = 0.0
-    intres = 1000
-    ds = sval/intres
-
-    for i in xrange(intres):
-        si = 0.5*ds + i*ds
-        rp = peak_radius + si*np.cos(pi*j) #local polar coord about peak
-        zp = si*np.sin(pi*j) #local polar coord about peak
-        integral += exp(MU(rp, zp))
-
-    integral *= ds
-    rp = peak_radius + sval*np.cos(pi*j)
-    zp = sval*np.sin(pi*j)
-    eMU.set_allow_extrapolation(True)    
-    return 2*pi*sval*eMU(rp, zp)/integral
-'''
-
-
-# Limit function in toroidal coordinates centered at peak radius. 
-def limit_function(sigma0, psi0):
-    
-    eMU.set_allow_extrapolation(True)    
-    sigma_integral = 0.0
-    psi_integral = 0.0
-    intres = 100
-    sigma_max = 20
-    ds = (sigma_max-sigma0)/intres
-    dpsi = pi/intres
-    
-    # sigma integral: proper toroidal radius
-    for i in xrange(intres):
-        si = sigma0 + 0.5*ds + i*ds
-        rp = peak_radius*np.sinh(si)/(np.cosh(si)-np.cos(psi0)) 
-        zp = peak_radius*np.sin(psi0)/(np.cosh(si)-np.cos(psi0))
-        sigma_integral += exp(MU(rp, zp))/(np.cosh(si)-np.cos(psi0))
-
-    sigma_integral *= ds
-
-    # psi integral: proper toroidal circumference
-    for k in xrange(intres):
-        psik = 0.5*dpsi + k*dpsi
-        rp = peak_radius*np.sinh(sigma0)/(np.cosh(sigma0)-np.cos(psik)) 
-        zp = peak_radius*np.sin(psik)/(np.cosh(sigma0)-np.cos(psik))
-        psi_integral += exp(MU(rp, zp))/(np.cosh(sigma0)-np.cos(psik))
-
-    psi_integral *= dpsi
-    
-    return 2*psi_integral/sigma_integral
-
-# Deficit angle
-sres = 25
-#slist = np.linspace(0.00001, peak_radius, sres)
-slist = np.linspace(1., 10, sres)
-deficit_list = []
-numlines = 4
-colors = ['r','g','b','m']
-angles = pi*np.linspace(0., 1.,numlines)
-
-for j in xrange(numlines):
-    deficits = [2*pi-limit_function(s, angles[j]) for s in slist]
-    marker = colors[j].join('+')
-    plt.plot(slist, deficits, marker)  
-
-save_file = os.path.join(cwd, 'deficit_angle_{0}.png'.format(step))
-
-# Add horizontal line with estimate based on linear energy density
-plt.axhline(y=linearED - azimuthal_pressure)
-#plt.axhline(y=4*pi*linearEDIII)
-#plt.axhline(y=4*pi*linearEDII)
-
-# Add vertical line showing position of boundary of matter
-radii = [inner_radius, maximum[0], outer_radius]
-sigma_supp = min([2.*np.log(r + peak_radius) - 2.*np.log(np.absolute(r - peak_radius)) for r in radii])
-#sigma_supp = 2.*np.log(inner_radius + peak_radius) - 2.*np.log(peak_radius - inner_radius)
-#sigma_supp = 2.*np.log(maximum[0] + peak_radius) - 2.*np.log(maximum[0] - peak_radius)
-#plt.axvline(x=peak_radius-inner_radius) #larger than maximum[0]-peak_radius, and seems to be more accurate.
-#plt.axvline(x=maximum[0]-peak_radius)
-plt.axvline(x=sigma_supp)
-plt.title('E0 = {0}'.format(E0))
-plt.xlabel("$\sigma")
-plt.ylabel("$\Delta \eta")
-plt.savefig(save_file, dpi=100, bbox_inches='tight')
-
-
-
-##############################
-##############################
-# Save post-process data along with original data from converged run
-
-# Read last line of data.csv and create dictionary
-header = np.genfromtxt(data_file, max_rows=1, delimiter=',', dtype=str)
-data = np.genfromtxt(data_file, delimiter=',', dtype=None)
-data = data[-1]
-ppdata_dict = dict(zip(header, data))
-
-# Add newly computed post-process values
-ppdata_dict['r_peak']              = r_peak
-ppdata_dict['r_outer']             = r_outer
-ppdata_dict['Rcirc_peak']          = Rcirc_peak
-ppdata_dict['Rcirc_outer']         = Rcirc_outer
-ppdata_dict['mass_aspect_max']     = maximum[1]
-ppdata_dict['mass_aspect_rmax']    = maximum[0]
-ppdata_dict['central_lapse']       = central_lapse
-ppdata_dict['peak_lapse']          = peak_lapse
-ppdata_dict['zamo_redshift_peak']  = zamo_Zp
-ppdata_dict['zamo_redshift_outer'] = zamo_Zo
-ppdata_dict['step']                = step
-
-# Save
-save_data(ppdata_dict, cwd)
-
-# Print
-#print_data_dict(ppdata_dict)
+"""
 
