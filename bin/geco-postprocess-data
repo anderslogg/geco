@@ -82,8 +82,8 @@ def save_data(data_dict, cwd):
     f.close()
 
 def print_data_dict(data_dict):
-    for k in ppdata_dict.keys():
-        print(k, ppdata_dict[k])    
+    for k in data_dict.keys():
+        print(k, data_dict[k])    
 
     
 ##############################
@@ -151,22 +151,22 @@ lapse_0, lapse_i, lapse_p, lapse_o, lapse_MAmax = pq.compute_lapse_values(U, rva
 
 # Add newly computed post-process values
 ppdata['r_inner']                  = r_inner
-ppdata_dict['r_peak']              = r_peak
-ppdata_dict['r_outer']             = r_outer
-ppdata_dict['Rcirc_inner']         = Rcirc_i
-ppdata_dict['Rcirc_peak']          = Rcirc_p
-ppdata_dict['Rcirc_outer']         = Rcirc_o
-ppdata_dict['Rcirc_max']           = Rcirc_MAmax
-ppdata_dict['mass_aspect_max']     = mass_aspect_max
-ppdata_dict['mass_aspect_max_r']   = mass_aspect_max_r
-ppdata_dict['central_lapse']       = central_lapse
-ppdata_dict['peak_lapse']          = peak_lapse
-ppdata_dict['zamo_redshift_orig']  = zamoZ_0
-ppdata_dict['zamo_redshift_inner'] = zamoZ_i
-ppdata_dict['zamo_redshift_peak']  = zamoZ_p
-ppdata_dict['zamo_redshift_outer'] = zamoZ_o
-ppdata_dict['zamo_redshift_max']   = zamoZ_MAmax
-ppdata_dict['step']                = step
+ppdata['r_peak']              = r_peak
+ppdata['r_outer']             = r_outer
+ppdata['Rcirc_inner']         = Rcirc_i
+ppdata['Rcirc_peak']          = Rcirc_p
+ppdata['Rcirc_outer']         = Rcirc_o
+ppdata['Rcirc_max']           = Rcirc_MAmax
+ppdata['mass_aspect_max']     = mass_aspect_max
+ppdata['mass_aspect_max_r']   = mass_aspect_max_r
+ppdata['central_lapse']       = central_lapse
+ppdata['peak_lapse']          = peak_lapse
+ppdata['zamo_redshift_orig']  = zamoZ_0
+ppdata['zamo_redshift_inner'] = zamoZ_i
+ppdata['zamo_redshift_peak']  = zamoZ_p
+ppdata['zamo_redshift_outer'] = zamoZ_o
+ppdata['zamo_redshift_max']   = zamoZ_MAmax
+ppdata['step']                = step
 
 # Save
 save_data(ppdata, cwd)
