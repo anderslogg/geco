@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
 """"
-Postprocessing script to generate 3D data from 2D data.
-
-This script is a special version of geco-postprocess-volume
-that uses a torus instead of a box (for computational efficiency).
+Postprocessing script to generate 3D density data sampled in a torus.
 """
 
 import sys, os
@@ -12,11 +9,10 @@ from fenics import *
 from geco import *
 from geco.models import Density3D
 from mshr import *
-from pkg_resources import resource_filename
 
 # Program input
 if len(sys.argv) != 4:
-    print "Usage: geco-postprocess-torus R r n"
+    print "Usage: geco-postprocess-3d-density-torus R r n"
     print ""
     print "R = major radius"
     print "r = minor radius"
@@ -28,67 +24,37 @@ R = float(sys.argv[1])
 r = float(sys.argv[2])
 n = int(sys.argv[3])
 
-# Identify 2D RHO file
-files = [f for f in os.listdir('.') if "RHO_" in f and f.endswith('xml.gz')]
-
-# Check that we got exactly one file
-if len(files) > 1:
-    error("More than one XML file for RHO!")
-elif len(files) == 0:
-   error("Unable to find XML data for RHO.")
-
-# Get data filename
-data_filename = files[0]
-
 # Read mesh and reconstruct 2D function space
-mesh_filename = "mesh.xml.gz"
-info("Reading mesh from file %s." % mesh_filename)
-mesh2D = Mesh(mesh_filename)
-V2D = FunctionSpace(mesh2D, "Lagrange", 1)
+filename = "mesh.xml.gz"
+info("Reading mesh from file %s." % filename)
+mesh2 = Mesh(filename)
+V2 = FunctionSpace(mesh2, "Lagrange", 1)
 
-# Read data and reconstruct 2D function
-RHO2D = Function(V2D)
-File(data_filename) >> RHO2D
+# Create 2D density
+RHO2 = Function(V2)
 
-# Make sure we can evaluate at axis...
-RHO2D.set_allow_extrapolation(True)
+# Read density data
+filename = [f for f in os.listdir('.') if "RHO_" in f and f.endswith('xml.gz')][0]
+File(filename) >> RHO2
+RHO2.set_allow_extrapolation(True)
 
-# # Read torus mesh
-# mesh3d = Mesh(resource_filename("geco", "meshes/torus.xml"))
-
-# # Refine torus mesh
-# print "Refining reference torus mesh %d times..." % n
-# for k in range(n):
-#     mesh3d = refine(mesh3d)
-
-# # Scale reference torus with R = 1 and r = 1/2
-# print "Mapping reference torus to physical mesh..."
-# coordinates = mesh3d.coordinates()
-# for i, (x, y, z) in enumerate(coordinates):
-#     rho = sqrt(x*x + y*y)
-#     nx = x / rho
-#     ny = y / rho
-#     coordinates[i, 0] = R*nx + 2*r*(x - nx)
-#     coordinates[i, 2] = R*ny + 2*r*(y - ny)
-#     coordinates[i, 1] = 2*r*z
-
-# Use mshr to create an approximate torus mesh
+# Create 3D torus mesh
+info("Generating torus with R = %g and r = %g" % (R, r))
 box = Box(Point(-R - r, -r, -R - r), Point(R + r, r, R + r))
 sphere_inner = Sphere(Point(0, 0, 0), R - r)
 sphere_outer = Sphere(Point(0, 0, 0), R + r)
 geometry = box*sphere_outer - sphere_inner
-mesh3d = generate_mesh(geometry, 16)
-
-# Refine mesh
-print "Refining mesh..."
+mesh3 = generate_mesh(geometry, 16)
 for k in range(n):
-    mesh3d = refine(mesh3d)
+    mesh3 = refine(mesh3)
 
-# Generate 3D density
-V3D = FunctionSpace(mesh3d, "Lagrange", 1)
-RHO3D = interpolate(Density3D(RHO2D), V3D)
+# Create 3D functon space
+V3 = FunctionSpace(mesh3, "Lagrange", 1)
 
-# Save 3D density
+# Compute 3D density
+RHO3 = interpolate(Density3D(RHO2), V3)
+
+# Save to file
 filename = "postprocess-3d-density-torus.pvd"
-File(filename) << RHO3D
+File(filename) << RHO3
 info("Postprocessing data save to file %s" % filename)

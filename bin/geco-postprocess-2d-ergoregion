@@ -13,10 +13,6 @@ from fenics import *
 from geco import *
 from geco.models import SupportBump
 
-# Get mesh
-mesh_file = [f for f in os.listdir('.') if "mesh" in f and f.endswith('xml.gz')]
-mesh_filename = mesh_file[0]
-
 # Read mesh and reconstruct function space
 info("Reading mesh from file %s." % mesh_filename)
 mesh = Mesh(mesh_filename)
@@ -49,11 +45,11 @@ for i in range(0, 3):
     i += 1
 
 # The negative of the gtt component of the metric tensor
-_gtt = - exp(2.0*NU)*(1.0 - (WW*r*BB)**2.0*exp(-4.0*NU))
+_gtt = -exp(2.0*NU)*(1.0 - (WW*r*BB)**2.0*exp(-4.0*NU))
 gtt  = project(_gtt, V)
 
 # Compute Ergoregion
-ergo = interpolate(SupportBump(gtt), V)
+ergo = interpolate(SupportBump2D(gtt), V)
 
 # Save ergoregion
 filename = "postprocess-2d-ergoregion.pvd"

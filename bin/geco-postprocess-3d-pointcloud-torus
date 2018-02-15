@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+
+""""
+Postprocessing script to generate 3D pointcloud data sampled in a torus.
+"""

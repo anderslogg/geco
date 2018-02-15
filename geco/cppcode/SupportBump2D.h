@@ -1,11 +1,11 @@
-// C++ code for bump function on support of energy density
+// C++ code for 2D bump function on support of energy density
 
-class SupportBump : public Expression
+class SupportBump2D : public Expression
 {
 public:
 
   // Constructor
-  SupportBump() : Expression() {}
+  SupportBump2D() : Expression() {}
 
   // Evaluation
   void eval(Array<double>& values, const Array<double>& x,
@@ -18,12 +18,12 @@ public:
     const double z = x[1];
 
     // Evaluate at point
-    const double density = (*_rho)(s, z);
+    const double density = (*_function)(s, z);
 
     if (density > 0.0001)
-      values[0] = 1;
+      values[0] = 1.0;
     else
-      values[0] = 0;
+      values[0] = 0.0;
   }
 
   // Set density
@@ -34,7 +34,7 @@ public:
 
 private:
 
-  // Axially symmetric density (2D)
-  std::shared_ptr<const Function> _rho;
+  // Axially symmetric function (2D)
+  std::shared_ptr<const Function> _function;
 
 };
