@@ -1,5 +1,7 @@
 // C++ code for 2D representation of density
 
+#include <iostream>
+
 class Density2D : public Expression
 {
 public:
@@ -13,12 +15,15 @@ public:
   {
     dolfin_assert(_rho);
 
-    // Note: Seem to need DOLFIN_EPS here even if allow_extrapolation
+    // Note: Seem to need a small eps here even if allow_extrapolation
     // is turned on. Strange, but doesn't matter.
 
     // Extract cylindrical coordinates
-    const double s = (x[0] >= 0.0 ? x[0] : -x[0]) + DOLFIN_EPS;
+    const double eps = 1e-6;
+    const double s = (x[0] >= 0.0 ? x[0] : -x[0]) + eps;
     const double z = (x[1] >= 0.0 ? x[1] : -x[1]);
+
+    //std::cout << "s = " << s << " z = " << z << std::endl;
 
     // Evaluate at point
     values[0] = (*_rho)(s, z);

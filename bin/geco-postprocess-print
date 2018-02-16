@@ -21,7 +21,10 @@ info(t, True)
 
 # Figure out torus geometry
 R = float(d["r_peak"])
-r0 = float(d["r_inner"])
+try:
+    r0 = float(d["r_inner"])
+except:
+    r0 = 0.0
 r1 = float(d["r_outer"])
 r = max(abs(R - r0), abs(R - r1))
 print ""
@@ -30,5 +33,3 @@ print "-------------------------------------"
 print ""
 print "R = %.3g" % R
 print "r = %.3g" % r
-print ""
-print "%.3g %.3g" % (R, r)
