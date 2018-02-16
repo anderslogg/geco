@@ -122,7 +122,10 @@ fields = [NU, BB, MU, WW, RHO, P00, P11, P33, P03]
 field_names = ['NU', 'BB', 'MU', 'WW', 'RHO','P00', 'P11', 'P33', 'P03']
 
 for f, fn in zip(fields, field_names):
-    File('%s_%s.xml.gz' % (fn, R)) >> f
+    try:
+        File('%s_%s.xml.gz' % (fn, R)) >> f
+    except:
+        pass
 
 U = Solution(NU, BB, MU, WW, RHO, P00, P11, P33, P03, RMD, ppdata)
 
@@ -150,7 +153,7 @@ lapse_0, lapse_i, lapse_p, lapse_o, lapse_MAmax = pq.compute_lapse_values(U, rva
 # Save post-process data along with original data from converged run
 
 # Add newly computed post-process values
-ppdata['r_inner']                  = r_inner
+ppdata['r_inner']             = r_inner
 ppdata['r_peak']              = r_peak
 ppdata['r_outer']             = r_outer
 ppdata['Rcirc_inner']         = Rcirc_i
@@ -159,8 +162,11 @@ ppdata['Rcirc_outer']         = Rcirc_o
 ppdata['Rcirc_max']           = Rcirc_MAmax
 ppdata['mass_aspect_max']     = mass_aspect_max
 ppdata['mass_aspect_max_r']   = mass_aspect_max_r
-ppdata['central_lapse']       = central_lapse
-ppdata['peak_lapse']          = peak_lapse
+ppdata['lapse_0']             = lapse_0
+ppdata['lapse_p']             = lapse_p
+ppdata['lapse_i']             = lapse_i
+ppdata['lapse_o']             = lapse_o
+ppdata['lapse_MAmax']         = lapse_MAmax
 ppdata['zamo_redshift_orig']  = zamoZ_0
 ppdata['zamo_redshift_inner'] = zamoZ_i
 ppdata['zamo_redshift_peak']  = zamoZ_p
