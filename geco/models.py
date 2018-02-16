@@ -48,6 +48,24 @@ def MaterialModel(model):
 
     return rho
 
+# Function for creating 2D representation density (extension to R2 from first quadrant)
+def Density2D(rho):
+
+    # Get library directory
+    library_dir = os.path.dirname(os.path.abspath(__file__))
+    cppcode_dir = os.path.join(library_dir, "cppcode")
+
+    # Read code from file
+    cppcode = open(os.path.join(cppcode_dir, "Density2D.h")).read()
+
+    # Build extension module
+    rho2d = Expression(cppcode=cppcode, degree=1)
+
+    # Set density
+    rho2d.set_density(rho)
+
+    return rho2d
+
 # Function for creating 3D representation density
 def Density3D(rho):
 
