@@ -4,25 +4,39 @@
 Postprocessing script to generate 3D ergoregion data sampled in a torus.
 """
 
-import sys, os
+import sys, os, csv
 from fenics import *
 from geco import *
 from geco.models import Density3D
 from mshr import *
 
-# Program input
-if len(sys.argv) != 4:
-    print "Usage: geco-postprocess-3d-ergoregion-torus R r n"
-    print ""
-    print "R = major radius"
-    print "r = minor radius"
-    print "n = number of refinements"
-    exit(1)
+# Resolution
+minimum_resolution = 400000
 
-# Get input parameters
-R = float(sys.argv[1])
-r = float(sys.argv[2])
-n = int(sys.argv[3])
+# Get or set parameters
+if len(sys.argv) == 3:
+
+    # Get input parameters
+    R = float(sys.argv[1])
+    r = float(sys.argv[2])
+
+else:
+
+    # Automatically determine the geometry
+    with open("ppdata.csv") as f:
+
+        # Read CSV data into a dictionary
+        rows = [r for r in csv.reader(f)]
+        d = dict(zip(rows[0], rows[1]))
+
+        # Get geometry
+        R = float(d["r_peak"])
+        try:
+            r0 = float(d["r_inner"])
+        except:
+            r0 = 0.0
+        r1 = float(d["r_outer"])
+        r = min(0.9*R, 2.0*max(abs(R - r0), abs(R - r1)))
 
 # Read mesh and reconstruct 2D function space
 filename = "mesh.xml.gz"
@@ -50,18 +64,21 @@ sphere_inner = Sphere(Point(0, 0, 0), R - r)
 sphere_outer = Sphere(Point(0, 0, 0), R + r)
 geometry = box*sphere_outer - sphere_inner
 mesh3 = generate_mesh(geometry, 16)
-for k in range(n):
+while mesh3.num_cells() < minimum_resolution:
     mesh3 = refine(mesh3)
 
 # Create 3D functon space
 V3 = FunctionSpace(mesh3, "Lagrange", 1)
 
 # Compute 3D ergoregion
-_gtt = - exp(2.0*NU)*(1.0 - (WW*r*BB)**2.0*exp(-4.0*NU))
+x = SpatialCoordinate(mesh2)
+s = x[0]
+_gtt = - exp(2.0*NU)*(1.0 - (WW*s*BB)**2.0*exp(-4.0*NU))
 gtt  = project(_gtt, V2)
-ergo = interpolate(Density3D(gtt), V3)
+GTT = interpolate(Density3D(gtt), V3)
 
 # Save to file
+GTT.rename("GTT", "Ergoregion indicator")
 filename = "postprocess-3d-ergoregion-torus.pvd"
-File(filename) << ergo
+File(filename) << GTT
 info("Postprocessing data save to file %s" % filename)

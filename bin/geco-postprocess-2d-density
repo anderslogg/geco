@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """"
-Postprocessing script to generate 2D ergoregion data sampled in a rectangle.
+Postprocessing script to generate 2D density data sampled in a rectangle.
 """
 
 import sys, os, csv
@@ -37,18 +37,13 @@ info("Reading mesh from file %s." % filename)
 mesh2 = Mesh(filename)
 V2 = FunctionSpace(mesh2, "Lagrange", 1)
 
-# Create 2D metric fields
-NU = Function(V2)
-BB = Function(V2)
-WW = Function(V2)
-UU = [NU, BB, WW]
+# Create 2D density
+RHO2 = Function(V2)
 
-# Read metric field data
-fields = ["NU_", "BB_", "WW_"]
-for i, prefix in enumerate(fields):
-    filename = [f for f in os.listdir('.') if f.startswith(prefix) and f.endswith('xml.gz')][0]
-    File(filename) >> UU[i]
-    UU[i].set_allow_extrapolation(True)
+# Read density data
+filename = [f for f in os.listdir('.') if "RHO_" in f and f.endswith('xml.gz')][0]
+File(filename) >> RHO2
+RHO2.set_allow_extrapolation(True)
 
 # Create rectangle mesh
 nR = int(float(R) / float(Z) * float(nZ))
@@ -58,15 +53,11 @@ info(mesh3)
 # Create new 2D functon space
 V3 = FunctionSpace(mesh3, "Lagrange", 1)
 
-# Compute new 2D ergoregion
-x = SpatialCoordinate(mesh2)
-s = x[0]
-_gtt = - exp(2.0*NU)*(1.0 - (WW*s*BB)**2.0*exp(-4.0*NU))
-gtt  = project(_gtt, V2)
-GTT = interpolate(Density2D(gtt), V3)
+# Compute new 2D density
+RHO3 = interpolate(Density2D(RHO2), V3)
 
 # Save to file
-GTT.rename("GTT", "Ergoregion indicator")
-filename = "postprocess-2d-ergoregion.pvd"
-File(filename) << GTT
+RHO3.rename("RHO", "Density")
+filename = "postprocess-2d-density.pvd"
+File(filename) << RHO3
 info("Postprocessing data save to file %s" % filename)
