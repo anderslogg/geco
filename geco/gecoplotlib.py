@@ -53,7 +53,7 @@ axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$',
                 'ri/ro': 'Inner radius of support over outer radius of support',
                 'M_squared_over_J': 'Mass squared over the total angular momentum',
                 'M_over_Rcirc': 'Mass over Rcirc', 
-                'mass_aspect_max': r'Maximum of $2m(\rho)/R_{circ}$', 'mass_aspect_max_r': 'Radius of maximum of $2m(\rho)/R_{circ}$',
+                'mass_aspect_max': r'Maximum of $2m/R_{circ}$', 'mass_aspect_max_r': 'Radius of maximum of $2m/R_{circ}$',
                 'central_lapse': 'Central Lapse', 'peak_lapse': 'Lapse at matter peak', 'Rcirc_squared_over_J': 'Rcirc squared over J'}
 
     
@@ -196,7 +196,7 @@ def get_data(data_file, data_name):
         print('Quantity not found.')
 
 
-    return np.array(data).reshape(-1) #[0]
+    return np.array(data).reshape(-1)
 
 def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_labels = None, markers=None, savefig=False):
     # Specialized for plotting postprocessing data in that each data file should contain only one line of data
@@ -205,7 +205,7 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
 
     # Set figure size
     matplotlib.rcParams['figure.figsize'] = (20.0, 10.0)
-    legend_params = {'legend.fontsize':26, 'axes.labelsize':26}
+    legend_params = {'legend.fontsize':26, 'axes.labelsize':36}
     plt.rcParams.update(legend_params)
     plt.rc('text', usetex=True)
 
@@ -217,7 +217,7 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
 
     # Set markers
     if markers == None:
-        run_markers = [':o' for i in range(len(data_runs))]
+        run_markers = ['o' for i in range(len(data_runs))]
     else:
         run_markers = markers
 
@@ -225,20 +225,25 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
     for data_run, run_label, run_marker in zip(data_runs, run_labels, run_markers):
         
         # Generate xdata and ydata
-        xdata = [get_data(f, xdata_name)[0] for f in data_run]
-        ydata = [get_data(f, ydata_name)[0] for f in data_run]      
+        xdata = np.array([get_data(f, xdata_name)[0] for f in data_run])
+        ydata = np.array([get_data(f, ydata_name)[0] for f in data_run])
+
+        # Make sure data corresponds to converged solution
+        conv_data = np.array([get_data(f, 'solution_converged')[0] for f in data_run])
+        xdata = xdata[np.where(conv_data == True)]
+        ydata = ydata[np.where(conv_data == True)]
         
         # plot data
-        plt.plot(xdata, ydata, marker='o', label=run_label)
+        plt.plot(xdata, ydata, marker='.', label=run_label)
         
     # Look up axes point_labels   
     xlabel, ylabel, label_name = look_up_labels(xdata_name, ydata_name, point_labels)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.legend()
+    plt.tick_params(tickdir='in', length=6, width=2, labelsize=36)
     plt.grid()
-
-    #plt.subplots_adjust(bottom=0.5)
+    if not legend_labels == 'empty':
+        plt.legend()
 
     # Save file if desired
     if savefig:
@@ -247,7 +252,8 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
         print('Saving figure as %s' % save_file)
         plt.savefig(save_file, dpi=100, bbox_inches='tight')
 
-    plt.show()        
+    #plt.show()
+    return plt
 
 
 def gecoplot(data_runs, xdata, ydata, point_labels=None, converged_only=True, savefig=False, verbose=False):
@@ -324,6 +330,18 @@ def gecoplot(data_runs, xdata, ydata, point_labels=None, converged_only=True, sa
         plt.savefig(save_file, dpi=100, bbox_inches='tight')
 
     plt.show()
+
+
+# Highlight Data Point
+def highlight_point(ax, data_file, xdata_name, ydata_name, hmarker):
+
+    # Get data
+    xdata = get_data(data_file, xdata_name)[0]
+    ydata = get_data(data_file, ydata_name)[0]
+
+    ax.plot(xdata, ydata, marker=hmarker, markersize=20)
+
+    return ax
 
 
 def df_radius_ratio(arg_array):
