@@ -3,3 +3,79 @@
 """"
 Postprocessing script to generate 3D ergoregion data sampled in a box.
 """
+
+import sys, os, csv
+from fenics import *
+from geco import *
+from geco.models import Density3D
+from mshr import *
+
+# Parameters
+nZ = 32
+
+# Get or set parameters
+if len(sys.argv) == 3:
+
+    # Get input parameters
+    R = float(sys.argv[1])
+    r = float(sys.argv[2])
+
+else:
+
+    # Automatically determine the geometry
+    with open("ppdata.csv") as f:
+
+        # Read CSV data into a dictionary
+        rows = [r for r in csv.reader(f)]
+        d = dict(zip(rows[0], rows[1]))
+
+        # Get geometry
+        try:
+            r0 = float(d["r_inner"])
+        except:
+            r0 = 0.0
+        rp = float(d["r_peak"])
+        r1 = float(d["r_outer"])
+        r = max(abs(rp - r0), abs(rp - r1))
+        R = 2.0*r1
+        Z = 1.0*r1
+
+# Read mesh and reconstruct 2D function space
+filename = "mesh.xml.gz"
+info("Reading mesh from file %s." % filename)
+mesh2 = Mesh(filename)
+V2 = FunctionSpace(mesh2, "Lagrange", 1)
+
+# Create 2D metric fields
+NU = Function(V2)
+BB = Function(V2)
+WW = Function(V2)
+UU = [NU, BB, WW]
+
+# Read metric field data
+fields = ["NU_", "BB_", "WW_"]
+for i, prefix in enumerate(fields):
+    filename = [f for f in os.listdir('.') if f.startswith(prefix) and f.endswith('xml.gz')][0]
+    File(filename) >> UU[i]
+    UU[i].set_allow_extrapolation(True)
+
+# Create 3D box mesh
+nR = int(float(R) / float(Z) * float(nZ))
+mesh3 = BoxMesh(Point(-R -r, -Z, -R -r), Point(R + r, Z, R + r), nR, nZ, nR)
+info(mesh3)
+
+# Create 3D functon space
+V3 = FunctionSpace(mesh3, "Lagrange", 1)
+
+# Compute 3D ergoregion
+x = SpatialCoordinate(mesh2)
+s = x[0]
+_gtt = - exp(2.0*NU)*(1.0 - (WW*s*BB)**2.0*exp(-4.0*NU))
+gtt  = project(_gtt, V2)
+GTT = interpolate(Density3D(gtt), V3)
+
+# Save to file
+GTT.rename("GTT", "Ergoregion indicator")
+filename = "postprocess-3d-ergoregion-box.pvd"
+File(filename) << GTT
+info("Postprocessing data save to file %s" % filename)

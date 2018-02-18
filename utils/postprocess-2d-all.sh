@@ -5,7 +5,7 @@ for f in step*; do
     echo "Postprocessing $f"
     echo "--------------------------"
     cd $f
-    #geco-postprocess-3d-density-torus
-    geco-postprocess-3d-ergoregion-box
+    geco-postprocess-2d-density
+    geco-postprocess-2d-ergoregion
     cd ..
 done

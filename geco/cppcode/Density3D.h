@@ -1,5 +1,7 @@
 // C++ code for 3D representation of density
 
+#include <iostream>
+
 class Density3D : public Expression
 {
 public:
@@ -20,9 +22,15 @@ public:
     // Note: For some strange reason abs() does not return
     // anything sensible (double/int issue?) so we use our own.
 
+    // Note: Seem to need a small eps here even if allow_extrapolation
+    // is turned on. Strange, but doesn't matter.
+
     // Extract cylindrical coordinates
-    const double s = sqrt(x[0]*x[0] + x[2]*x[2]);
+    const double eps = 1e-6;
+    const double s = sqrt(x[0]*x[0] + x[2]*x[2]) + eps;
     const double z = (x[1] >= 0.0 ? x[1] : -x[1]);
+
+    //std::cout << "s = " << s << " z = " << z << std::endl;
 
     // Evaluate at point
     values[0] = (*_rho)(s, z);
