@@ -33,34 +33,35 @@ from matplotlib import rcParams
 import matplotlib
 
 
-axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$', 'Rcirc': 'Coefficient of $g_{\phi \phi}$', 
-                 'adaptive_theta': 'Adaptive Damping Parameter', 'anderson_depth': 'Anderson Depth',
-                 'ang_mom': 'What is this?', 'ansatz_coefficient': 'Ansatz Coefficient', 
+axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$',
+                'Rcirc_inner': '$R_{circ}$ at inner radius', 'Rcirc_peak': '$R_{circ}$ at radisu of peak', 'Rcirc_outer': '$R_{circ}$ at outer radius',
+                'Rcirc_max': r'$R_{circ}$ at maximum of $\Gamma$', 
+                 'adaptive_theta': 'Adaptive Damping Parameter', 'anderson_depth': 'Anderson Depth', 'ansatz_coefficient': 'Ansatz Coefficient', 
                 'areal_radius_of_support': 'Radius of support in areal-like coordinates',
                 'central_redshift' : 'Central Redshift $Z_c$', 'degree': 'Degree of the ???', 
-                'ergo_region': 'Whether an ergo region is present', 'frac_binding_energy': 'Fractional Binding Energy $E_b$',
+                'ergo_region': 'Indicator of an ergo region', 'frac_binding_energy': 'Fractional Binding Energy $E_b$',
                 'gamma': 'A compactness parameter $2M/R$', 'gtt_max': 'Maximum of the $g_{tt}$ component', 
                 'k':'Exponent of the energy part of the distribution', 
                 'l':'Exponent of the momentum part of the distribution', 
                 'krylov_tolerance' : 'Krylov Tolerance', 'mass': 'Total Mass of the Solution', 
-                 'outer_redshift': 'Redshift of a photon launched from the surface of the distribution, $Z_o$',
-                 'peak_redshift': 'Redshift of a photon launched from the center of the distribution, $Z_p$',
-                'particle_mass': 'Particle Mass', 'r_inner': 'Inner radius of distribution',
-                'r_outer': 'Outer radius of distribution','r_peak': 'Radius of peak of distribution',
+                 'zamo_redshift_outer': '$\bar{Z}_o$', 'zamo_redshift_inner': '$\bar{Z}_i$', 'zamo_redshift_peak': r'$\bar{Z}_p$',
+                'zamo_redshift_max': '$\bar{Z}_M$', 'zamo_redshift_orig': '$\bar{Z}_{orig}$',
+                'particle_mass': 'Particle Mass',
+                'r_inner':'Inner radius of distribution','r_outer': 'Outer radius of distribution','r_peak': 'Radius of peak of distribution',
                 'radius_of_support': 'Coordinate Radius of Support','rest_mass': 'Rest Mass', 
-                 'solution_converged':'Whether the solution converged','total_angular_momentum':'Total Angular Momentum',
+                 'solution_converged':'Indicate the solution converged','total_angular_momentum':'Total Angular Momentum',
                 'ri/ro': 'Inner radius of support over outer radius of support',
-                'normalized_central_redshift': 'Normalized Central Redshift $Z_c/(1 + Z_c)$',
                 'M_squared_over_J': 'Mass squared over the total angular momentum',
-                'M_over_Rcirc': 'Mass over Rcirc', 'zamo_redshift_peak': 'ZAMO Redshift at peak', 'zamo_redshift_outer': 'ZAMO Redshift at surface',
-                'mass_aspect_max': 'Maximum of $m(r)/R_{circ}$', 'mass_aspect_rmax': 'Radius of maximum $m(r)/R_{circ}$',
-                'central_lapse': 'Central Lapse', 'peak_lapse': 'Lapse at matter peak'}
+                'M_over_Rcirc': 'Mass over Rcirc', 
+                'mass_aspect_max': r'Maximum of $2m(\rho)/R_{circ}$', 'mass_aspect_max_r': 'Radius of maximum of $2m(\rho)/R_{circ}$',
+                'central_lapse': 'Central Lapse', 'peak_lapse': 'Lapse at matter peak', 'Rcirc_squared_over_J': 'Rcirc squared over J'}
 
     
 derived_quantities = {'ri/ro': [['r_inner','r_outer'], 'df_radius_ratio'],
                       'normalized_central_redshift':[['central_redshift'], 'df_normalized_central_redshift'],
                       'M_squared_over_J':[['mass', 'total_angular_momentum'], 'df_M_squared_over_J'],
-                      'M_over_Rcirc':[['mass', 'Rcirc'], 'df_M_over_Rcirc']}
+                      'M_over_Rcirc':[['mass', 'Rcirc'], 'df_M_over_Rcirc'],
+                      'Rcirc_squared_over_J':[['Rcirc', 'total_angular_momentum'], 'df_Rcirc_squared_over_J']}
 
 
 save_dir = os.path.dirname(os.path.realpath(__file__))
@@ -82,12 +83,14 @@ def get_data_index(data_file, data):
 
 def list_data(data_files):
     # Lists data available for plotting
+
+    flat_list = [item for sublist in data_files for item in sublist]
     
     headers = []
     warning = False
     
     # Find union of all data quantities
-    for data_file in data_files:
+    for data_file in flat_list:
         header = np.genfromtxt(data_file, max_rows=1, delimiter=',', dtype=str)
         headers = list(set(headers).union(header))
         
@@ -182,7 +185,9 @@ def get_data(data_file, data_name):
         elif func_handle == 'df_M_squared_over_J':
             data = df_M_squared_over_J(derived_data)
         elif func_handle == 'df_M_over_Rcirc':
-            data = df_M_over_Rcirc(derived_data)            
+            data = df_M_over_Rcirc(derived_data)
+        elif func_handle == 'df_Rcirc_squared_over_J':
+            data = df_Rcirc_squared_over_J(derived_data)             
         else:
             print("A function for this quantity has not been defined.")
     
@@ -191,53 +196,122 @@ def get_data(data_file, data_name):
         print('Quantity not found.')
 
 
-    return np.array([data]).reshape(-1)
+    return np.array(data).reshape(-1) #[0]
+
+def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_labels = None, markers=None, savefig=False):
+    # Specialized for plotting postprocessing data in that each data file should contain only one line of data
+    # (no unconverged solutions present)
+    # Takes a list of data runs data_runs = [ [run1_file1, run1_file2, ...], [run2_file1, run2_file2, ...], ... ]
+
+    # Set figure size
+    matplotlib.rcParams['figure.figsize'] = (20.0, 10.0)
+    legend_params = {'legend.fontsize':26, 'axes.labelsize':26}
+    plt.rcParams.update(legend_params)
+    plt.rc('text', usetex=True)
+
+    # Set legend labels 
+    if legend_labels == None:    
+        run_labels = ["Run {:}".format(i) for i in range(len(data_runs))]
+    else:
+        run_labels = legend_labels
+
+    # Set markers
+    if markers == None:
+        run_markers = [':o' for i in range(len(data_runs))]
+    else:
+        run_markers = markers
+
+    # Generate x and y data in each run
+    for data_run, run_label, run_marker in zip(data_runs, run_labels, run_markers):
+        
+        # Generate xdata and ydata
+        xdata = [get_data(f, xdata_name)[0] for f in data_run]
+        ydata = [get_data(f, ydata_name)[0] for f in data_run]      
+        
+        # plot data
+        plt.plot(xdata, ydata, marker='o', label=run_label)
+        
+    # Look up axes point_labels   
+    xlabel, ylabel, label_name = look_up_labels(xdata_name, ydata_name, point_labels)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend()
+    plt.grid()
+
+    #plt.subplots_adjust(bottom=0.5)
+
+    # Save file if desired
+    if savefig:
+        file_name = '%s_vs_%s.png' % (ydata_name, xdata_name)
+        save_file = os.path.join(save_dir, file_name)
+        print('Saving figure as %s' % save_file)
+        plt.savefig(save_file, dpi=100, bbox_inches='tight')
+
+    plt.show()        
 
 
-def gecoplot(data_files, xdata, ydata, labels=None, legend=None, converged_only=True, savefig=False, verbose=False):
-    # plots ydata vs xdata for data in data_files. 
+def gecoplot(data_runs, xdata, ydata, point_labels=None, converged_only=True, savefig=False, verbose=False):
+    # plots ydata vs xdata for data in data_files.
+    # Capable of plotting any unconverged data. 
     # Options: labels, legend, converged_only, savefig
     # TODO: add legend and different coloring abilities. Might require more structure in the input files though...
 
     # Set figure size
     matplotlib.rcParams['figure.figsize'] = (20.0, 10.0)
-    
-    for data_file in data_files: 
 
-        # look up index for requested data
-        try:
+    for data_run in data_runs:
+
+        run_xdata = list()
+        run_ydata = list()      
+    
+        for data_file in data_run: 
             
-            x_data = get_data(data_file, xdata)
-            y_data = get_data(data_file, ydata)
+            # look up index for requested data
+            try:
+            
+                x_data = get_data(data_file, xdata)
+                y_data = get_data(data_file, ydata)
 
-            if labels == 'ergo_region' or labels == 'solution_converged':
-                label_data = get_data(data_file, labels)
+                if point_labels == 'ergo_region' or point_labels == 'solution_converged':
+                    label_data = get_data(data_file, point_labels)
                 
-            elif labels is not None:
-                label_data = np.round(get_data(data_file, labels), 3)
+                elif point_labels is not None:
+                    label_data = np.round(get_data(data_file, point_labels), 3)
+
+                elif point_labels is None:
+                    label_data = ""
                 
+                if converged_only:
+                    sc_data = get_data(data_file, 'solution_converged')
+                
+            except ValueError:
+                if verbose:
+                    print( "Desired data not found in '%s'" %(data_file))
+                continue  
+
             if converged_only:
-                sc_data = get_data(data_file, 'solution_converged')
+                # drop un-converged solutions
+                x_data = x_data[np.where(sc_data == True)]
+                y_data = y_data[np.where(sc_data == True)]
+
                 
-        except ValueError:
-            if verbose:
-                print( "Desired data not found in '%s'" %(data_file))
-            continue  
+            # FIXME: Point labels are likely broken.
+            if point_labels is not None:
+                for label, x, y in zip(label_data, x_data, y_data):
+                    plt.annotate(str(label), xy=(x, y), xytext=(-2, 2),
+                                textcoords='offset points', ha='left', va='bottom')
 
-        if converged_only:
-            # drop un-converged solutions
-            x_data = x_data[np.where(sc_data == True)]
-            y_data = y_data[np.where(sc_data == True)]
-    
-        plt.plot(x_data, y_data, ':ro')
-
-        if labels is not None:
-            for label, x, y in zip(label_data, x_data, y_data):
-                plt.annotate(str(label), xy=(x, y), xytext=(-2, 2),
-                            textcoords='offset points', ha='left', va='bottom')         
+            # pack points in to one list
+            run_xdata.append(x_data)
+            run_ydata.append(y_data)
+            
+        # flatten and plot run data
+        run_xdata = [x for xa in run_xdata for x in xa]
+        run_ydata = [y for ya in run_ydata for y in ya]        
+        plt.plot(run_xdata, run_ydata, 'o')
         
-    # Look up axes labels   
-    xlabel, ylabel, label_name = look_up_labels(xdata, ydata, labels)
+    # Look up axes point_labels   
+    xlabel, ylabel, label_name = look_up_labels(xdata, ydata, point_labels)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.grid()
@@ -289,6 +363,15 @@ def df_M_over_Rcirc(arg_array):
     rcirc = np.array(arg_array[1]).reshape(-1)
 
     return [m/r for m, r in zip(mass, rcirc)]
+
+def df_Rcirc_squared_over_J(arg_array):
+    # Takes an arg_array consisting of 
+    # arg_array = [Rcirc, J]
+    
+    rcirc = np.array(arg_array[0]).reshape(-1)
+    angm  = np.array(arg_array[1]).reshape(-1)    
+
+    return [r*r/j for r, j in zip(rcirc, angm)]
 
 ########################################################################
 ########################################################################
