@@ -148,31 +148,39 @@ zamoZ_0, zamoZ_i, zamoZ_p, zamoZ_o, zamoZ_MAmax = pq.compute_sZAMO_redshift_valu
 # Lapse
 lapse_0, lapse_i, lapse_p, lapse_o, lapse_MAmax = pq.compute_lapse_values(U, rvals)
 
+# Linear Energy density
+linear_energy_density = pq.compute_linear_energy_density(U)
+
+# Azimuthal pressure
+azimuthal_pressure = pq.compute_azimuthal_pressure(U)
+
 ##############################
 ##############################
 # Save post-process data along with original data from converged run
 
 # Add newly computed post-process values
-ppdata['r_inner']             = r_inner
-ppdata['r_peak']              = r_peak
-ppdata['r_outer']             = r_outer
-ppdata['Rcirc_inner']         = Rcirc_i
-ppdata['Rcirc_peak']          = Rcirc_p
-ppdata['Rcirc_outer']         = Rcirc_o
-ppdata['Rcirc_max']           = Rcirc_MAmax
-ppdata['mass_aspect_max']     = mass_aspect_max
-ppdata['mass_aspect_max_r']   = mass_aspect_max_r
-ppdata['lapse_0']             = lapse_0
-ppdata['lapse_p']             = lapse_p
-ppdata['lapse_i']             = lapse_i
-ppdata['lapse_o']             = lapse_o
-ppdata['lapse_MAmax']         = lapse_MAmax
-ppdata['zamo_redshift_orig']  = zamoZ_0
-ppdata['zamo_redshift_inner'] = zamoZ_i
-ppdata['zamo_redshift_peak']  = zamoZ_p
-ppdata['zamo_redshift_outer'] = zamoZ_o
-ppdata['zamo_redshift_max']   = zamoZ_MAmax
-ppdata['step']                = step
+ppdata['r_inner']               = r_inner
+ppdata['r_peak']                = r_peak
+ppdata['r_outer']               = r_outer
+ppdata['Rcirc_inner']           = Rcirc_i
+ppdata['Rcirc_peak']            = Rcirc_p
+ppdata['Rcirc_outer']           = Rcirc_o
+ppdata['Rcirc_max']             = Rcirc_MAmax
+ppdata['mass_aspect_max']       = mass_aspect_max
+ppdata['mass_aspect_max_r']     = mass_aspect_max_r
+ppdata['lapse_0']               = lapse_0
+ppdata['lapse_p']               = lapse_p
+ppdata['lapse_i']               = lapse_i
+ppdata['lapse_o']               = lapse_o
+ppdata['lapse_MAmax']           = lapse_MAmax
+ppdata['zamo_redshift_orig']    = zamoZ_0
+ppdata['zamo_redshift_inner']   = zamoZ_i
+ppdata['zamo_redshift_peak']    = zamoZ_p
+ppdata['zamo_redshift_outer']   = zamoZ_o
+ppdata['zamo_redshift_max']     = zamoZ_MAmax
+ppdata['step']                  = step
+ppdata['linear_energy_density'] = linear_energy_density
+ppdata['azimuthal_pressure']    = azimuthal_pressure
 
 # Save
 save_data(ppdata, cwd)
