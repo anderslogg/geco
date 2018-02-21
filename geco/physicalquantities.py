@@ -220,13 +220,9 @@ def compute_sZAMO_redshift_values(U, rvals):
   
 # Linear energy density
 def compute_linear_energy_density(U):
-    
-    x = SpatialCoordinate(U.mesh)
-    r = x[0]
 
-    led = project(exp(-2*U.MU)*(U.P00 + 2*U.WW*exp(-4*U.NU)*U.P03 + U.WW**2*(r*U.BB)**2*exp(-4*U.NU)*U.P33),U.V)
-    linearED = assemble(led*r*dx(U.mesh))
-#    linearED = assemble(U.RHO*r*dx(U.mesh))
+    led = project( U.P00 + U.WW*exp(-4*U.NU)*U.P03 , U.V)
+    linearED = 2*assemble(led*dx(U.mesh)) # mult. times 2 b/c of quarter disk
 
     return linearED
 
@@ -236,9 +232,8 @@ def compute_azimuthal_pressure(U):
     x = SpatialCoordinate(U.mesh)
     r = x[0]
 
-#    tmp = project((r*U.BB)**2*exp(-2*U.MU - 2*U.NU)*U.P33, U.V)
-    tmp = project(exp(-2*U.MU)*U.P33, U.V)
-    azimuthal_pressure = assemble(tmp*r*dx(U.mesh))
+    tmp = project( -U.WW*exp(-4*U.NU)*U.P03 + (1. - (r*U.BB*U.WW)**2*exp(-4*U.NU))*U.P33 , U.V)    
+    azimuthal_pressure = 2*assemble(tmp*dx(U.mesh)) # mult. times 2 b/c of quarter disk
 
     return azimuthal_pressure
 
