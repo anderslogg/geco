@@ -207,7 +207,7 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
     matplotlib.rcParams['figure.figsize'] = (20.0, 10.0)
     legend_params = {'legend.fontsize':26, 'axes.labelsize':36}
     plt.rcParams.update(legend_params)
-    plt.rc('text', usetex=True)
+#    plt.rc('text', usetex=True)
 
     # Set legend labels 
     if legend_labels == None:    
@@ -234,7 +234,7 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
         ydata = ydata[np.where(conv_data == True)]
         
         # plot data
-        plt.plot(xdata, ydata, marker='.', label=run_label)
+        plt.plot(xdata, ydata, marker='.', markersize=16, label=run_label)
         
     # Look up axes point_labels   
     xlabel, ylabel, label_name = look_up_labels(xdata_name, ydata_name, point_labels)
@@ -339,7 +339,7 @@ def highlight_point(ax, data_file, xdata_name, ydata_name, hmarker):
     xdata = get_data(data_file, xdata_name)[0]
     ydata = get_data(data_file, ydata_name)[0]
 
-    ax.plot(xdata, ydata, marker=hmarker, markersize=20)
+    ax.plot(xdata, ydata, marker=hmarker, markersize=36)
 
     return ax
 
