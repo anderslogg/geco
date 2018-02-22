@@ -108,39 +108,46 @@ def integrals_function(sigma0, psi0):
 
 # Compute Deficit angle
 sres = 25
-slist = np.linspace(3., 12, sres)
+slist = np.linspace(2., 12, sres)
 deficit_list = []
 numlines = 4
 colors = ['r','g','b','m']
 angles = pi*np.linspace(0., 1., numlines)
 
-plt.rcParams['figure.figsize'] = (20.0, 10.0)
+# set up figure
+my_dpi = 96
+fig = plt.figure(figsize=(1152/my_dpi, 576/my_dpi), dpi=my_dpi)
+#plt.rcParams['figure.figsize'] = (2.0, 1.0)
 #plt.rcParams["font.family"] = "Times New Roman"
-fig = plt.figure()
 
 for j in xrange(numlines):
     deficits = [2*pi - integrals_function(s, angles[j]) for s in slist]
     marker = colors[j].join('D')
-    plt.plot(slist, deficits, marker, markersize=16)  
+    plt.plot(slist, deficits, marker, markersize=6)  
 
 
 # Add estimate of the deficit angle based on energy density
 linearED = float(ppdata['linear_energy_density']) 
 azimuthal_pressure = float(ppdata['azimuthal_pressure']) 
-plt.axhline(y=4*pi*(linearED - azimuthal_pressure), linewidth=6)
+plt.axhline(y=4*pi*(linearED - azimuthal_pressure), linewidth=4)
 
 # Add vertical line showing position of boundary of matter
 radii = [inner_radius, outer_radius]
 sigma_supp = min([2.*np.log(r + peak_radius) - 2.*np.log(np.absolute(r - peak_radius)) for r in radii])
-plt.axvline(x=sigma_supp, linewidth=6)
+plt.axvline(x=sigma_supp, linewidth=4)
 
     
 #plt.title('E0 = {0}'.format(E0))
 #plt.xticks( [3, 9, 15, 21, 27] )
-plt.xlabel("$\sigma$", fontsize=36)
-plt.ylabel("$\Delta \eta$", fontsize=36)
-plt.tick_params(tickdir='in', length=6, width=2, labelsize=36)
-fig.savefig(save_file, dpi=500, bbox_inches='tight')
+plt.ylim( (-0.2, 1.5) ) 
+plt.xlabel("$\sigma$", fontsize=16)
+plt.ylabel("$\Delta \eta$", fontsize=16)
+plt.tick_params(tickdir='in', length=2, width=2, labelsize=16)
+
+print('Saving figure to {:}'.format(save_file))
+fig.savefig(save_file, dpi=my_dpi, bbox_inches='tight')
+
+fig.clf()
 
 
 ##############################
