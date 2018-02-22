@@ -53,7 +53,7 @@ axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$',
                 'ri/ro': 'Inner radius of support over outer radius of support',
                 'M_squared_over_J': 'Mass squared over the total angular momentum',
                 'M_over_Rcirc': 'Mass over Rcirc', 
-                'mass_aspect_max': r'Maximum of $2m/R_{circ}$', 'mass_aspect_max_r': 'Radius of maximum of $2m/R_{circ}$',
+                'mass_aspect_max': r'max($2m/R_{circ}$)', 'mass_aspect_max_r': 'Radius of maximum of $2m/R_{circ}$',
                 'central_lapse': 'Central Lapse', 'peak_lapse': 'Lapse at matter peak', 'Rcirc_squared_over_J': 'Rcirc squared over J'}
 
     
@@ -204,9 +204,11 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
     # Takes a list of data runs data_runs = [ [run1_file1, run1_file2, ...], [run2_file1, run2_file2, ...], ... ]
 
     # Set figure size
-    matplotlib.rcParams['figure.figsize'] = (20.0, 10.0)
-    legend_params = {'legend.fontsize':26, 'axes.labelsize':36}
-    plt.rcParams.update(legend_params)
+    my_dpi = 96
+    plt.figure(figsize=(1152/my_dpi, 576/my_dpi), dpi=my_dpi)
+#    matplotlib.rcParams['figure.figsize'] = (2.0, 1.0)
+#    legend_params = {'legend.fontsize':4, 'axes.labelsize':6}
+#    plt.rcParams.update(legend_params)
 #    plt.rc('text', usetex=True)
 
     # Set legend labels 
@@ -234,13 +236,13 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
         ydata = ydata[np.where(conv_data == True)]
         
         # plot data
-        plt.plot(xdata, ydata, marker='.', markersize=16, label=run_label)
+        plt.plot(xdata, ydata, marker='.', markersize=6, linestyle='None', label=run_label)
         
     # Look up axes point_labels   
     xlabel, ylabel, label_name = look_up_labels(xdata_name, ydata_name, point_labels)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.tick_params(tickdir='in', length=6, width=2, labelsize=36)
+    plt.xlabel(xlabel, fontsize=16)
+    plt.ylabel(ylabel, fontsize=16)
+    plt.tick_params(tickdir='in', length=2, width=2, labelsize=16)
     plt.grid()
     if not legend_labels == 'empty':
         plt.legend()
@@ -250,7 +252,7 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
         file_name = '%s_vs_%s.png' % (ydata_name, xdata_name)
         save_file = os.path.join(save_dir, file_name)
         print('Saving figure as %s' % save_file)
-        plt.savefig(save_file, dpi=100, bbox_inches='tight')
+        plt.savefig(save_file, dpi=96, bbox_inches='tight')
 
     #plt.show()
     return plt
@@ -263,7 +265,7 @@ def gecoplot(data_runs, xdata, ydata, point_labels=None, converged_only=True, sa
     # TODO: add legend and different coloring abilities. Might require more structure in the input files though...
 
     # Set figure size
-    matplotlib.rcParams['figure.figsize'] = (20.0, 10.0)
+    matplotlib.rcParams['figure.figsize'] = (2.0, 1.0)
 
     for data_run in data_runs:
 
@@ -339,7 +341,7 @@ def highlight_point(ax, data_file, xdata_name, ydata_name, hmarker):
     xdata = get_data(data_file, xdata_name)[0]
     ydata = get_data(data_file, ydata_name)[0]
 
-    ax.plot(xdata, ydata, marker=hmarker, markersize=36)
+    ax.plot(xdata, ydata, marker=hmarker, markersize=10)
 
     return ax
 
