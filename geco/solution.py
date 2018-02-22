@@ -20,3 +20,9 @@ class Solution:
         # Extract function space and mesh
         self.V= NU.function_space()
         self.mesh = self.V.mesh()
+
+
+    def geometry_fields_list(self):
+        " Return geometry fields in list "
+        
+        return [self.NU, self.BB, self.MU, self.WW] 
