@@ -328,7 +328,7 @@ class EinsteinVlasovSolver(SolverBase):
         # Compute final unscaled mass and scale ansatz coefficient
         prescribed_mass = self.parameters.discretization.mass
         _m = assemble(_mass)
-        C.assign(m / _m)
+        C.assign(prescribed_mass / _m)
 
         # Get radius of support and compute areal radius of support
         r0 = max([ansatz.radius_of_support() for ansatz in ansatzes])
