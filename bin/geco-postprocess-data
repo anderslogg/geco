@@ -154,11 +154,18 @@ linear_energy_density = pq.compute_linear_energy_density(U)
 # Azimuthal pressure
 azimuthal_pressure = pq.compute_azimuthal_pressure(U)
 
+# Hakan's parameter
+hakan_parameter = pq.compute_hakan_parameter(U)
+
+# fractional_binding_energy
+fractional_binding_energy = pq.compute_physical_quantity('fractional_binding_energy', U)
+
 ##############################
 ##############################
 # Save post-process data along with original data from converged run
 
 # Add newly computed post-process values
+ppdata['fractional_binding_energy'] = fractional_binding_energy
 ppdata['r_inner']               = r_inner
 ppdata['r_peak']                = r_peak
 ppdata['r_outer']               = r_outer
@@ -181,6 +188,7 @@ ppdata['zamo_redshift_max']     = zamoZ_MAmax
 ppdata['step']                  = step
 ppdata['linear_energy_density'] = linear_energy_density
 ppdata['azimuthal_pressure']    = azimuthal_pressure
+ppdata['hakan_parameter']       = hakan_parameter
 
 # Save
 save_data(ppdata, cwd)

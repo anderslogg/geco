@@ -82,8 +82,18 @@ def compute_ergo_region(U):
 # Compute fractional binding energy
 def compute_fractional_binding_energy(U):
 
-    m  = compute_total_mass(U)
-    rm = compute_rest_mass(U)
+#    m  = compute_total_mass(U)
+#    rm = compute_rest_mass(U)
+
+    try:
+        m = float(U.data['prescribed_mass'])
+    except KeyError:
+        m = float(U.data['mass'])
+    except:
+        print('No key for mass found')
+        raise
+
+    rm = float(U.data['rest_mass'])
 
     return 1.0 - m / rm
 
@@ -237,4 +247,10 @@ def compute_azimuthal_pressure(U):
 
     return azimuthal_pressure
 
+# Hakan's parameter
+def compute_hakan_parameter(U):
+
+    r_peak = compute_reflection_plane_support(U)[1]
+
+    return exp(2*U.NU(r_peak, 0.0))/U.BB(r_peak, 0.0)
     
