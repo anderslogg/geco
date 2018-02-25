@@ -39,7 +39,7 @@ axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$',
                  'adaptive_theta': 'Adaptive Damping Parameter', 'anderson_depth': 'Anderson Depth', 'ansatz_coefficient': 'Ansatz Coefficient', 
                 'areal_radius_of_support': 'Radius of support in areal-like coordinates',
                 'central_redshift' : 'Central Redshift $Z_c$', 'degree': 'Degree of the ???', 
-                'ergo_region': 'Indicator of an ergo region', 'frac_binding_energy': 'Fractional Binding Energy $E_b$',
+                'ergo_region': 'Indicator of an ergo region', 'fractional_binding_energy': 'Fractional Binding Energy $E_b$',
                 'gamma': 'A compactness parameter $2M/R$', 'gtt_max': 'Maximum of the $g_{tt}$ component', 
                 'k':'Exponent of the energy part of the distribution', 
                 'l':'Exponent of the momentum part of the distribution', 
@@ -51,17 +51,19 @@ axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$',
                 'radius_of_support': 'Coordinate Radius of Support','rest_mass': 'Rest Mass', 
                  'solution_converged':'Indicate the solution converged','total_angular_momentum':'Total Angular Momentum',
                 'ri/ro': 'Inner radius of support over outer radius of support',
-                'M_squared_over_J': 'Mass squared over the total angular momentum',
+                'M_squared_over_J': '$M^2 / J$',
                 'M_over_Rcirc': 'Mass over Rcirc', 
                 'mass_aspect_max': r'max($2m/R_{circ}$)', 'mass_aspect_max_r': 'Radius of maximum of $2m/R_{circ}$',
-                'central_lapse': 'Central Lapse', 'peak_lapse': 'Lapse at matter peak', 'Rcirc_squared_over_J': 'Rcirc squared over J'}
+                'central_lapse': 'Central Lapse', 'peak_lapse': 'Lapse at matter peak', 'Rcirc_squared_over_J': 'Rcirc squared over J',
+                     'HMV_deficit_angle': '$4\pi (u - k)$'}
 
     
 derived_quantities = {'ri/ro': [['r_inner','r_outer'], 'df_radius_ratio'],
                       'normalized_central_redshift':[['central_redshift'], 'df_normalized_central_redshift'],
                       'M_squared_over_J':[['mass', 'total_angular_momentum'], 'df_M_squared_over_J'],
                       'M_over_Rcirc':[['mass', 'Rcirc'], 'df_M_over_Rcirc'],
-                      'Rcirc_squared_over_J':[['Rcirc', 'total_angular_momentum'], 'df_Rcirc_squared_over_J']}
+                      'Rcirc_squared_over_J':[['Rcirc', 'total_angular_momentum'], 'df_Rcirc_squared_over_J'],
+                      'HMV_deficit_angle':[['linear_energy_density', 'azimuthal_pressure'], 'df_deficit_angle_estimate']}
 
 
 save_dir = os.path.dirname(os.path.realpath(__file__))
@@ -187,7 +189,9 @@ def get_data(data_file, data_name):
         elif func_handle == 'df_M_over_Rcirc':
             data = df_M_over_Rcirc(derived_data)
         elif func_handle == 'df_Rcirc_squared_over_J':
-            data = df_Rcirc_squared_over_J(derived_data)             
+            data = df_Rcirc_squared_over_J(derived_data)
+        elif func_handle == 'df_deficit_angle_estimate':
+            data = df_deficit_angle_estimate(derived_data)
         else:
             print("A function for this quantity has not been defined.")
     
@@ -236,7 +240,7 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
         ydata = ydata[np.where(conv_data == True)]
         
         # plot data
-        plt.plot(xdata, ydata, marker='.', markersize=6, linestyle='None', label=run_label)
+        plt.plot(xdata, ydata, marker='.', markersize=8, linestyle='None', label=run_label)
         
     # Look up axes point_labels   
     xlabel, ylabel, label_name = look_up_labels(xdata_name, ydata_name, point_labels)
@@ -245,7 +249,7 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
     plt.tick_params(tickdir='in', length=2, width=2, labelsize=16)
     plt.grid()
     if not legend_labels == 'empty':
-        plt.legend()
+        plt.legend(fontsize=16)
 
     # Save file if desired
     if savefig:
@@ -265,7 +269,9 @@ def gecoplot(data_runs, xdata, ydata, point_labels=None, converged_only=True, sa
     # TODO: add legend and different coloring abilities. Might require more structure in the input files though...
 
     # Set figure size
-    matplotlib.rcParams['figure.figsize'] = (2.0, 1.0)
+    my_dpi = 96
+    plt.figure(figsize=(1152/my_dpi, 576/my_dpi), dpi=my_dpi) 
+    #matplotlib.rcParams['figure.figsize'] = (20.0, 10.0)
 
     for data_run in data_runs:
 
@@ -316,12 +322,12 @@ def gecoplot(data_runs, xdata, ydata, point_labels=None, converged_only=True, sa
         # flatten and plot run data
         run_xdata = [x for xa in run_xdata for x in xa]
         run_ydata = [y for ya in run_ydata for y in ya]        
-        plt.plot(run_xdata, run_ydata, 'o')
+        plt.plot(run_xdata, run_ydata, 'o', markersize=4)
         
     # Look up axes point_labels   
     xlabel, ylabel, label_name = look_up_labels(xdata, ydata, point_labels)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
+    plt.xlabel(xlabel, fontsize=16)
+    plt.ylabel(ylabel, fontsize=16)
     plt.grid()
 
     # Save file if desired
@@ -345,7 +351,7 @@ def highlight_point(ax, data_file, xdata_name, ydata_name, hmarker):
 
     return ax
 
-
+# Interesting ratios of data
 def df_radius_ratio(arg_array):
     # Takes an arg_array consisting of 
     # arg_array = [r_inner, r_outer]
@@ -392,6 +398,16 @@ def df_Rcirc_squared_over_J(arg_array):
     angm  = np.array(arg_array[1]).reshape(-1)    
 
     return [r*r/j for r, j in zip(rcirc, angm)]
+
+
+def df_deficit_angle_estimate(arg_array):
+    # Takes an arg_array consisting of 
+    # arg_array = [linear_energy_density, azimuthal_pressure]
+
+    linearED = np.array(arg_array[0]).reshape(-1)
+    aziPress = np.array(arg_array[1]).reshape(-1)
+
+    return [4*np.pi*(l - a) for l, a in zip(linearED, aziPress)]
 
 ########################################################################
 ########################################################################
