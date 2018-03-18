@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+
+"""
+geco-postprocess-save-exp-fields
+
+Saves files for exp(NU) and r**2*exp(MU) which, in the BH limit should be regular, unlike the NU and MU functions.
+
+Usage: geco-postprocess-save-exp-fields
+
+"""
+
+import os
+from dolfin import *
+from os.path import join as pj
+
+
+# Load metric functions
+cwd = os.getcwd()
+filename = [f for f in os.listdir(cwd) if f.startswith('NU_')][0]
+R = filename.split('.')[0].split('_')[1]
+
+# Read mesh and create function space
+mesh = Mesh(cwd + '/mesh.xml.gz')
+V = FunctionSpace(mesh, 'P', 1)
+x = SpatialCoordinate(mesh)
+r = x[0]
+
+# Read and save fields and density
+NU  = Function(V)
+MU  = Function(V)
+File('NU_%s.xml.gz' % R) >> NU
+File('MU_%s.xml.gz' % R) >> MU
+
+# Project exponentiated fields
+expNU = project(exp(NU), V)
+r2expMU = project(r*r*exp(MU), V)
+
+# Save constructions to XDMF format
+print("  Saving exponentiated functions")
+solutions = [expNU, r2expMU]
+names = ['expNU', 'r2expMU']
+for solution, name in zip(solutions, names):
+    f = XDMFFile(mpi_comm_world(),
+                     pj(cwd, "%s_%s.xdmf" % (name, R)))
+    f.write(solution)
