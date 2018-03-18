@@ -44,14 +44,14 @@ axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$',
                 'k':'Exponent of the energy part of the distribution', 
                 'l':'Exponent of the momentum part of the distribution', 
                 'krylov_tolerance' : 'Krylov Tolerance', 'mass': 'Total Mass of the Solution', 
-                 'zamo_redshift_outer': '$\bar{Z}_o$', 'zamo_redshift_inner': '$\bar{Z}_i$', 'zamo_redshift_peak': r'$\bar{Z}_p$',
-                'zamo_redshift_max': '$\bar{Z}_M$', 'zamo_redshift_orig': '$\bar{Z}_{orig}$',
+                 'zamo_redshift_outer': r'$\bar{Z}_o$', 'zamo_redshift_inner': r'$\bar{Z}_i$', 'zamo_redshift_peak': r'$\bar{Z}_p$',
+                'zamo_redshift_max': r'$\bar{Z}_\Gamma$', 'zamo_redshift_orig': r'$\bar{Z}_{origin}$',
                 'particle_mass': 'Particle Mass',
                 'r_inner':'Inner radius of distribution','r_outer': 'Outer radius of distribution','r_peak': 'Radius of peak of distribution',
                 'radius_of_support': 'Coordinate Radius of Support','rest_mass': 'Rest Mass', 
                  'solution_converged':'Indicate the solution converged','total_angular_momentum':'Total Angular Momentum',
                 'ri/ro': 'Inner radius of support over outer radius of support',
-                'M_squared_over_J': '$M^2 / J$',
+                'M_squared_over_J': '$M^2 / J$', 'J_over_M_squared': '$J/M^2$',
                 'M_over_Rcirc': 'Mass over Rcirc', 
                 'mass_aspect_max': r'max($2m/R_{circ}$)', 'mass_aspect_max_r': 'Radius of maximum of $2m/R_{circ}$',
                 'central_lapse': 'Central Lapse', 'peak_lapse': 'Lapse at matter peak', 'Rcirc_squared_over_J': 'Rcirc squared over J',
@@ -61,6 +61,7 @@ axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$',
 derived_quantities = {'ri/ro': [['r_inner','r_outer'], 'df_radius_ratio'],
                       'normalized_central_redshift':[['central_redshift'], 'df_normalized_central_redshift'],
                       'M_squared_over_J':[['mass', 'total_angular_momentum'], 'df_M_squared_over_J'],
+                      'J_over_M_squared':[['mass', 'total_angular_momentum'], 'df_J_over_M_squared'],
                       'M_over_Rcirc':[['mass', 'Rcirc'], 'df_M_over_Rcirc'],
                       'Rcirc_squared_over_J':[['Rcirc', 'total_angular_momentum'], 'df_Rcirc_squared_over_J'],
                       'HMV_deficit_angle':[['linear_energy_density', 'azimuthal_pressure'], 'df_deficit_angle_estimate']}
@@ -186,6 +187,8 @@ def get_data(data_file, data_name):
             data = df_normalized_central_redshift(derived_data)
         elif func_handle == 'df_M_squared_over_J':
             data = df_M_squared_over_J(derived_data)
+        elif func_handle == 'df_J_over_M_squared':
+            data = df_J_over_M_squared(derived_data)            
         elif func_handle == 'df_M_over_Rcirc':
             data = df_M_over_Rcirc(derived_data)
         elif func_handle == 'df_Rcirc_squared_over_J':
@@ -258,8 +261,8 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
         print('Saving figure as %s' % save_file)
         plt.savefig(save_file, dpi=96, bbox_inches='tight')
 
-    #plt.show()
-    return plt
+    plt.show()
+    #return plt
 
 
 def gecoplot(data_runs, xdata, ydata, point_labels=None, converged_only=True, savefig=False, verbose=False):
@@ -379,6 +382,15 @@ def df_M_squared_over_J(arg_array):
     angm = np.array(arg_array[1]).reshape(-1)
 
     return [m*m/j for m, j in zip(mass, angm)]
+
+def df_J_over_M_squared(arg_array):
+    # Takes an arg_array consisting of 
+    # arg_array = [Mass, total_angular_momentum]
+    
+    mass = np.array(arg_array[0]).reshape(-1)
+    angm = np.array(arg_array[1]).reshape(-1)
+
+    return [j/(m*m) for m, j in zip(mass, angm)]
 
 
 def df_M_over_Rcirc(arg_array):
