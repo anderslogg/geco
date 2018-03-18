@@ -93,7 +93,10 @@ def compute_fractional_binding_energy(U):
         print('No key for mass found')
         raise
 
-    rm = float(U.data['rest_mass'])
+    try:
+        rm = float(U.data['rest_mass'])
+    except:
+        rm = compute_rest_mass(U)
 
     return 1.0 - m / rm
 
