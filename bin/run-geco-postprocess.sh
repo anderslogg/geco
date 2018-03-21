@@ -15,14 +15,15 @@
 
 # Directories
 CURRENTDIR=$( pwd )
-ALLSTEPS=$( ls adaptive_solver/ | grep '^step_' )
+ALLSTEPS=$( ls adaptive_solver/ | grep '^step_') #grep '0$' )
 
 for STEP in $ALLSTEPS
 do
     cd $CURRENTDIR/adaptive_solver/$STEP
-    #geco-postprocess-data
-    /home/fenics/shared/geco/bin/geco-postprocess-data
-    #/home/fenics/shared/geco/bin/geco-postprocess-ergoregion
+    geco-postprocess-data
+    #geco-postprocess-deficitangle
+    #geco-postprocess-save-exp-fields
+   
 done
 
 # Print a nice message

@@ -12,9 +12,9 @@ Usage: run from within the solution directory.
 
 import os
 from dolfin import *
-from solution import *
+from geco.solution import *
 import numpy as np
-import physicalquantities as pq
+import geco.physicalquantities as pq
 from matplotlib import pyplot as plt
 
 ##############################
