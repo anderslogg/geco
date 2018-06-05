@@ -1,0 +1,186 @@
+#!/usr/bin/env python
+
+'''
+geco-postprocess-deficitangle
+
+A script to compute and plot deficit angle around thin torus solutions in the meridional plane.
+
+Required file: ppdata.csv, MU_R.xml.gz, mesh.xml.gz
+
+Usage: 
+
+with setup.py installed in a docker container run 
+
+geco-postprocess-deficitangle
+
+from the solution directory.
+ 
+'''
+
+import numpy as np
+import csv, os
+from dolfin import *
+from matplotlib import pyplot as plt
+from PIL import Image
+
+
+# Import ppdata.csv into dictionary
+
+# Read Data dictionary
+try:
+    header = np.genfromtxt('ppdata.csv', max_rows=1, delimiter=',', dtype=str)
+    data_lines = np.genfromtxt('ppdata.csv', delimiter=',', dtype=None)
+    data_lines = data_lines[-1]
+    ppdata = dict( zip(header, data_lines) )
+except:
+    print('ppdata.csv not found. Run geco-postprocess-data.')
+
+"""
+keysandvals = []
+with open('ppdata.csv', mode='r') as infile:
+    reader = csv.reader(infile)    
+    for row in reader:
+        keysandvals.append(row)
+
+keys = [keysandvals[0][c] for c in range(len(keysandvals[0]))]
+vals = [keysandvals[-1][c] for c in range(len(keysandvals[0]))]
+datadict = {key: val for key, val in zip(keys,vals)}
+"""
+
+# Extract some quantities
+peak_radius = float(ppdata['r_peak'])
+inner_radius = float(ppdata['r_inner'])
+outer_radius = float(ppdata['r_outer'])
+step = ppdata['step']
+
+# Some directory setup
+cwd = os.getcwd()
+vis_dir = os.path.abspath(os.path.join(cwd, os.pardir, 'visualization'))
+save_file = os.path.join(vis_dir, 'deficit-angle-plots-polar/deficit_angle_{:}.jpg'.format(step))
+
+# Load metric functions
+filename = [f for f in os.listdir(cwd) if f.startswith('MU_')][0]
+R = filename.split('.')[0].split('_')[1]
+
+# Read mesh and create function space
+mesh = Mesh(cwd + '/mesh.xml.gz')
+V = FunctionSpace(mesh, 'P', 1)
+x = SpatialCoordinate(mesh)
+r = x[0]
+
+# Read and save MU field
+MU  = Function(V)
+try:
+    File('%s_%s.xml.gz' % ('MU', R)) >> MU
+except:
+    pass
+
+
+# Integrals function in toroidal coordinates centered at peak radius.
+
+# Limit function in local polar coordinates about torus peak
+def integrals_function(s0, t0):
+    
+    t_integral = 0.0
+    s_integral = 0.0    
+    intres = 1000
+    ds = s0/intres
+    dt = pi/intres
+
+    # s-integral
+    for i in xrange(intres):
+        si = 0.5*ds + i*ds
+        rp = peak_radius + si*np.cos(t0) #local polar coord about peak
+        zp = si*np.sin(t0) #local polar coord about peak
+        s_integral += exp(MU(rp, zp))
+
+    s_integral *= ds        
+
+    # t-integral
+    for i in xrange(intres):
+        ti = 0.5*dt + i*dt
+        rp = peak_radius + s0*np.cos(ti) #local polar coord about peak
+        zp = s0*np.sin(ti) #local polar coord about peak
+        t_integral += s0*exp(MU(rp, zp))        
+
+    t_integral *= dt
+    
+    return 2*t_integral/s_integral
+
+"""
+def integrals_function(sigma0, psi0):
+    
+    sigma_integral = 0.0
+    psi_integral = 0.0
+    intres = 1000
+    sigma_max = 101
+    ds = (sigma_max-sigma0)/intres
+    dpsi = pi/intres
+    
+    # sigma integral: proper toroidal radius
+    for i in xrange(intres):
+        si = sigma0 + 0.5*ds + i*ds
+        rp = peak_radius*np.sinh(si)/(np.cosh(si)-np.cos(psi0)) 
+        zp = peak_radius*np.sin(psi0)/(np.cosh(si)-np.cos(psi0))
+        sigma_integral += exp(MU(rp, zp))/(np.cosh(si)-np.cos(psi0))
+
+    sigma_integral *= ds
+
+    # psi integral: proper toroidal circumference
+    for k in xrange(intres):
+        psik = 0.5*dpsi + k*dpsi
+        rp = peak_radius*np.sinh(sigma0)/(np.cosh(sigma0)-np.cos(psik)) 
+        zp = peak_radius*np.sin(psik)/(np.cosh(sigma0)-np.cos(psik))
+        psi_integral += exp(MU(rp, zp))/(np.cosh(sigma0)-np.cos(psik))
+
+    psi_integral *= dpsi
+    
+    return 2*psi_integral/sigma_integral
+"""
+
+# Compute Deficit angle
+sres = 50
+slist = np.linspace(0.000001, 0.25*peak_radius, sres)
+deficit_list = []
+numlines = 4
+colors = ['r','g','b','m']
+angles = pi*np.linspace(0., 1., numlines)
+
+# set up figure
+my_dpi = 96
+fig = plt.figure(figsize=(1152/my_dpi, 576/my_dpi), dpi=my_dpi)
+#plt.rcParams['figure.figsize'] = (2.0, 1.0)
+#plt.rcParams["font.family"] = "Times New Roman"
+
+for j in xrange(numlines):
+    deficits = [2*pi - integrals_function(s, angles[j]) for s in slist]
+    marker = colors[j].join('D')
+    plt.plot(slist, deficits, marker, markersize=6)  
+
+
+# Add estimate of the deficit angle based on energy density
+linearED = float(ppdata['linear_energy_density']) 
+azimuthal_pressure = float(ppdata['azimuthal_pressure']) 
+plt.axhline(y=4*pi*(linearED - azimuthal_pressure), linewidth=4)
+
+# Add vertical line showing position of boundary of matter
+radii = [inner_radius, outer_radius]
+R_supp = min([abs(peak_radius - r) for r in radii])
+plt.axvline(x=R_supp, linewidth=4)
+
+    
+#plt.title('E0 = {0}'.format(E0))
+#plt.xticks( [3, 9, 15, 21, 27] )
+plt.ylim( (-0.2, 1.5) ) 
+plt.xlabel("$R$", fontsize=16)
+plt.ylabel("$\Delta \eta$", fontsize=16)
+plt.tick_params(tickdir='in', length=2, width=2, labelsize=16)
+
+print('Saving figure to {:}'.format(save_file))
+fig.savefig(save_file, dpi=my_dpi, bbox_inches='tight')
+
+fig.clf()
+
+
+##############################
+##############################
