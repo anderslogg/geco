@@ -138,7 +138,7 @@ class EinsteinVlasovSolver(SolverBase):
         NU_R, BB_R, MU_R, WW_R = _flat(m, J)
 
         # Create subdomains for boundaries
-        eps = 1e-6
+        eps = 1e-5
         axis_test = "x[0] < eps"
         infty_test = "x[0]*x[0] + x[1]*x[1] > (R - eps)*(R - eps)"
         axis  = CompiledSubDomain(axis_test, eps=eps)
@@ -260,7 +260,7 @@ class EinsteinVlasovSolver(SolverBase):
                 # Assemble right-hand side
                 assemble(Ls[i], tensor=bs[i])
 
-	        # Apply boundary condition(s)
+	            # Apply boundary condition(s)
                 [bc.apply(bs[i]) for j, bc in bcs if j == i]
 
                 # Extra left-hand side assembly for B equation
@@ -329,6 +329,7 @@ class EinsteinVlasovSolver(SolverBase):
         prescribed_mass = self.parameters.discretization.mass
         _m = assemble(_mass)
         C.assign(prescribed_mass / _m)
+        project(density, mesh=mesh, function=RHO)
 
         # Get radius of support and compute areal radius of support
         r0 = max([ansatz.radius_of_support() for ansatz in ansatzes])
