@@ -53,9 +53,9 @@ axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$',
                 'ri/ro': 'Inner radius of support over outer radius of support',
                 'M_squared_over_J': '$M^2 / J$', 'J_over_M_squared': '$J/M^2$',
                 'M_over_Rcirc': 'Mass over Rcirc', 
-                'mass_aspect_max': r'max($2m/R_{circ}$)', 'mass_aspect_max_r': 'Radius of maximum of $2m/R_{circ}$',
+                'mass_aspect_max': r'$\Gamma =$ max($2m/R_{circ}(z=0)$)', 'mass_aspect_max_r': 'Radius of maximum of $2m/R_{circ}$',
                 'central_lapse': 'Central Lapse', 'peak_lapse': 'Lapse at matter peak', 'Rcirc_squared_over_J': 'Rcirc squared over J',
-                     'HMV_deficit_angle': '$4\pi (u - k)$'}
+                'HMV_deficit_angle': '$4\pi (u - k)$'}
 
     
 derived_quantities = {'ri/ro': [['r_inner','r_outer'], 'df_radius_ratio'],
@@ -243,7 +243,7 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
         ydata = ydata[np.where(conv_data == True)]
         
         # plot data
-        plt.plot(xdata, ydata, marker='.', markersize=8, linestyle='None', label=run_label)
+        plt.plot(xdata, ydata, marker=run_marker, markersize=8, linestyle='None', label=run_label)
         
     # Look up axes point_labels   
     xlabel, ylabel, label_name = look_up_labels(xdata_name, ydata_name, point_labels)
