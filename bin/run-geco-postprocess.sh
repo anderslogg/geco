@@ -15,15 +15,19 @@
 
 # Directories
 CURRENTDIR=$( pwd )
-ALLSTEPS=$( ls adaptive_solver/ | grep '^step_') #grep '0$' )
+ALLSTEPS=$( ls adaptive_solver/ | grep '^step_') #grep '9[0-9]$')  #'[0-9][0,5]$') #
 
 for STEP in $ALLSTEPS
 do
     cd $CURRENTDIR/adaptive_solver/$STEP
-    geco-postprocess-data
-    #geco-postprocess-deficitangle
-    #geco-postprocess-save-exp-fields
-   
+    # If operation is data, check for existing ppdata file
+    if [ "$1" = "data" ] && [ ! -f "ppdata.csv" ]; then
+	geco-postprocess-data
+    fi
+    # Otherwise, execute operation.
+    if [ "$1" != "data" ]; then
+	geco-postprocess-$1
+    fi
 done
 
 # Print a nice message

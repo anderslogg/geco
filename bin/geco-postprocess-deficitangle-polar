@@ -55,8 +55,12 @@ step = ppdata['step']
 
 # Some directory setup
 cwd = os.getcwd()
-vis_dir = os.path.abspath(os.path.join(cwd, os.pardir, 'visualization'))
-save_file = os.path.join(vis_dir, 'deficit-angle-plots-polar/deficit_angle_{:}.jpg'.format(step))
+vis_dir = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, 'visualization'))
+deficitangle_plots_dir = os.path.join(vis_dir, 'deficit-angle-plots-polar')
+save_file = os.path.join(deficitangle_plots_dir, 'deficit_angle_{:}.jpg'.format(step))
+
+if not os.path.exists(deficitangle_plots_dir):
+    os.makedirs(deficitangle_plots_dir)
 
 # Load metric functions
 filename = [f for f in os.listdir(cwd) if f.startswith('MU_')][0]
