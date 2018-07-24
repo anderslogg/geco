@@ -243,7 +243,7 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
         ydata = ydata[np.where(conv_data == True)]
         
         # plot data
-        plt.plot(xdata, ydata, marker=run_marker, markersize=8, linestyle='None', label=run_label)
+        plt.plot(xdata, ydata, marker=run_marker, markersize=6, linestyle='None', label=run_label)
         
     # Look up axes point_labels   
     xlabel, ylabel, label_name = look_up_labels(xdata_name, ydata_name, point_labels)
@@ -257,7 +257,9 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
     # Save file if desired
     if savefig:
         file_name = '%s_vs_%s.png' % (ydata_name, xdata_name)
-        save_file = os.path.join(save_dir, file_name)
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        save_file = os.path.join(save_dir, file_name)    
         print('Saving figure as %s' % save_file)
         plt.savefig(save_file, dpi=96, bbox_inches='tight')
 
