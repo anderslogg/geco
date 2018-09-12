@@ -17,6 +17,22 @@
 CURRENTDIR=$( pwd )
 ALLSTEPS=$( ls adaptive_solver/ | grep '^step_') #grep '9[0-9]$')  #'[0-9][0,5]$') #
 
+# Optional: evaluate only subset of directories. 
+START=${2:-0}
+STOP=${3:-1}
+
+COUNTER=0
+for s in `seq $START $STOP`;
+do
+    STEPS[$COUNTER]='step_'$(printf "%03d" $s)
+    let COUNTER=COUNTER+1
+done
+
+if [ "$#" -gt 1 ]; then
+    ALLSTEPS=${STEPS[@]}
+fi
+
+# Run postprocessing code in desired steps
 for STEP in $ALLSTEPS
 do
     cd $CURRENTDIR/adaptive_solver/$STEP
