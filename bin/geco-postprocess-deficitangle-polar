@@ -144,7 +144,7 @@ def integrals_function(sigma0, psi0):
 
 # Compute Deficit angle
 sres = 50
-slist = np.linspace(0.000001, 0.25*peak_radius, sres)
+slist = np.linspace(0.000000001, 0.1, sres) #np.linspace(0.000000001, 0.25*peak_radius, sres)
 deficit_list = []
 numlines = 4
 colors = ['r','g','b','m']
@@ -153,13 +153,17 @@ angles = pi*np.linspace(0., 1., numlines)
 # set up figure
 my_dpi = 96
 fig = plt.figure(figsize=(1152/my_dpi, 576/my_dpi), dpi=my_dpi)
+markers = ['o', 'v', 'D','s']
 #plt.rcParams['figure.figsize'] = (2.0, 1.0)
 #plt.rcParams["font.family"] = "Times New Roman"
 
 for j in xrange(numlines):
     deficits = [2*pi - integrals_function(s, angles[j]) for s in slist]
-    marker = colors[j].join('D')
-    plt.plot(slist, deficits, marker, markersize=6)  
+    marker = markers[j]
+    plt.plot(slist, deficits, marker, markersize=6)
+
+    
+plt.legend(np.round(angles, 3))
 
 
 # Add estimate of the deficit angle based on energy density
