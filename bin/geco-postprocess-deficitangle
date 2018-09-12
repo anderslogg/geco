@@ -21,7 +21,6 @@ import numpy as np
 import csv, os
 from dolfin import *
 from matplotlib import pyplot as plt
-from PIL import Image
 
 
 # Import ppdata.csv into dictionary
@@ -55,8 +54,12 @@ step = ppdata['step']
 
 # Some directory setup
 cwd = os.getcwd()
-vis_dir = os.path.abspath(os.path.join(cwd, os.pardir, 'visualization'))
-save_file = os.path.join(vis_dir, 'deficit-angle-plots/deficit_angle_{:}.jpg'.format(step))
+vis_dir = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, 'visualization'))
+deficitangle_plots_dir = os.path.join(vis_dir, 'deficit-angle-plots')
+save_file = os.path.join(deficitangle_plots_dir, 'deficit_angle_{:}.jpg'.format(step))
+
+if not os.path.exists(deficitangle_plots_dir):
+    os.makedirs(deficitangle_plots_dir)
 
 # Load metric functions
 filename = [f for f in os.listdir(cwd) if f.startswith('MU_')][0]
@@ -108,23 +111,25 @@ def integrals_function(sigma0, psi0):
 
 # Compute Deficit angle
 sres = 25
-slist = np.linspace(2., 12, sres)
+slist = np.linspace(0.5, 10, sres)
 deficit_list = []
 numlines = 4
-colors = ['r','g','b','m']
 angles = pi*np.linspace(0., 1., numlines)
 
 # set up figure
 my_dpi = 96
 fig = plt.figure(figsize=(1152/my_dpi, 576/my_dpi), dpi=my_dpi)
+markers = ['o', 'v', 'D','s']
 #plt.rcParams['figure.figsize'] = (2.0, 1.0)
 #plt.rcParams["font.family"] = "Times New Roman"
 
 for j in xrange(numlines):
     deficits = [2*pi - integrals_function(s, angles[j]) for s in slist]
-    marker = colors[j].join('D')
-    plt.plot(slist, deficits, marker, markersize=6)  
+    marker = markers[j]
+    plt.plot(slist, deficits, marker, markersize=6)
 
+# Add legend    
+plt.legend(np.round(angles, 3))
 
 # Add estimate of the deficit angle based on energy density
 linearED = float(ppdata['linear_energy_density']) 
@@ -133,7 +138,7 @@ plt.axhline(y=4*pi*(linearED - azimuthal_pressure), linewidth=4)
 
 # Add vertical line showing position of boundary of matter
 radii = [inner_radius, outer_radius]
-sigma_supp = min([2.*np.log(r + peak_radius) - 2.*np.log(np.absolute(r - peak_radius)) for r in radii])
+sigma_supp = min([np.log(r + peak_radius) - np.log(np.absolute(r - peak_radius)) for r in radii])
 plt.axvline(x=sigma_supp, linewidth=4)
 
     
