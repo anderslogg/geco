@@ -128,8 +128,8 @@ for j in xrange(numlines):
     marker = markers[j]
     plt.plot(slist, deficits, marker, markersize=6)
 
-# Add legend    
-plt.legend(np.round(angles, 3))
+# Add legend
+plt.legend(['0',"$\pi / 3$","$2\pi / 3$", "$\pi$"]) # based on: angles = pi*np.linspace(0., 1., numlines)
 
 # Add estimate of the deficit angle based on energy density
 linearED = float(ppdata['linear_energy_density']) 
