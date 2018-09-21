@@ -211,8 +211,8 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
     # Takes a list of data runs data_runs = [ [run1_file1, run1_file2, ...], [run2_file1, run2_file2, ...], ... ]
 
     # Set figure size
-    my_dpi = 96
-    plt.figure(figsize=(1152/my_dpi, 576/my_dpi), dpi=my_dpi)
+    my_dpi = 300
+    plt.figure(figsize=(6, 3), dpi=my_dpi)
 #    matplotlib.rcParams['figure.figsize'] = (2.0, 1.0)
 #    legend_params = {'legend.fontsize':4, 'axes.labelsize':6}
 #    plt.rcParams.update(legend_params)
@@ -243,7 +243,7 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
         ydata = ydata[np.where(conv_data == True)]
         
         # plot data
-        plt.plot(xdata, ydata, marker=run_marker, markersize=6, linestyle='None', label=run_label)
+        plt.plot(xdata, ydata, marker=run_marker, markersize=4, linestyle='None', label=run_label)
         
     # Look up axes point_labels   
     xlabel, ylabel, label_name = look_up_labels(xdata_name, ydata_name, point_labels)
@@ -261,7 +261,7 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
             os.makedirs(save_dir)
         save_file = os.path.join(save_dir, file_name)    
         print('Saving figure as %s' % save_file)
-        plt.savefig(save_file, dpi=96, bbox_inches='tight')
+        plt.savefig(save_file, dpi=my_dpi, bbox_inches='tight')
 
     plt.show()
     #return plt
