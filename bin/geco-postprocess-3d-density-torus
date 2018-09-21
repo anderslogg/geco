@@ -38,7 +38,7 @@ else:
         except:
             r0 = 0.0
         r1 = float(d["r_outer"])
-        r = min(0.9*R, 2.0*max(abs(R - r0), abs(R - r1)))
+        r = min(0.95*R, 2.0*max(abs(R - r0), abs(R - r1)))
 
 # Read mesh and reconstruct 2D function space
 filename = "mesh.xml.gz"

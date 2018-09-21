@@ -33,12 +33,12 @@ File('MU_%s.xml.gz' % R) >> MU
 
 # Project exponentiated fields
 expNU = project(exp(NU), V)
-r2expMU = project(r*r*exp(MU), V)
+expmMU = project(exp(-MU), V)
 
 # Save constructions to XDMF format
 print("  Saving exponentiated functions")
-solutions = [expNU, r2expMU]
-names = ['expNU', 'r2expMU']
+solutions = [expNU, expmMU]
+names = ['expNU', 'expmMU']
 for solution, name in zip(solutions, names):
     f = XDMFFile(mpi_comm_world(),
                      pj(cwd, "%s_%s.xdmf" % (name, R)))
