@@ -34,7 +34,7 @@ import matplotlib
 
 
 axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$',
-                'Rcirc_inner': '$R_{circ}$ at inner radius', 'Rcirc_peak': '$R_{circ}$ at radisu of peak', 'Rcirc_outer': '$R_{circ}$ at outer radius',
+                'Rcirc_inner': '$\bar R_{circ}$ at inner radius', 'Rcirc_peak': '$R_{circ}$ at radius of peak', 'Rcirc_outer': '$\overline{R}_{circ}$ at outer radius',
                 'Rcirc_max': r'$R_{circ}$ at maximum of $\Gamma$', 
                  'adaptive_theta': 'Adaptive Damping Parameter', 'anderson_depth': 'Anderson Depth', 'ansatz_coefficient': 'Ansatz Coefficient', 
                 'areal_radius_of_support': 'Radius of support in areal-like coordinates',
@@ -205,14 +205,14 @@ def get_data(data_file, data_name):
 
     return np.array(data).reshape(-1)
 
-def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_labels = None, markers=None, savefig=False):
+def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_labels = None, markers=None, ylims=None, savefig=False):
     # Specialized for plotting postprocessing data in that each data file should contain only one line of data
     # (no unconverged solutions present)
     # Takes a list of data runs data_runs = [ [run1_file1, run1_file2, ...], [run2_file1, run2_file2, ...], ... ]
 
     # Set figure size
     my_dpi = 300
-    plt.figure(figsize=(6, 3), dpi=my_dpi)
+    plt.figure(figsize=(8, 4), dpi=my_dpi)
 #    matplotlib.rcParams['figure.figsize'] = (2.0, 1.0)
 #    legend_params = {'legend.fontsize':4, 'axes.labelsize':6}
 #    plt.rcParams.update(legend_params)
@@ -253,6 +253,14 @@ def geco_pp_plot(data_runs, xdata_name, ydata_name, legend_labels=None, point_la
     plt.grid()
     if not legend_labels == 'empty':
         plt.legend(fontsize=16)
+
+    if ylims != None:
+        try:
+            ybot, ytop = ylims
+            plt.ylim(ybot, ytop)
+        except:
+            print("Give (ybot, ytop)")
+            raise ValueError
 
     # Save file if desired
     if savefig:

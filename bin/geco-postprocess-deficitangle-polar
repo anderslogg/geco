@@ -78,7 +78,7 @@ try:
     File('%s_%s.xml.gz' % ('MU', R)) >> MU
 except:
     pass
-
+MU.set_allow_extrapolation(True)
 
 # Integrals function in toroidal coordinates centered at peak radius.
 
@@ -144,15 +144,15 @@ def integrals_function(sigma0, psi0):
 
 # Compute Deficit angle
 sres = 50
-slist = np.linspace(0.000000001, 0.7, sres) #np.linspace(0.000000001, 0.25*peak_radius, sres)
+slist = np.linspace(0.000000001, 0.1, sres) #np.linspace(0.000000001, 0.5*peak_radius, sres)
 deficit_list = []
 numlines = 4
 colors = ['r','g','b','m']
 angles = pi*np.linspace(0., 1., numlines)
 
 # set up figure
-my_dpi = 96
-fig = plt.figure(figsize=(1152/my_dpi, 576/my_dpi), dpi=my_dpi)
+my_dpi = 300
+fig = plt.figure(figsize=(8, 4), dpi=my_dpi)
 markers = ['o', 'v', 'D','s']
 #plt.rcParams['figure.figsize'] = (2.0, 1.0)
 #plt.rcParams["font.family"] = "Times New Roman"
@@ -163,7 +163,7 @@ for j in xrange(numlines):
     plt.plot(slist, deficits, marker, markersize=6)
 
     
-plt.legend(['0',"$\pi / 3$","$2\pi / 3$", "$\pi$"]) # based on: angles = pi*np.linspace(0., 1., numlines)
+plt.legend(['0',"$\pi / 3$","$2\pi / 3$", "$\pi$"], fontsize=16) # based on: angles = pi*np.linspace(0., 1., numlines)
 
 
 # Add estimate of the deficit angle based on energy density
