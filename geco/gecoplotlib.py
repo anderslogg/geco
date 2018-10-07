@@ -55,7 +55,7 @@ axes_label_dict={'E0': '$E_0$', 'L0': '$L_0$',
                 'M_over_Rcirc': 'Mass over Rcirc', 
                 'mass_aspect_max': r'$\Gamma =$ max($2m/R_{circ}(z=0)$)', 'mass_aspect_max_r': 'Radius of maximum of $2m/R_{circ}$',
                 'central_lapse': 'Central Lapse', 'peak_lapse': 'Lapse at matter peak', 'Rcirc_squared_over_J': 'Rcirc squared over J',
-                'HMV_deficit_angle': '$4\pi (u - k)$'}
+                'HMV_deficit_angle': '$4\pi (u + m - k)$', 'meridional_pressure': 'Meridional Pressure', 'fourpi_meridional_pressure': '$4\pi m$'}
 
     
 derived_quantities = {'ri/ro': [['r_inner','r_outer'], 'df_radius_ratio'],
@@ -64,7 +64,8 @@ derived_quantities = {'ri/ro': [['r_inner','r_outer'], 'df_radius_ratio'],
                       'J_over_M_squared':[['mass', 'total_angular_momentum'], 'df_J_over_M_squared'],
                       'M_over_Rcirc':[['mass', 'Rcirc'], 'df_M_over_Rcirc'],
                       'Rcirc_squared_over_J':[['Rcirc', 'total_angular_momentum'], 'df_Rcirc_squared_over_J'],
-                      'HMV_deficit_angle':[['linear_energy_density', 'azimuthal_pressure'], 'df_deficit_angle_estimate']}
+                      'HMV_deficit_angle':[['linear_energy_density', 'azimuthal_pressure', 'meridional_pressure'], 'df_deficit_angle_estimate'],
+                      'fourpi_meridional_pressure':[['meridional_pressure'], 'df_fourpi_meridional_pressure']}
 
 
 save_dir = os.path.dirname(os.path.realpath(__file__))
@@ -195,12 +196,15 @@ def get_data(data_file, data_name):
             data = df_Rcirc_squared_over_J(derived_data)
         elif func_handle == 'df_deficit_angle_estimate':
             data = df_deficit_angle_estimate(derived_data)
+        elif func_handle == 'df_fourpi_meridional_pressure':
+            data = df_fourpi_meridional_pressure(derived_data)
         else:
             print("A function for this quantity has not been defined.")
     
     # else print an warning message
     else: 
-        print('Quantity not found.')
+        print('Quantity not found. Returning zero')
+        data = [0.0]
 
 
     return np.array(data).reshape(-1)
@@ -424,12 +428,21 @@ def df_Rcirc_squared_over_J(arg_array):
 
 def df_deficit_angle_estimate(arg_array):
     # Takes an arg_array consisting of 
-    # arg_array = [linear_energy_density, azimuthal_pressure]
+    # arg_array = [linear_energy_density, azimuthal_pressure, meridional_pressure]
 
     linearED = np.array(arg_array[0]).reshape(-1)
     aziPress = np.array(arg_array[1]).reshape(-1)
+    merPress = np.array(arg_array[2]).reshape(-1)    
 
-    return [4*np.pi*(l - a) for l, a in zip(linearED, aziPress)]
+    return [4*np.pi*(l + m - a) for l, a, m in zip(linearED, aziPress, merPress)]
+
+def df_fourpi_meridional_pressure(arg_array):
+    # Takes an arg_array consisting of 
+    # arg_array = [meridional_pressure]
+    
+    merPress = np.array(arg_array[0]).reshape(-1)
+    
+    return [4*np.pi*m for m in merPress]
 
 ########################################################################
 ########################################################################

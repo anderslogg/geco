@@ -234,7 +234,7 @@ def compute_sZAMO_redshift_values(U, rvals):
 # Linear energy density
 def compute_linear_energy_density(U):
 
-    led = project( U.P00 + U.WW*exp(-4*U.NU)*U.P03 , U.V)
+    led = project( U.P00 + U.WW*exp(-4*U.NU)*U.P03 , U.V) # -T_t^t mult. by exp(2MU) for the integration measure.
     linearED = 2*assemble(led*dx(U.mesh)) # mult. times 2 b/c of quarter disk
 
     return linearED
@@ -245,10 +245,21 @@ def compute_azimuthal_pressure(U):
     x = SpatialCoordinate(U.mesh)
     r = x[0]
 
-    tmp = project( -U.WW*exp(-4*U.NU)*U.P03 + (1. - (r*U.BB*U.WW)**2*exp(-4*U.NU))*U.P33 , U.V)    
+    tmp = project( -U.WW*exp(-4*U.NU)*U.P03 + (1. - (r*U.BB*U.WW)**2*exp(-4*U.NU))*U.P33 , U.V) # T_phi^phi mult. by exp(2MU) for the integration measure.
     azimuthal_pressure = 2*assemble(tmp*dx(U.mesh)) # mult. times 2 b/c of quarter disk
 
     return azimuthal_pressure
+
+# Meridional plane pressure
+def compute_meridional_pressure(U):
+
+    #x = SpatialCoordinate(U.mesh)
+    #r = x[0]
+
+    #tmp = project( U.P11 , U.V) # T_rho^rho + T_z^z mult. by exp(2MU) for the integration measure.
+    meridional_pressure = 2*assemble(U.P11*dx(U.mesh)) # mult. times 2 b/c of quarter disk
+
+    return meridional_pressure
 
 # Hakan's parameter
 def compute_hakan_parameter(U):
