@@ -154,6 +154,9 @@ linear_energy_density = pq.compute_linear_energy_density(U)
 # Azimuthal pressure
 azimuthal_pressure = pq.compute_azimuthal_pressure(U)
 
+# Meridional pressure
+meridional_pressure = pq.compute_meridional_pressure(U)
+
 # Hakan's parameter
 hakan_parameter = pq.compute_hakan_parameter(U)
 
@@ -188,6 +191,7 @@ ppdata['zamo_redshift_max']     = zamoZ_MAmax
 ppdata['step']                  = step
 ppdata['linear_energy_density'] = linear_energy_density
 ppdata['azimuthal_pressure']    = azimuthal_pressure
+ppdata['meridional_pressure']   = meridional_pressure
 ppdata['hakan_parameter']       = hakan_parameter
 
 # Save

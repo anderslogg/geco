@@ -63,7 +63,7 @@ if not os.path.exists(deficitangle_plots_dir):
     os.makedirs(deficitangle_plots_dir)
 
 # Load metric functions
-filename = [f for f in os.listdir(cwd) if f.startswith('MU_')][0]
+filename = [f for f in os.listdir(cwd) if f.startswith('RHO_')][0]
 R = filename.split('.')[0].split('_')[1]
 
 # Read mesh and create function space
@@ -75,10 +75,9 @@ r = x[0]
 # Read and save MU field
 MU  = Function(V)
 try:
-    File('%s_%s.xml.gz' % ('MU', R)) >> MU
+    File('MU_{:}.xml.gz'.format(R)) >> MU
 except:
-    pass
-MU.set_allow_extrapolation(True)
+    print('MU_{:}.xml.gz file not found.'.format(R) )
 
 # Integrals function in toroidal coordinates centered at peak radius.
 
@@ -169,7 +168,8 @@ plt.legend(['0',"$\pi / 3$","$2\pi / 3$", "$\pi$"], fontsize=16) # based on: ang
 # Add estimate of the deficit angle based on energy density
 linearED = float(ppdata['linear_energy_density']) 
 azimuthal_pressure = float(ppdata['azimuthal_pressure']) 
-plt.axhline(y=4*pi*(linearED - azimuthal_pressure), linewidth=4)
+meridional_pressure = float(ppdata['meridional_pressure']) 
+plt.axhline(y=4*pi*(linearED + meridional_pressure - azimuthal_pressure), linewidth=4)
 
 # Add vertical line showing position of boundary of matter
 radii = [inner_radius, outer_radius]
