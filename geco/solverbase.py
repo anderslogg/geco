@@ -33,7 +33,7 @@ class SolverBase:
         # Create parameter set
         self.parameters = \
             Parameters(discretization = Parameters("discretization"),
-                       output = Parameters("output"))
+                           output = Parameters("output"))
 
         # Discretization parameters
         self.parameters.discretization.add("mass", 1.0)
@@ -185,7 +185,7 @@ class SolverBase:
 
         # Try approaching right end-point
         else:
-            print self._theta, self._theta_max
+            print(self._theta, self._theta_max)
             self._theta = 2.0*self._theta*self._theta_max / (self._theta + self._theta_max)
 
         info("theta = %.3g" % self._theta)

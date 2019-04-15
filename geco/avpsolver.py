@@ -46,7 +46,7 @@ class AdaptiveVlasovPoissonSolver:
         # FIXME: Move this to common function for all solvers
         # Override some parameters when --hires option is given
         if len(sys.argv) > 1 and sys.argv[1] == "--hires":
-            print "Running simulation with high resolution"
+            print("Running simulation with high resolution")
             self.parameters.discretization.num_steps = 50
             self.parameters.discretization.resolution = 512
             self.parameters.discretization.resolution_3d = 64

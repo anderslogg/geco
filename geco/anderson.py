@@ -45,7 +45,7 @@ class Anderson:
 
         # Check that data makes sense
         if len(X) != len(G):
-            raise RuntimeError, "Number of vectors don't match."
+            raise RuntimeError("Number of vectors don't match.")
         
         # Compute vectors q_j = F_0 - F_j
         Q = [G[0].copy() for j in range(mk)]
@@ -99,9 +99,9 @@ class Anderson:
 
         # Check that data makes sense
         if len(X) != len(G):
-            raise RuntimeError, "Number of vectors don't match."
+            raise RuntimeError("Number of vectors don't match.")
         if len(X[0]) != len(G[0]):
-            raise RuntimeError, "Size of system does not match."
+            raise RuntimeError("Size of system does not match.")
         
         # Get size of system
         N = len(X[0])
