@@ -52,6 +52,7 @@ namespace dolfin
     }
 
     // Evaluation of ansatz
+    // FIXME: Evaluate each species ansatz seperately
     double eval(double U,
                 const Array<double>& x) const
     {

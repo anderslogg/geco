@@ -90,6 +90,7 @@ class VlasovPoissonSolver(SolverBase):
         # foo = C * _foo.
 
         # Extract density (unscaled)
+        # FIXME: Extract densities for each component.
         _density = model
 
         # Scale density
@@ -167,6 +168,7 @@ class VlasovPoissonSolver(SolverBase):
             #X += Y
 
             # Plot density distribution
+            # FIXME: Save density of each species
             project(density, mesh=mesh, function=RHO)
             self._save_density(RHO, iter)            
             self._plot_density(RHO)
