@@ -37,6 +37,9 @@ def MaterialModel(model):
     member_variables = model_code.split("// Member variables")[1]
 
     # Stick specialized code into template and return
+    # FIXME: python3 version:
+    # template_code.format(member_functions=member_functions, member_functions=member_functions),
+    # and in XXAnsatz.h as {member_functions} and {member_variables}
     cppcode = template_code % {"member_functions": member_functions,
                                "member_variables": member_variables}
 
