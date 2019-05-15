@@ -10,7 +10,7 @@ from geco import *
 # Create solver
 solver = EinsteinVlasovSolver()
 solver.parameters.output.plot_solution = False
-solver.parameters.discretization.radius = 50
+solver.parameters.discretization.domain_radius = 50
 solver.parameters.discretization.tolerance = 1e-4
 solver.parameters.discretization.anderson_depth = 0
 
@@ -31,10 +31,3 @@ model.parameters.L0 = 1.0
 
 # Compute solution
 solution = solver.solve(model, solution)
-
-# Extract solution components
-NU, BB, MU, WW, RHO, data = solution
-
-# Plot density
-plot(RHO)
-interactive()
