@@ -14,7 +14,7 @@ from numpy import linspace
 # Create solver
 solver = VlasovPoissonSolver()
 solver.parameters.output.plot_solution = False
-solver.parameters.discretization.radius = 50
+solver.parameters.discretization.domain_radius = 50
 
 # Create ansatz for initial guess
 model = MaterialModel("VP-E-Polytropic-L-Polytropic")
