@@ -2,6 +2,7 @@
 equations in axial symmetry."""
 
 from solverbase import *
+import os
 
 def _lhs(u, v, r):
     return dot(grad(u), grad(v))*r*dx
@@ -27,7 +28,7 @@ class VlasovPoissonSolver(SolverBase):
         "Compute solution"
 
         # Initialize solve
-        self._init_solve()        
+        self._init_solve()     
 
         # Extract all ansatzes from model
         ansatzes = [c for c in extract_coefficients(model) if not isinstance(c, Constant)]
@@ -201,7 +202,19 @@ class VlasovPoissonSolver(SolverBase):
 
         # Compute and store solution characteristics
         self._compute_solution_characteristics(C, _mass, ansatzes)
-
+        
+        info(os.getcwd())
+		
+        for i in range(len(ansatzes)):
+            RHO = ansatzes[i]
+            out_str = "solutions/RHO%d.pvd" %(i+1)
+            output = File(out_str)
+            output << project(ansatzes[i], V)
+		
+		
+		
+		#self._output_density_plots(ansatzes)
+		
         # Compute residuals as functions of space
         fs = assemble(F)
         bc0.apply(fs)
@@ -222,6 +235,23 @@ class VlasovPoissonSolver(SolverBase):
         info("Solver complete")
 
         return U, RHO, self.data
+		
+	
+	
+
+	# Produce density plots of each ansatz
+	# NEED TO KNOW MORE ABOUT __self__ AND/OR USE OF GLOBAL TO MAKE WORK
+	# CURRENTLY IMPLEMENTED IN LINE 208
+	
+	#def _output_density_plots(self, ansatzes):
+    #   for i in range(len(ansatzes)):
+    #       RHO = ansatzes[i]
+    #       out_str = "solutions/RHO%d.pvd" %(i+1)
+    #       output = File(out_str)
+    #       output << project(ansatzes[i], V)
+
+
+
 
     def _compute_solution_characteristics(self, C, _mass, ansatzes):
         "Compute interestng properties of solution"
