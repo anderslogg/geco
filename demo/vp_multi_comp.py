@@ -24,11 +24,11 @@ S.parameters.L0 = 1.1
 S.parameters.k = 2.4
 S.parameters.pm = 1.0
 
-T.parameters.E0 = -0.1
+T.parameters.E0 = -0.06
 T.parameters.L0 = 1.0
 T.parameters.k = 2.0
 
-U.parameters.E0 = -0.2
+U.parameters.E0 = -0.06
 U.parameters.L0 = 1.0
 U.parameters.k = 0.5
 
