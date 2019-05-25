@@ -2,6 +2,7 @@
 equations in axial symmetry."""
 
 from solverbase import *
+from abeltransform import *
 import os
 
 def _lhs(u, v, r):
@@ -205,11 +206,12 @@ class VlasovPoissonSolver(SolverBase):
         
 				
         for i in range(len(ansatzes)):
-            RHO = ansatzes[i]
             out_str = "solutions/vp/compoenents/RHO_%d.pvd" %(i+1)
             output = File(out_str)
             output << project(ansatzes[i], V)
 		
+		
+        forward_abel_transform(RHO)	
 		
 		#SEE FUNCTION BELOW
 		#self._output_density_plots(ansatzes)
@@ -220,6 +222,7 @@ class VlasovPoissonSolver(SolverBase):
         U_res = Function(V)
         U_res.vector()[:] = fs
         residual_functions = (U_res,)
+		
 
         # Post processing
         solutions = (U,)
@@ -229,9 +232,9 @@ class VlasovPoissonSolver(SolverBase):
         matter_names = ("RHO",)
         #self._postprocess(ansatzes, solutions, flat_solutions, names)
         self._postprocess(ansatzes, solutions, flat_solutions, names, residual_functions, matter_components, matter_names)
-
         # Print nice message
         info("Solver complete")
+	
 
         return U, RHO, self.data
 		
@@ -243,12 +246,11 @@ class VlasovPoissonSolver(SolverBase):
 	# VlasovPoissonSolver "instance has no attribute '_output_density_plots'"
 	# CURRENTLY IMPLEMENTED IN LINE 208
 	
-	def _output_density_plots(self, ansatzes):
-	    for i in range(len(ansatzes)):
-		    RHO = ansatzes[i]
-            out_str = "solutions/vp/compoenents/RHO_%d.pvd" %(i+1)
-            output = File(out_str)
-            output << project(ansatzes[i], V)
+	#def _output_density_plots(self, ansatzes):
+	#    for i in range(len(ansatzes)):
+    #        out_str = "solutions/vp/compoenents/RHO_%d.pvd" %(i+1)
+    #        output = File(out_str)
+    #        output << project(ansatzes[i], V)
 
 
 
