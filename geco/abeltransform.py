@@ -45,10 +45,12 @@ def forward_abel_transform(RHO):
 	
 	
 	#Using 'hansenlaw' is much faster than 'direct' without cython implementation
-    #forward_abel = abel.Transform(RHO_array, direction='forward', method='hansenlaw').transform
-    #inverse_abel = abel.Transform(forward_abel, direction='inverse', method='hansenlaw').transform
-    forward_abel = abel.Transform(RHO_array, direction='inverse', method='hansenlaw').transform
-    inverse_abel = abel.Transform(forward_abel, direction='forward', method='hansenlaw').transform
+    forward_abel = abel.Transform(RHO_array, direction='forward', method='hansenlaw').transform
+    inverse_abel = abel.Transform(forward_abel, direction='inverse', method='hansenlaw').transform
+    
+	
+	#forward_abel = abel.Transform(RHO_array, direction='inverse', method='hansenlaw').transform
+    #inverse_abel = abel.Transform(forward_abel, direction='forward', method='hansenlaw').transform
     fig, axs = plt.subplots(1, 3, figsize=(6, 4))
 
 	#Output saved in "demo/abel_out" directory
