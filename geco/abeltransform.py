@@ -1,6 +1,8 @@
 
 '''
 Perform forward abel transform on RHO data
+Called in vpsolver.py
+outputs image of the RHO_array and forward and inverse abel transformations
 '''
 import abel
 import numpy as np
@@ -9,7 +11,7 @@ import matplotlib.pyplot as plt
 def forward_abel_transform(RHO):	
     #HOW DO WE OBTAIN appropriate r_max, z_max VALUES?
     r_max = 1
-    res = 1000
+    res = 500
     rvals = np.linspace(0,r_max,res)
     
     z_max = 1
@@ -43,8 +45,10 @@ def forward_abel_transform(RHO):
 	
 	
 	#Using 'hansenlaw' is much faster than 'direct' without cython implementation
-    forward_abel = abel.Transform(RHO_array, direction='forward', method='hansenlaw').transform
-    inverse_abel = abel.Transform(forward_abel, direction='inverse', method='hansenlaw').transform
+    #forward_abel = abel.Transform(RHO_array, direction='forward', method='hansenlaw').transform
+    #inverse_abel = abel.Transform(forward_abel, direction='inverse', method='hansenlaw').transform
+    forward_abel = abel.Transform(RHO_array, direction='inverse', method='hansenlaw').transform
+    inverse_abel = abel.Transform(forward_abel, direction='forward', method='hansenlaw').transform
     fig, axs = plt.subplots(1, 3, figsize=(6, 4))
 
 	#Output saved in "demo/abel_out" directory
