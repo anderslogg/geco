@@ -10,8 +10,31 @@
 # /home/fenics/shared/geco/bin/geco-postprocess-data below. Then, run
 # >> /home/fenics/shared/geco/bin/run-geco-postprocess.sh
 
+######################################################################
+######################################################################
 
-# For each step_ directory, compute geco-postprocess-data in that directory.
+# Handle Optional arguments
+
+force_flag=0
+
+print_usage() {
+  printf "Usage: ..."
+}
+
+while getopts 'f' flag; do
+  case "${flag}" in
+      f) force_flag=1 ;;
+      --) shift
+	  break ;;      
+      *) print_usage
+         exit 1 ;;
+  esac
+  shift
+done
+
+if [ ${force_flag} -eq 1 ]; then
+    echo "Force flag set. Overwriting postprocessing files..."
+fi
 
 # Directories
 CURRENTDIR=$( pwd )
@@ -36,12 +59,17 @@ fi
 for STEP in $ALLSTEPS
 do
     cd $CURRENTDIR/adaptive_solver/$STEP
+    
+    echo "...entering $PWD"
+    
     # If operation is data, check for existing ppdata file
-    if [ "$1" = "data" ] && [ ! -f "ppdata.csv" ]; then
+    if [[ ("$1" = "data") && ( (! -f "ppdata.csv") || (${force_flag} -eq 1) ) ]]; then
+	echo "   computing postprocess data..."
 	geco-postprocess-data
     fi
     # Otherwise, execute operation.
     if [ "$1" != "data" ]; then
+	echo "   executing postprocess $1..."
 	geco-postprocess-$1
     fi
 done
