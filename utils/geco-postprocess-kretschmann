@@ -1,0 +1,158 @@
+#!/usr/bin/env python
+
+"""
+geco-postprocess-kretschmann
+
+Compute the Kretschmann Scalar and save to file
+
+Usage: geco-postprocess-kretschmann
+
+"""
+
+import os
+from dolfin import *
+from os.path import join as pj
+
+# Get radius (needed for filenames)
+cwd = os.getcwd()
+filename = [f for f in os.listdir(cwd) if f.startswith('NU_')][0]
+R = filename.split('.')[0].split('_')[1]
+
+# Read fields from file
+mesh = Mesh('mesh.xml.gz')
+V = FunctionSpace(mesh, 'P', 1)
+names = ['NU', 'BB', 'MU', 'WW']
+fields = []
+for name in names:
+      v = Function(V)
+      File('%s_%s.xml.gz' % (name, R)) >> v
+      fields.append(v)
+
+# Extrapolate fields to P2
+V2 = FunctionSpace(mesh, 'P', 2)
+fields2 = []
+for v in fields:
+    v2 = Function(V2)
+    v2.extrapolate(v)
+    fields2.append(v2)
+
+# Extract named fields
+NU, BB, MU, WW = fields2
+
+# Get radial coordinate
+x = SpatialCoordinate(mesh)
+r = x[0]
+
+# Compute field derivatives and constructions
+NUr  = NU.dx(0)
+NUz  = NU.dx(1)
+NUrz = NUr.dx(1) #NU.dx(0).dx(1)
+NUrr = NUr.dx(0) #NU.dx(0).dx(0)
+NUzz = NUz.dx(1) #NU.dx(1).dx(1)
+MUr  = MU.dx(0)
+MUz  = MU.dx(1)
+MUrz = MUr.dx(1) #MU.dx(0).dx(1)
+MUrr = MUr.dx(0) #MU.dx(0).dx(0)
+MUzz = MUz.dx(1) #MU.dx(1).dx(1)
+BBr  = BB.dx(0)
+BBz  = BB.dx(1)
+BBrz = BBr.dx(1) #BB.dx(0).dx(1)
+BBrr = BBr.dx(0) #BB.dx(0).dx(0)
+BBzz = BBz.dx(1) #BB.dx(1).dx(1)
+WWr  = WW.dx(0)
+WWz  = WW.dx(1)
+WWrz = WWr.dx(1) #WW.dx(0).dx(1)
+WWrr = WWr.dx(0) #WW.dx(0).dx(0)
+WWzz = WWz.dx(1) #WW.dx(1).dx(1)
+
+exp4NU  = exp(4*NU)
+expm4NU = exp(-4*NU)
+expm8NU = exp(-8*NU)
+expm4MU = exp(-4*MU)
+
+# Compute Kretschmann
+_kretschmann =  (4.*BBrr**2*expm4MU)/BB**2 + (8.*BBrz**2*expm4MU)/BB**2 + (4.*BBzz**2*expm4MU)/BB**2 - \
+            (8.*BBr*BBrr*expm4MU*MUr)/BB**2 - (16.*BBrz*BBz*expm4MU*MUr)/BB**2 + (8.*BBr*BBzz*expm4MU*MUr)/BB**2 + \
+            (8*BBr**2*expm4MU*MUr**2)/BB**2 + (8*BBz**2*expm4MU*MUr**2)/BB**2 + 4*expm4MU*MUrr**2 - \
+            (16*BBr*BBrz*expm4MU*MUz)/BB**2 + (8*BBrr*BBz*expm4MU*MUz)/BB**2 - (8*BBz*BBzz*expm4MU*MUz)/BB**2 + \
+            (8*BBr**2*expm4MU*MUz**2)/BB**2 + (8*BBz**2*expm4MU*MUz**2)/BB**2 + 8*expm4MU*MUrr*MUzz + 4*expm4MU*MUzz**2 - \
+            (16*BBr*BBrr*expm4MU*NUr)/BB**2 - (16*BBrz*BBz*expm4MU*NUr)/BB**2 + (16*BBr**2*expm4MU*MUr*NUr)/BB**2 + \
+            (8*BBrr*expm4MU*MUr*NUr)/BB + (16*BBz**2*expm4MU*MUr*NUr)/BB**2 - (8*BBzz*expm4MU*MUr*NUr)/BB - \
+            (16*BBr*expm4MU*MUr**2*NUr)/BB + (16*BBrz*expm4MU*MUz*NUr)/BB - (16*BBr*expm4MU*MUz**2*NUr)/BB + \
+            (20*BBr**2*expm4MU*NUr**2)/BB**2 + (8*BBrr*expm4MU*NUr**2)/BB + (8*BBz**2*expm4MU*NUr**2)/BB**2 - \
+            (24*BBr*expm4MU*MUr*NUr**2)/BB + 16*expm4MU*MUr**2*NUr**2 - (8*BBz*expm4MU*MUz*NUr**2)/BB + \
+            16*expm4MU*MUz**2*NUr**2 - (24*BBr*expm4MU*NUr**3)/BB + 12*expm4MU*NUr**4 - (8*BBrr*expm4MU*NUrr)/BB + \
+            (8*BBr*expm4MU*MUr*NUrr)/BB - (8*BBz*expm4MU*MUz*NUrr)/BB + (16*BBr*expm4MU*NUr*NUrr)/BB - \
+            16*expm4MU*MUr*NUr*NUrr + 8*expm4MU*NUrr**2 - (16*BBrz*expm4MU*NUrz)/BB + (16*BBz*expm4MU*MUr*NUrz)/BB + \
+            (16*BBr*expm4MU*MUz*NUrz)/BB + (16*BBz*expm4MU*NUr*NUrz)/BB - 32*expm4MU*MUz*NUr*NUrz + 16*expm4MU*NUrz**2 - \
+            (16*BBr*BBrz*expm4MU*NUz)/BB**2 - (16*BBz*BBzz*expm4MU*NUz)/BB**2 + (16*BBrz*expm4MU*MUr*NUz)/BB - \
+            (16*BBz*expm4MU*MUr**2*NUz)/BB + (16*BBr**2*expm4MU*MUz*NUz)/BB**2 - (8*BBrr*expm4MU*MUz*NUz)/BB + \
+            (16*BBz**2*expm4MU*MUz*NUz)/BB**2 + (8*BBzz*expm4MU*MUz*NUz)/BB - (16*BBz*expm4MU*MUz**2*NUz)/BB + \
+            (16*BBrz*expm4MU*NUr*NUz)/BB + (24*BBr*BBz*expm4MU*NUr*NUz)/BB**2 - (16*BBz*expm4MU*MUr*NUr*NUz)/BB - \
+            (16*BBr*expm4MU*MUz*NUr*NUz)/BB - (24*BBz*expm4MU*NUr**2*NUz)/BB + 16*expm4MU*MUz*NUrr*NUz + \
+            (16*BBr*expm4MU*NUrz*NUz)/BB - 32*expm4MU*MUr*NUrz*NUz + (8*BBr**2*expm4MU*NUz**2)/BB**2 + \
+            (20*BBz**2*expm4MU*NUz**2)/BB**2 + (8*BBzz*expm4MU*NUz**2)/BB - (8*BBr*expm4MU*MUr*NUz**2)/BB + \
+            16*expm4MU*MUr**2*NUz**2 - (24*BBz*expm4MU*MUz*NUz**2)/BB + 16*expm4MU*MUz**2*NUz**2 - \
+            (24*BBr*expm4MU*NUr*NUz**2)/BB + 24*expm4MU*NUr**2*NUz**2 - (24*BBz*expm4MU*NUz**3)/BB + 12*expm4MU*NUz**4 - \
+            (8*BBzz*expm4MU*NUzz)/BB - (8*BBr*expm4MU*MUr*NUzz)/BB + (8*BBz*expm4MU*MUz*NUzz)/BB + 16*expm4MU*MUr*NUr*NUzz + \
+            (16*BBz*expm4MU*NUz*NUzz)/BB - 16*expm4MU*MUz*NUz*NUzz + 8*expm4MU*NUzz**2 + (16*BBr**2*expm4MU)/(BB**2*r**2) + \
+            (8*BBz**2*expm4MU)/(BB**2*r**2) - (16*BBr*expm4MU*MUr)/(BB*r**2) + (8*expm4MU*MUr**2)/r**2 - \
+            (16*BBz*expm4MU*MUz)/(BB*r**2) + (8*expm4MU*MUz**2)/r**2 - (32*BBr*expm4MU*NUr)/(BB*r**2) + \
+            (16*expm4MU*MUr*NUr)/r**2 + (20*expm4MU*NUr**2)/r**2 - (16*BBz*expm4MU*NUz)/(BB*r**2) + (16*expm4MU*MUz*NUz)/r**2 + \
+            (8*expm4MU*NUz**2)/r**2 + (16*BBr*BBrr*expm4MU)/(BB**2*r) + (16*BBrz*BBz*expm4MU)/(BB**2*r) - \
+            (16*BBr**2*expm4MU*MUr)/(BB**2*r) - (8*BBrr*expm4MU*MUr)/(BB*r) - (16*BBz**2*expm4MU*MUr)/(BB**2*r) + \
+            (8*BBzz*expm4MU*MUr)/(BB*r) + (16*BBr*expm4MU*MUr**2)/(BB*r) - (16*BBrz*expm4MU*MUz)/(BB*r) + \
+            (16*BBr*expm4MU*MUz**2)/(BB*r) - (32*BBr**2*expm4MU*NUr)/(BB**2*r) - (16*BBrr*expm4MU*NUr)/(BB*r) - \
+            (16*BBz**2*expm4MU*NUr)/(BB**2*r) + (48*BBr*expm4MU*MUr*NUr)/(BB*r) - (16*expm4MU*MUr**2*NUr)/r + \
+            (16*BBz*expm4MU*MUz*NUr)/(BB*r) - (16*expm4MU*MUz**2*NUr)/r + (56*BBr*expm4MU*NUr**2)/(BB*r) - \
+            (24*expm4MU*MUr*NUr**2)/r - (24*expm4MU*NUr**3)/r - (16*BBr*expm4MU*NUrr)/(BB*r) + (8*expm4MU*MUr*NUrr)/r + \
+            (16*expm4MU*NUr*NUrr)/r - (16*BBz*expm4MU*NUrz)/(BB*r) + (16*expm4MU*MUz*NUrz)/r - (16*BBrz*expm4MU*NUz)/(BB*r) - \
+            (16*BBr*BBz*expm4MU*NUz)/(BB**2*r) + (16*BBz*expm4MU*MUr*NUz)/(BB*r) + (16*BBr*expm4MU*MUz*NUz)/(BB*r) + \
+            (40*BBz*expm4MU*NUr*NUz)/(BB*r) - (16*expm4MU*MUz*NUr*NUz)/r + (16*expm4MU*NUrz*NUz)/r + \
+            (16*BBr*expm4MU*NUz**2)/(BB*r) - (8*expm4MU*MUr*NUz**2)/r - (24*expm4MU*NUr*NUz**2)/r - (8*expm4MU*MUr*NUzz)/r - \
+            18*BB**2*expm4MU*expm4NU*WWr**2 - 32*BB*BBr*expm4MU*expm4NU*r*WWr**2 + 10*BB**2*expm4MU*expm4NU*MUr*r*WWr**2 + \
+            46*BB**2*expm4MU*expm4NU*NUr*r*WWr**2 - 18*BBr**2*expm4MU*expm4NU*r**2*WWr**2 + \
+            2*BB*BBrr*expm4MU*expm4NU*r**2*WWr**2 - 12*BBz**2*expm4MU*expm4NU*r**2*WWr**2 + \
+            10*BB*BBr*expm4MU*expm4NU*MUr*r**2*WWr**2 - 4*BB**2*expm4MU*expm4NU*MUr**2*r**2*WWr**2 + \
+            14*BB*BBz*expm4MU*expm4NU*MUz*r**2*WWr**2 - 4*BB**2*expm4MU*expm4NU*MUz**2*r**2*WWr**2 + \
+            46*BB*BBr*expm4MU*expm4NU*NUr*r**2*WWr**2 - 8*BB**2*expm4MU*expm4NU*MUr*NUr*r**2*WWr**2 - \
+            38*BB**2*expm4MU*expm4NU*NUr**2*r**2*WWr**2 - 8*BB**2*expm4MU*expm4NU*NUrr*r**2*WWr**2 + \
+            38*BB*BBz*expm4MU*expm4NU*NUz*r**2*WWr**2 - 24*BB**2*expm4MU*expm4NU*MUz*NUz*r**2*WWr**2 - \
+            30*BB**2*expm4MU*expm4NU*NUz**2*r**2*WWr**2 + (11*BB**4*expm4MU*expm8NU*r**4*WWr**4)/4. - \
+            12*BB**2*expm4MU*expm4NU*r*WWr*WWrr - 12*BB*BBr*expm4MU*expm4NU*r**2*WWr*WWrr + \
+            4*BB**2*expm4MU*expm4NU*MUr*r**2*WWr*WWrr + 16*BB**2*expm4MU*expm4NU*NUr*r**2*WWr*WWrr - \
+            2*BB**2*expm4MU*expm4NU*r**2*WWrr**2 - 8*BB*BBz*expm4MU*expm4NU*r*WWr*WWz - 4*BB**2*expm4MU*expm4NU*MUz*r*WWr*WWz + \
+            8*BB**2*expm4MU*expm4NU*NUz*r*WWr*WWz + 4*BB*BBrz*expm4MU*expm4NU*r**2*WWr*WWz - \
+            12*BB*BBz*expm4MU*expm4NU*r**2*WWr*WWz - 12*BBr*BBz*expm4MU*expm4NU*r**2*WWr*WWz - \
+            4*BB*BBz*expm4MU*expm4NU*MUr*r**2*WWr*WWz + 8*BB**2*expm4MU*expm4NU*MUz*r**2*WWr*WWz - \
+            4*BB*BBr*expm4MU*expm4NU*MUz*r**2*WWr*WWz + 8*BB*BBz*expm4MU*expm4NU*NUr*r**2*WWr*WWz + \
+            16*BB**2*expm4MU*expm4NU*MUz*NUr*r**2*WWr*WWz - 16*BB**2*expm4MU*expm4NU*NUrz*r**2*WWr*WWz + \
+            16*BB**2*expm4MU*expm4NU*NUz*r**2*WWr*WWz + 8*BB*BBr*expm4MU*expm4NU*NUz*r**2*WWr*WWz + \
+            16*BB**2*expm4MU*expm4NU*MUr*NUz*r**2*WWr*WWz - 16*BB**2*expm4MU*expm4NU*NUr*NUz*r**2*WWr*WWz - \
+            4*BB**2*expm4MU*expm4NU*MUz*r**2*WWrr*WWz - 12*BB**2*expm4MU*expm4NU*WWz**2 - 12*BB**2*expm4MU*expm4NU*r*WWz**2 - \
+            24*BB*BBr*expm4MU*expm4NU*r*WWz**2 + 14*BB**2*expm4MU*expm4NU*MUr*r*WWz**2 + \
+            38*BB**2*expm4MU*expm4NU*NUr*r*WWz**2 - 4*BB**2*expm4MU*expm4NU*r**2*WWz**2 - \
+            12*BB*BBr*expm4MU*expm4NU*r**2*WWz**2 - 12*BBr**2*expm4MU*expm4NU*r**2*WWz**2 - \
+            18*BBz**2*expm4MU*expm4NU*r**2*WWz**2 + 2*BB*BBzz*expm4MU*expm4NU*r**2*WWz**2 + \
+            8*BB**2*expm4MU*expm4NU*MUr*r**2*WWz**2 + 14*BB*BBr*expm4MU*expm4NU*MUr*r**2*WWz**2 - \
+            4*BB**2*expm4MU*expm4NU*MUr**2*r**2*WWz**2 + 10*BB*BBz*expm4MU*expm4NU*MUz*r**2*WWz**2 - \
+            4*BB**2*expm4MU*expm4NU*MUz**2*r**2*WWz**2 + 16*BB**2*expm4MU*expm4NU*NUr*r**2*WWz**2 + \
+            38*BB*BBr*expm4MU*expm4NU*NUr*r**2*WWz**2 - 24*BB**2*expm4MU*expm4NU*MUr*NUr*r**2*WWz**2 - \
+            30*BB**2*expm4MU*expm4NU*NUr**2*r**2*WWz**2 + 46*BB*BBz*expm4MU*expm4NU*NUz*r**2*WWz**2 - \
+            8*BB**2*expm4MU*expm4NU*MUz*NUz*r**2*WWz**2 - 38*BB**2*expm4MU*expm4NU*NUz**2*r**2*WWz**2 - \
+            8*BB**2*expm4MU*expm4NU*NUzz*r**2*WWz**2 + (11*BB**4*expm4MU*expm8NU*r**4*WWr**2*WWz**2)/2. + \
+            (11*BB**4*expm4MU*expm8NU*r**4*WWz**4)/4. - 4*BB**2*expm4MU*expm4NU*MUr*r**2*WWr*WWzz - \
+            12*BB*BBz*expm4MU*expm4NU*r**2*WWz*WWzz + 4*BB**2*expm4MU*expm4NU*MUz*r**2*WWz*WWzz + \
+            16*BB**2*expm4MU*expm4NU*NUz*r**2*WWz*WWzz - 2*BB**2*expm4MU*expm4NU*r**2*WWzz**2
+
+kretschmann = project(_kretschmann, V)
+NUrr = project(NUrr, V)
+
+# Save Kretschmann to XDMF format
+print("  Saving kretschmann scalar")
+solutions = [kretschmann, NUrr]
+names = ['kretschmann', 'NUrr']
+for solution, name in zip(solutions, names):
+    f = XDMFFile(mpi_comm_world(),
+                     pj(cwd, "%s_%s.xdmf" % (name, R)))
+    f.write(solution)
