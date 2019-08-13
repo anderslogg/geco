@@ -267,4 +267,16 @@ def compute_hakan_parameter(U):
     r_peak = compute_reflection_plane_support(U)[1]
 
     return exp(2*U.NU(r_peak, 0.0))/U.BB(r_peak, 0.0)
+
+
+# Dain Mass
+def compute_dain_mass(U):
+
+    x = SpatialCoordinate(U.mesh)
+    r = x[0]
+    matter_terms = 2*pi*(U.P00 - U.WW*U.WW*(r*U.BB)**2*exp(-4.*U.NU)*U.P33)
+    field_terms = dot(grad(U.BB), grad(U.BB))/(4.*U.BB*U.BB) + dot(grad(U.NU), grad(U.NU))/4. - dot(grad(U.BB), grad(U.NU))/(2.*U.BB) + (r*U.BB/4)**2*exp(-4.*U.NU)*dot(grad(U.WW), grad(U.WW))
+    dain_mass = assemble((matter_terms + field_terms)*r*dx(U.mesh))
+
+    return dain_mass
     
