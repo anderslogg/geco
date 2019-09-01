@@ -203,18 +203,10 @@ class VlasovPoissonSolver(SolverBase):
 
         # Compute and store solution characteristics
         self._compute_solution_characteristics(C, _mass, ansatzes)
-        
-				
-        for i in range(len(ansatzes)):
-            out_str = "solutions/vp/compoenents/RHO_%d.pvd" %(i+1)
-            output = File(out_str)
-            output << project(ansatzes[i], V)
-		
 		
         forward_abel_transform(RHO)	
 		
-		#SEE FUNCTION BELOW
-		#self._output_density_plots(ansatzes)
+        self._output_density_plots(ansatzes,V)
 		
         # Compute residuals as functions of space
         fs = assemble(F)
@@ -242,17 +234,13 @@ class VlasovPoissonSolver(SolverBase):
 	
 
 	# Produce density plots of each ansatz
-	# NEED TO RESOLVE: 
-	# VlasovPoissonSolver "instance has no attribute '_output_density_plots'"
-	# CURRENTLY IMPLEMENTED IN LINE 208
 	
-	#def _output_density_plots(self, ansatzes):
-	#    for i in range(len(ansatzes)):
-    #        out_str = "solutions/vp/compoenents/RHO_%d.pvd" %(i+1)
-    #        output = File(out_str)
-    #        output << project(ansatzes[i], V)
-
-
+    def _output_density_plots(self, ansatzes, V):
+			
+        for i in range(len(ansatzes)):
+            out_str = "solutions/vp/components/RHO_%d.pvd" %(i+1)
+            output = File(out_str)
+            output << project(ansatzes[i], V)
 
 
     def _compute_solution_characteristics(self, C, _mass, ansatzes):
