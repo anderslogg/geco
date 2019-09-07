@@ -32,6 +32,8 @@ U.parameters.E0 = -0.06
 U.parameters.L0 = 1.0
 U.parameters.k = 0.5
 
+solver.parameters.output.solution_directory = "test_solutions"
+
 # Compute solution for initial guess
 solution = solver.solve(model)
 

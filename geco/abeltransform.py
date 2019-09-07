@@ -1,6 +1,7 @@
 
 '''
-USE pip install --user PyAbel
+USE:
+	pip install --user PyAbel
 
 Perform forward abel transform on RHO data
 Called in vpsolver.py
@@ -9,6 +10,9 @@ outputs image of the RHO_array and forward and inverse abel transformations
 import abel
 import numpy as np
 import matplotlib.pyplot as plt
+
+#PUSH TO POST PROCESSING, TAKE IN SOLUTION.
+#Look geco-post-process deficit angle
 
 def forward_abel_transform(RHO):	
     #r_max,z_max - dimensions of quarter-image
@@ -27,7 +31,7 @@ def forward_abel_transform(RHO):
         for j in range(len(zvals)):
             r = rvals[i]
             z = zvals[j]
-            RHO_array_A[i,j] = RHO(r,z)
+            RHO_array_A[j,i] = RHO(r,z)
 	
     #printing for debugging	
     #print("RHO_array shape: ", RHO_array_A.shape)
@@ -57,9 +61,9 @@ def forward_abel_transform(RHO):
 
 	#Output saved in "demo/abel_out" directory
     #Constant multiple applied to second paramater alters contrast
-    axs[0].imshow(RHO_array, clim=(0, np.max(RHO_array)*1.15), origin='lower', extent=(-1,1,-1,1))
-    axs[1].imshow(forward_abel, clim=(0, np.max(forward_abel)*1.25), origin='lower', extent=(-1,1,-1,1))
-    axs[2].imshow(inverse_abel, clim=(0, np.max(inverse_abel)*1.15), origin='lower', extent=(-1,1,-1,1))
+    axs[0].imshow(RHO_array, clim=(0, np.max(RHO_array)*1.15), origin='lower')
+    axs[1].imshow(forward_abel, clim=(0, np.max(forward_abel)*1.15), origin='lower')
+    axs[2].imshow(inverse_abel, clim=(0, np.max(inverse_abel)*1.15), origin='lower')
     axs[0].set_title('Original')
     axs[1].set_title('Forward Transform')
     axs[2].set_title('Inverse Transform')

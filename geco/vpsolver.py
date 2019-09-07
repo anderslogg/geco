@@ -203,9 +203,7 @@ class VlasovPoissonSolver(SolverBase):
 
         # Compute and store solution characteristics
         self._compute_solution_characteristics(C, _mass, ansatzes)
-		
-        forward_abel_transform(RHO)	
-		
+				
         self._output_density_plots(ansatzes,V)
 		
         # Compute residuals as functions of space
@@ -232,13 +230,12 @@ class VlasovPoissonSolver(SolverBase):
 		
 	
 	
-
 	# Produce density plots of each ansatz
 	
     def _output_density_plots(self, ansatzes, V):
 			
         for i in range(len(ansatzes)):
-            out_str = "solutions/vp/components/RHO_%d.pvd" %(i+1)
+            out_str = self.parameters.output.solution_directory + "/vp/components/RHO_comp_%d.pvd" %(i+1)
             output = File(out_str)
             output << project(ansatzes[i], V)
 
