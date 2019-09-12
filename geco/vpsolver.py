@@ -2,7 +2,6 @@
 equations in axial symmetry."""
 
 from solverbase import *
-from abeltransform import *
 import os
 
 def _lhs(u, v, r):
@@ -43,6 +42,7 @@ class VlasovPoissonSolver(SolverBase):
         tol       = self.parameters.discretization.tolerance
         num_steps = self.parameters.discretization.num_steps
         degree    = self.parameters.discretization.degree
+        R         = self.parameters.discretization.domain_radius
         depth     = self.parameters.discretization.anderson_depth
 
         # Get output parameters
@@ -75,7 +75,9 @@ class VlasovPoissonSolver(SolverBase):
         U_R = _flat(m)
 
         # Create subdomains for boundaries
-        infty = CompiledSubDomain("on_boundary && x[0] > 1e-10")
+        eps = 1e-3
+        infty_test = "on_boundary && x[0]*x[0] + x[1]*x[1] > (R - eps)*(R - eps)"
+        infty = CompiledSubDomain(infty_test, eps=eps, R=R)
 
         # Create boundary conditions
         bc  = DirichletBC(V, U_R, infty)
@@ -204,7 +206,7 @@ class VlasovPoissonSolver(SolverBase):
         # Compute and store solution characteristics
         self._compute_solution_characteristics(C, _mass, ansatzes)
 				
-        self._output_density_plots(ansatzes,V)
+        self._output_density_plots(ansatzes, V)
 		
         # Compute residuals as functions of space
         fs = assemble(F)

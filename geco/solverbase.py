@@ -46,7 +46,7 @@ class SolverBase:
         self.parameters.discretization.add("krylov_tolerance", 1e-9)
         self.parameters.discretization.add("num_steps", 10)
         self.parameters.discretization.add("degree", 1)
-        self.parameters.discretization.add("resolution", 32)
+        self.parameters.discretization.add("resolution", 64)
         self.parameters.discretization.add("resolution_3d", 8)
         self.parameters.discretization.add("mesh_prefix", "halfcircle")
 
