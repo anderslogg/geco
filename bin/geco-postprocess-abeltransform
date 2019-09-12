@@ -14,15 +14,16 @@ import matplotlib.pyplot as plt
 import sys, os, csv
 from dolfin import *
 from timeit import default_timer as timer
-from PIL import Image
 
-
-#PUSH TO POST PROCESSING, TAKE IN SOLUTION.
 
 # Load metric functions
 cwd = os.getcwd()
+print(cwd)
 filename = [f for f in os.listdir(cwd) if f.startswith('RHO_')][0]
+print(filename)
 R = filename.split('.')[0].split('_')[1]
+
+print(os.listdir(cwd))
 
 # Read mesh and create function space
 mesh = Mesh(cwd + '/mesh.xml.gz')
@@ -67,8 +68,7 @@ def forward_abel_transform(RHO):
 	
 	#Using 'hansenlaw' is much faster than 'direct' without cython implementation
     forward_abel = abel.Transform(RHO_array, direction='forward', method='hansenlaw').transform
-    #forward_abel = abel.Transform(RHO_array, direction='forward', method='hansenlaw', symmetry_axis = 0).transform
-
+    
 	#Output saved in "demo/abel_out" directory
     #Constant multiple applied to second paramater alters contrast
     
