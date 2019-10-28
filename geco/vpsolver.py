@@ -28,7 +28,7 @@ class VlasovPoissonSolver(SolverBase):
         "Compute solution"
 
         # Initialize solve
-        self._init_solve()     
+        self._init_solve()
 
         # Extract all ansatzes from model
         ansatzes = [c for c in extract_coefficients(model) if not isinstance(c, Constant)]
@@ -163,7 +163,7 @@ class VlasovPoissonSolver(SolverBase):
 
             # Fixed-point iteration with Anderson acceleration
             U.vector()[:] = anderson.update(Y)
-            
+
             # Damped fixed-point update of solution vector
             #theta = self._get_theta()
             #X = U.vector()
@@ -174,7 +174,7 @@ class VlasovPoissonSolver(SolverBase):
             # Plot density distribution
             # FIXME: Save density of each species
             project(density, mesh=mesh, function=RHO)
-            self._save_density(RHO, iter)            
+            self._save_density(RHO, iter)
             self._plot_density(RHO)
 
             # Compute residual
@@ -205,41 +205,51 @@ class VlasovPoissonSolver(SolverBase):
 
         # Compute and store solution characteristics
         self._compute_solution_characteristics(C, _mass, ansatzes)
-				
+
         self._output_density_plots(ansatzes, V)
-		
+
         # Compute residuals as functions of space
         fs = assemble(F)
         bc0.apply(fs)
         U_res = Function(V)
         U_res.vector()[:] = fs
         residual_functions = (U_res,)
-		
+
 
         # Post processing
         solutions = (U,)
         flat_solutions = (U_R,)
-        matter_components = (RHO,)
+
+        #matter_components = tuple(components.insert(0,RHO))
+
+        matter_components = [RHO]
+        matter_names = ["RHO"]
+        for i in range(len(ansatzes)):
+            matter_names.append("RHO_comp_%d" %i)
+            matter_components.append(project(ansatzes[i], V))
+
+        matter_components = tuple(matter_components)
         names = ("U",)
-        matter_names = ("RHO",)
+        matter_names = tuple(matter_names)
         #self._postprocess(ansatzes, solutions, flat_solutions, names)
         self._postprocess(ansatzes, solutions, flat_solutions, names, residual_functions, matter_components, matter_names)
         # Print nice message
         info("Solver complete")
-	
+
 
         return U, RHO, self.data
-		
-	
-	
+
+
+
 	# Produce density plots of each ansatz
-	
+
     def _output_density_plots(self, ansatzes, V):
-			
         for i in range(len(ansatzes)):
-            out_str = self.parameters.output.solution_directory + "/vp/components/RHO_comp_%d.pvd" %(i+1)
+            name = "RHO_comp_%d" %i
+            out_str = self.parameters.output.solution_directory + "/" + name + ".pvd"
             output = File(out_str)
-            output << project(ansatzes[i], V)
+            x = project(ansatzes[i], V)
+            output << x
 
 
     def _compute_solution_characteristics(self, C, _mass, ansatzes):
