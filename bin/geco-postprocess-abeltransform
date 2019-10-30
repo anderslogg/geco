@@ -31,7 +31,7 @@ from timeit import default_timer as timer
 
 
 #Set title of output figure
-SOLUTION = "Non-Convex Oblate"
+SOLUTION = raw_input("Describe the configuration of matter (disk, toroid, etc.) to set the title: \n")
 
 
 cwd = os.getcwd()
@@ -100,28 +100,28 @@ def forward_abel_transform(RHO):
     countours_forw = np.linspace(0.1*max_forward, max_forward, 10)
 
     plt.title("Original - " + SOLUTION)
-    plt.imshow(RHO_array, cmap='gist_heat', extent=(-rmax,rmax,-zmax,zmax))
+    plt.imshow(RHO_array, cmap='gist_heat', extent=(-r_max,r_max,-z_max,z_max))
     plt.colorbar(format='%.0e')
     plt.savefig("Original_res%d.png" % res, bbox_inches='tight')
     plt.close()
 
     plt.title("Forward Transform - " + SOLUTION)
-    plt.imshow(forward_abel, cmap='gist_heat', extent=(-rmax,rmax,-zmax,zmax))
+    plt.imshow(forward_abel, cmap='gist_heat', extent=(-r_max,r_max,-z_max,z_max))
     plt.colorbar(format='%.0e')
     plt.savefig("Forward_res%d.png" % res, bbox_inches='tight')
     plt.close()
 
 
     plt.title("Original - " + SOLUTION)
-    plt.contour(RHO_array, countours_orig, colors='white', linewidths = 0.3, extent=(-rmax,rmax,-zmax,zmax))
-    plt.imshow(RHO_array, cmap='gist_heat', alpha=1, extent=(-rmax,rmax,-zmax,zmax))
+    plt.contour(RHO_array, countours_orig, colors='white', linewidths = 0.3, extent=(-r_max,r_max,-z_max,z_max))
+    plt.imshow(RHO_array, cmap='gist_heat', alpha=1, extent=(-r_max,r_max,-z_max,z_max))
     plt.colorbar(format='%.0e')
     plt.savefig("Original_cont_res%d.png" % res, bbox_inches='tight')
     plt.close()
 
     plt.title("Forward Transform - " + SOLUTION)
-    plt.contour(forward_abel, countours_forw, colors='white', linewidths = 0.3, extent=(-rmax,rmax,-zmax,zmax))
-    plt.imshow(forward_abel, cmap='gist_heat', alpha=5, extent=(-rmax,rmax,-zmax,zmax))
+    plt.contour(forward_abel, countours_forw, colors='white', linewidths = 0.3, extent=(-r_max,r_max,-z_max,z_max))
+    plt.imshow(forward_abel, cmap='gist_heat', alpha=5, extent=(-r_max,r_max,-z_max,z_max))
     plt.colorbar(format='%.0e')
     plt.savefig("Forward_cont_res%d.png" % res, bbox_inches='tight')
     plt.close()

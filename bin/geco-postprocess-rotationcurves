@@ -5,7 +5,7 @@ geco-postprocess-rotation_curve
 
 A script to compute velocity of particles as a function of radius
 
-Required file: U_R.xml.gz, mesh.xml.gz
+Required files: U_R.xml.gz, RHO_comp_i.xdmf, mesh.xml.gz
 
 Usage:
 
@@ -28,9 +28,10 @@ cwd = os.getcwd()
 dir_list = filter(os.path.isdir, os.listdir(os.getcwd()))
 num_dirs = len(dir_list)
 
-#This sets the figure size. It is static currently
-# something like 20/3 * num_components
-fig = plt.figure(figsize=(20,num_dirs*5))
+#change component number for layout purposes
+num_components = 2
+
+fig = plt.figure(figsize=(10*num_components,num_dirs*5))
 gs = gridspec.GridSpec(num_dirs, 4)
 
 
@@ -54,7 +55,6 @@ def rotation_curve(cur_dir):
         print('U_{:}.xml.gz file not found.'.format(R))
 
     components = [f for f in os.listdir(subdir) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))]
-    print(components)
 
     comp_densities = []
 
@@ -63,22 +63,21 @@ def rotation_curve(cur_dir):
         RHO_COMP.set_allow_extrapolation(True)
         C = components[i].split('.')[0].split('_')[1]
         try:
-            #str = 'RHO_comp_%d_{}.xml.gz' %i
+            #str = 'RHO_comp_%d_{:}.xml.gz' %i
             str = 'RHO_comp_%d_50.xml.gz' %i
             File(str.format(C)) >> RHO_COMP
             comp_densities.append(RHO_COMP)
         except:
             print(str + ' file not found.'.format(C))
 
-    #v = sqrt(rU'(r))
-    #z value is constant
+
     #r_max,z_max - dimensions of quarter-image
-    r_max = 35
+    r_max = 25
     #resolution of images
-    res = 500
+    res = 250
     rvals = np.linspace(0,r_max,res)
 
-    z_max = 35
+    z_max = 25
     zvals = np.linspace(0,z_max,res)
 
     #build RHO components
@@ -92,10 +91,12 @@ def rotation_curve(cur_dir):
 
     #Add RHO components to figure
         f = fig.add_subplot(gs[cur_dir,c])
-        f.imshow(RHO_array, cmap='gist_heat')
-        f.set_title("RHO component %d" % c)
+        f.imshow(RHO_array, cmap='gist_heat', extent=(0,r_max,0,z_max))
+        f.set_title("RHO component %d, " % c + subdir.split('/')[-1])
 
     #From here, calculate rotation curve
+    #v = sqrt(rU'(r, z))
+    #z value is constant
     z = 0
     dr = 10 ** -10
     r_max = 50
@@ -106,7 +107,7 @@ def rotation_curve(cur_dir):
     inv_r = np.zeros(len(rvals))
 
     for i in range(1, len(rvals)):
-            dUdr = (U(z,rvals[i] + dr) - U(z,rvals[i] - dr))/(2*dr)
+            dUdr = (U(rvals[i] + dr,z) - U(rvals[i] - dr,z))/(2*dr)
             v[i] = np.sqrt(rvals[i]*dUdr)
             inv_r[i] = 1/np.sqrt(rvals[i])
 
