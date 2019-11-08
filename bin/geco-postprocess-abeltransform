@@ -1,13 +1,27 @@
+#!/usr/bin/env python
 
 '''
+geco-postprocess-abeltransform
+
 USE:
-    
+
     pip install --user PyAbel
 
-Perform forward abel transform on RHO data
-Called in vpsolver.py
-outputs image of the RHO_array and forward transformation
+
+A script to perform Abel transform.
+
+Required file: RHO_R.xml.gz, mesh.xml.gz
+
+Usage:
+
+with setup.py installed in a docker container run
+
+geco-postprocess-abeltransform
+
+from the solution directory.
+
 '''
+
 import abel
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,39 +30,46 @@ from dolfin import *
 from timeit import default_timer as timer
 
 
-# Load metric functions
-cwd = os.getcwd()
-print(cwd)
-filename = [f for f in os.listdir(cwd) if f.startswith('RHO_')][0]
-print(filename)
-R = filename.split('.')[0].split('_')[1]
+#Set title of output figure
+SOLUTION = "Non-Convex Oblate"
 
-print(os.listdir(cwd))
+
+cwd = os.getcwd()
+
+
+#Changed this line to avoid conflicts over multiple RHOs, havent tested since
+filename = [f for f in os.listdir(cwd) if (f.startswith('RHO_') and not (f.startswith('RHO_comp_')))]
+R = filename[0].split('.')[0].split('_')[1]
+
 
 # Read mesh and create function space
 mesh = Mesh(cwd + '/mesh.xml.gz')
 V = FunctionSpace(mesh, 'P', 1)
 
+#Function::set_allow_extrapolation(true)
 # Read and save RHO field
-
 RHO  = Function(V)
+RHO.set_allow_extrapolation(True)
+
+
+
 try:
     File('RHO_{:}.xml.gz'.format(R)) >> RHO
 except:
     print('RHO_{:}.xml.gz file not found.'.format(R) )
 
 
-def forward_abel_transform(RHO):	
+def forward_abel_transform(RHO):
     #r_max,z_max - dimensions of quarter-image
-    r_max = 2
+    r_max = 15
     #resolution of images
     res = 500
     rvals = np.linspace(0,r_max,res)
-    
-    z_max = 2
+
+    z_max = 15
     zvals = np.linspace(0,z_max,res)
-	
-    #build 
+
+    #build
     RHO_array_A = np.zeros((len(rvals), len(zvals)))
 
     for i in range(len(rvals)):
@@ -56,36 +77,81 @@ def forward_abel_transform(RHO):
             r = rvals[i]
             z = zvals[j]
             RHO_array_A[j,i] = RHO(r,z)
-	
-	
+
+
 	#These two lines create a reflection of the array across horiz. axis
 	RHO_array_B = np.flipud(RHO_array_A)
     RHO_array_C = np.concatenate((RHO_array_B,RHO_array_A), axis=0)
-	
+
 	#this line mirrors over vert. axis
     RHO_array = np.concatenate((np.fliplr(RHO_array_C),RHO_array_C), axis=1)
-	
-	
+
+    max_original = np.amax(RHO_array)
+
+    #countour lines for origiinal figure
+    countours_orig = np.linspace(0.1*max_original, max_original, 10)
+
 	#Using 'hansenlaw' is much faster than 'direct' without cython implementation
     forward_abel = abel.Transform(RHO_array, direction='forward', method='hansenlaw').transform
-    
-	#Output saved in "demo/abel_out" directory
-    #Constant multiple applied to second paramater alters contrast
-    
-    #fig, axs = plt.subplots(1, 2, figsize=(6, 4))
-    #axs[0].imshow(RHO_array, clim=(0, np.max(RHO_array)*1.15), origin='lower')
-    #axs[1].imshow(forward_abel, clim=(0, np.max(forward_abel)*1.15), origin='lower')
-    #axs[0].set_title('Original')
-    #axs[1].set_title('Forward Transform')
-    #plt.tight_layout()
-    #plt.savefig("abel_out/out.png")
-    #plt.close()
-    
-    plt.title("Forward Transform, resolution = %d" % res)
-    plt.imshow(forward_abel)
-    plt.savefig("abel_out/out.png")
+    max_forward = np.amax(forward_abel)
+
+
+    #countour lines for forward transform
+    countours_forw = np.linspace(0.1*max_forward, max_forward, 10)
+
+    plt.title("Original - " + SOLUTION)
+    plt.imshow(RHO_array, cmap='gist_heat', extent=(-rmax,rmax,-zmax,zmax))
+    plt.colorbar(format='%.0e')
+    plt.savefig("Original_res%d.png" % res, bbox_inches='tight')
     plt.close()
-    
+
+    plt.title("Forward Transform - " + SOLUTION)
+    plt.imshow(forward_abel, cmap='gist_heat', extent=(-rmax,rmax,-zmax,zmax))
+    plt.colorbar(format='%.0e')
+    plt.savefig("Forward_res%d.png" % res, bbox_inches='tight')
+    plt.close()
+
+
+    plt.title("Original - " + SOLUTION)
+    plt.contour(RHO_array, countours_orig, colors='white', linewidths = 0.3, extent=(-rmax,rmax,-zmax,zmax))
+    plt.imshow(RHO_array, cmap='gist_heat', alpha=1, extent=(-rmax,rmax,-zmax,zmax))
+    plt.colorbar(format='%.0e')
+    plt.savefig("Original_cont_res%d.png" % res, bbox_inches='tight')
+    plt.close()
+
+    plt.title("Forward Transform - " + SOLUTION)
+    plt.contour(forward_abel, countours_forw, colors='white', linewidths = 0.3, extent=(-rmax,rmax,-zmax,zmax))
+    plt.imshow(forward_abel, cmap='gist_heat', alpha=5, extent=(-rmax,rmax,-zmax,zmax))
+    plt.colorbar(format='%.0e')
+    plt.savefig("Forward_cont_res%d.png" % res, bbox_inches='tight')
+    plt.close()
+
+    # plt.title("Original, resolution = %d" % res)
+    # plt.imshow(RHO_array, cmap='gist_heat')
+    # plt.colorbar()
+    # plt.savefig("abel_out/Original_res%d.svg" % res, format = 'svg', dpi = 1200)
+    # plt.close()
+
+    # plt.title("Forward Transform, resolution = %d" % res)
+    # plt.imshow(forward_abel, cmap='gist_heat')
+    # plt.colorbar()
+    # plt.savefig("abel_out/Forward_res%d.svg" % res, format = 'svg', dpi = 1200)
+    # plt.close()
+
+    # plt.title("Original, resolution = %d" % res)
+    # plt.contour(RHO_array, 10, colors='white', linewidths = 0.3)
+    # plt.imshow(RHO_array, cmap='gist_heat', alpha=1)
+    # plt.colorbar()
+    # plt.savefig("abel_out/Original_cont_res%d.svg" % res, format = 'svg', dpi = 1200)
+    # plt.close()
+
+    # plt.title("Forward Transform, resolution = %d" % res)
+    # plt.contour(forward_abel, 10, colors='white', linewidths = 0.3)
+    # plt.imshow(forward_abel, cmap='gist_heat', alpha=5)
+    # plt.colorbar()
+    # plt.savefig("abel_out/Forward_cont_res%d.svg" % res, format = 'svg', dpi = 1200)
+    # plt.close()
+
 
 start = timer()
 forward_abel_transform(RHO)
