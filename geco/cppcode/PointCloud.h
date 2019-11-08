@@ -124,7 +124,7 @@ namespace dolfin
       dolfin::XDMFFile file(_rho->function_space()->mesh()->mpi_comm(), filename);
       file.write(point_cloud, point_cloud_values);
 
-#elif
+#else
 
       warning("Unable to save point cloud data: missing HDF5 library.");
 

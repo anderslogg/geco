@@ -13,19 +13,19 @@ from geco.models import PointCloud
 
 # Parameters
 num_points = 1000000
-resolution = 512
+resolution = 64
 mass = 1.0
-size = 5
+size = 18
 
 # Find RHO datafile
-files = [f for f in os.listdir(".") if "RHO_" in f and f.endswith(".xml")]
+files = [f for f in os.listdir(".") if "RHO_" in f and f.endswith(".xml.gz")]
 if not len(files) == 1:
     error("Unable to find XML data for RHO.")
 data_filename = files[0]
 
 # Find mesh datafile
 R = int(data_filename.split("RHO_")[1].split(".")[0])
-mesh_filename = "mesh.xml"
+mesh_filename = "mesh.xml.gz"
 
 # Read mesh and create function space
 info("Reading mesh from file %s." % mesh_filename)
