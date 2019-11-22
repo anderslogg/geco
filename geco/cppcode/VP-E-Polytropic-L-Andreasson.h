@@ -5,10 +5,15 @@ double ansatz(double E, double L) const
   if (E0 <= E)
     return 0.0;
 
-  if (std::abs(L) >= 1.0 / Q)
+  double I = std::pow(E0 - E, k);
+  double J = 1.0 - Q*std::abs(L);
+
+  if (J <= 0.0)
     return 0.0;
-  
-  return std::pow(E0 - E, k)*std::pow(1.0 - Q*std::abs(L), l);
+
+  else
+    return I *= std::pow(J, l);
+
 }
 
 void init_parameters()

@@ -117,7 +117,7 @@ def PointCloud(rho, R, M, resolution, num_points):
 
     # Build extension module
     point_cloud = Expression(cppcode=cppcode, degree=1)
-
+    
     # Set density
     point_cloud.set_parameters(rho, R, M, resolution, num_points)
 

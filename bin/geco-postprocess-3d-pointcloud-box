@@ -24,7 +24,6 @@ if not len(files) == 1:
 data_filename = files[0]
 
 # Find mesh datafile
-R = int(data_filename.split("RHO_")[1].split(".")[0])
 mesh_filename = "mesh.xml.gz"
 
 # Read mesh and create function space
