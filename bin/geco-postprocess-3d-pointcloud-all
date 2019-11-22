@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# This is a utility script for generating point cloud data from an
+# already existing density (RHO). This (was) mainly useful before
+# point cloud output was added to the solvers. It can also be useful
+# to regenerate point cloud data with a different number of points.
+
+import sys, os
+from fenics import *
+from geco import *
+from geco.models import PointCloud
+
+# Parameters
+num_points = 1000000
+resolution = 64
+mass = 1.0
+size = 25
+
+# Find RHO datafile
+files = [f for f in os.listdir(".") if "RHO_" in f and f.endswith(".xml.gz")]
+if len(files) == 0:
+    error("Unable to find XML data for RHO.")
+names = [f.split(".")[0] for f in files]
+
+print(files)
+
+# Find mesh datafile
+mesh_filename = "mesh.xml.gz"
+
+# Read mesh and create function space
+info("Reading mesh from file %s." % mesh_filename)
+mesh = Mesh(mesh_filename)
+V = FunctionSpace(mesh, "Lagrange", 1)
+
+for f, n in zip(files, names):
+
+    # Read data for RHO
+    info("Reading data from file %s." % f)
+    RHO = Function(V)
+    File(f) >> RHO
+
+    # Create point cloud representation
+    info("Computing point cloud representation.")
+    cloud = PointCloud(RHO, size, mass, resolution, num_points)
+
+    # Save to file
+    filename = "postprocess-pointcloud-{}.xdmf".format(n)
+    cloud.save_data(filename)
+    info("Postprocessing data save to file %s" % filename)
