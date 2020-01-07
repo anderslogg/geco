@@ -55,16 +55,16 @@ def rotation_curve(cur_dir):
         print('U_{:}.xml.gz file not found.'.format(R))
 
     components = [f for f in os.listdir(subdir) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))]
-
     comp_densities = []
+    C = components[0].split('.')[0].split('_')[1]
+
 
     for i in range(len(components)):
+        rad_sup = components[i].split('_')[3].split('.')[0]
         RHO_COMP = Function(V)
         RHO_COMP.set_allow_extrapolation(True)
-        C = components[i].split('.')[0].split('_')[1]
         try:
-            #str = 'RHO_comp_%d_{:}.xml.gz' %i
-            str = 'RHO_comp_%d_50.xml.gz' %i
+            str = 'RHO_comp_{}_{}.xml.gz'.format(i, rad_sup)
             File(str.format(C)) >> RHO_COMP
             comp_densities.append(RHO_COMP)
         except:
