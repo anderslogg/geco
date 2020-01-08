@@ -61,7 +61,7 @@ class SolverBase:
         self.parameters.output.add("save_solution_3d",   False)
         self.parameters.output.add("save_point_cloud",   False)
         self.parameters.output.add("save_iterations",    False)
-        self.parameters.output.add("save_residuals",     False)        
+        self.parameters.output.add("save_residuals",     False)
 
         # Override some parameters when --hires option is given
         if len(sys.argv) > 1 and sys.argv[1] == "--hires":
@@ -101,7 +101,7 @@ class SolverBase:
 
         # Create list of residuals
         self._residuals = []
-        
+
     def _generate_mesh(self):
 
         # Note that we generate the mesh with unit radius and
@@ -156,11 +156,11 @@ class SolverBase:
 
         # If not adaptive theta, just return numerical value
         if not self.parameters.discretization.adaptive_theta:
-            return self.parameters.discretization.theta        
+            return self.parameters.discretization.theta
 
         # Check whether it's time to get started
         if not self._theta_init:
-            
+
             # If we don't have enough residuals, keep going
             if len(self._residuals) < 5:
                 return self._theta
@@ -189,7 +189,7 @@ class SolverBase:
             self._theta = 2.0*self._theta*self._theta_max / (self._theta + self._theta_max)
 
         info("theta = %.3g" % self._theta)
-        
+
         return self._theta
 
     def _postprocess(self, ansatzes, solutions, flat_solutions, names, residual_functions, matter_components, matter_names):
@@ -201,13 +201,13 @@ class SolverBase:
         try:
             self._print_data(ansatzes)
             self._save_solutions(solutions, names)
-            self._save_solutions(matter_components, matter_names)            
+            self._save_solutions(matter_components, matter_names)
             self._save_residual_functions(residual_functions, names)
             self._save_flat(flat_solutions, names)
             self._save_solution_3d(solutions[-1])
             self._save_point_cloud(solutions[-1])
             self._plot_solutions(solutions[:-1], names[:-1])
-            self._save_data() # do this last as it may break
+            self._save_data(ansatzes) # do this last as it may break
         except:
             warning("Postprocessing failed: %s" % str(sys.exc_info()[0]))
 
@@ -224,25 +224,39 @@ class SolverBase:
         for ansatz in ansatzes:
             self.data.update(ansatz.parameters.to_dict())
 
+
         # Print data
         if MPI.rank(mpi_comm_world()) == 0:
             info("")
             info(_dict2table(self.data, "data"), True)
             info("")
 
-    def _save_data(self):
+    def _save_data(self, ansatzes):
         "Save data to file"
 
         # Do this only on processor 0
         if MPI.rank(mpi_comm_world()) > 0:
             return
-        
+
         # Get parameters
         solution_dir = self.parameters.output.solution_directory
+        print(solution_dir)
 
         # Create directory if it does not yet exist
         if not os.path.exists(solution_dir):
             os.makedirs(solution_dir)
+
+        # Create CSV files for each ansatz
+
+        for i in range(len(ansatzes)):
+            filename = os.path.join(solution_dir, "parameters_%d.csv" %i)
+            try:
+                with open(filename, 'w') as f:
+                    for key in ansatzes[i].parameters.to_dict().keys():
+                        f.write("%s,%s\n"%(key,ansatzes[i].parameters.to_dict()[key]))
+            except IOError:
+                print("error saving parameters for component %d" %i)
+
 
         # Name of file
         filename = os.path.join(solution_dir, "data.csv")
@@ -250,6 +264,7 @@ class SolverBase:
 
         # Get keys
         keys = sorted(self.data.keys())
+        #print(ansatzes[0].data.keys()) breaks
 
         # Write header if not written before
         if not os.path.isfile(filename):
@@ -305,7 +320,7 @@ class SolverBase:
 
         # Extract field names and solution directory
         field_names = [names[n] for n in xrange(4)]
-        solution_dir = self.parameters.output.solution_directory        
+        solution_dir = self.parameters.output.solution_directory
 
         # Save solutions to XDMF format
         for resf, fname in zip(residual_functions, field_names):
@@ -381,10 +396,10 @@ class SolverBase:
         # Check whether to save density
         if not self.parameters.output.save_iterations:
             return
-        
+
         # Save density to file
         self._density_file.write(RHO, float(iter))
-        
+
     def _save_residual(self, residual):
         "Save residual to file"
 
@@ -392,7 +407,7 @@ class SolverBase:
         self._residuals.append(residual)
 
         # Get parameters
-        solution_dir = self.parameters.output.solution_directory        
+        solution_dir = self.parameters.output.solution_directory
 
         # Create directory if it does not yet exist
         if not os.path.exists(solution_dir):

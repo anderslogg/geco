@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-geco-postprocess-rotation_curve
+geco-postprocess-rotation_curves
 
 A script to compute velocity of particles as a function of radius
 
@@ -11,9 +11,9 @@ Usage:
 
 with setup.py installed in a docker container run
 
-geco-postprocess-rotation_curve
+geco-postprocess-rotation_curves
 
-from the solution directory.
+from the directory that contains the solution directory(ies).
 
 '''
 
@@ -37,8 +37,12 @@ gs = gridspec.GridSpec(num_dirs, 4)
 
 def rotation_curve(cur_dir):
     subdir = os.getcwd()
-    potential = [f for f in os.listdir(subdir) if (f.startswith('U_') and not (f.startswith('U_R')))]
-    R = potential[0].split('.')[0].split('_')[1]
+
+    try:
+        potential = [f for f in os.listdir(subdir) if (f.startswith('U_') and not (f.startswith('U_R')))]
+        R = potential[0].split('.')[0].split('_')[1]
+    except:
+        print('Potential file not found in: ' + subdir)
 
     # Read mesh and create function space
     mesh = Mesh(subdir + '/mesh.xml.gz')
@@ -54,6 +58,7 @@ def rotation_curve(cur_dir):
     except:
         print('U_{:}.xml.gz file not found.'.format(R))
 
+    parameters = [f for f in os.listdir(subdir) if (f.startswith('param'))]
     components = [f for f in os.listdir(subdir) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))]
     comp_densities = []
     C = components[0].split('.')[0].split('_')[1]
@@ -90,9 +95,13 @@ def rotation_curve(cur_dir):
                 RHO_array[len(zvals)-1-j,i] = comp_densities[c](z,r)
 
     #Add RHO components to figure
+        params=""
+        p = open(parameters[c], "r").readlines()
+        params = params.join(p).strip().replace(",", ": ").replace('\n','  ')
         f = fig.add_subplot(gs[cur_dir,c])
         f.imshow(RHO_array, cmap='gist_heat', extent=(0,r_max,0,z_max))
-        f.set_title("RHO component %d, " % c + subdir.split('/')[-1])
+        f.set_title("RHO comp %d \n" % c + params)
+        #f.set_title("RHO component %d, " % c + subdir.split('/')[-1])
 
     #From here, calculate rotation curve
     #v = sqrt(rU'(r, z))
