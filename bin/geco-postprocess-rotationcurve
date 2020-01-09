@@ -1,0 +1,125 @@
+#!/usr/bin/env python
+
+'''
+geco-postprocess-rotation_curves
+
+A script to compute velocity of particles as a function of radius
+
+Required files: U_R.xml.gz, RHO_comp_i.xdmf, mesh.xml.gz, parameters_i.csv
+
+Usage:
+
+with setup.py installed in a docker container run
+
+geco-postprocess-rotation_curves
+
+run in the directory that contains the solutions.
+Reuses the same code as the contact sheet, unlike the
+contact sheet this outputs the density components and
+rotation curve as individual .pngs
+
+
+'''
+
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import sys, os, csv
+from dolfin import *
+
+def rotation_curve():
+    dir = os.getcwd()
+
+    try:
+        potential = [f for f in os.listdir(dir) if (f.startswith('U_') and not (f.startswith('U_R')))]
+        R = potential[0].split('.')[0].split('_')[1]
+    except:
+        print('Potential file not found in: ' + dir)
+
+    # Read mesh and create function space
+    mesh = Mesh(dir + '/mesh.xml.gz')
+    V = FunctionSpace(mesh, 'P', 1)
+    x = SpatialCoordinate(mesh)
+
+    # Read and save U field
+    U = Function(V)
+    U.set_allow_extrapolation(True)
+
+    try:
+        File('U_{:}.xml.gz'.format(R)) >> U
+    except:
+        print('U_{:}.xml.gz file not found.'.format(R))
+
+    parameters = [f for f in os.listdir(dir) if (f.startswith('param'))]
+    components = [f for f in os.listdir(dir) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))]
+    comp_densities = []
+    C = components[0].split('.')[0].split('_')[1]
+
+
+    for i in range(len(components)):
+        rad_sup = components[i].split('_')[3].split('.')[0]
+        RHO_COMP = Function(V)
+        RHO_COMP.set_allow_extrapolation(True)
+        try:
+            str = 'RHO_comp_{}_{}.xml.gz'.format(i, rad_sup)
+            File(str.format(C)) >> RHO_COMP
+            comp_densities.append(RHO_COMP)
+        except:
+            print(str + ' file not found.'.format(C))
+
+
+    #r_max,z_max - dimensions of quarter-image
+    r_max = 25
+    #resolution of images
+    res = 250
+    rvals = np.linspace(0,r_max,res)
+
+    z_max = 25
+    zvals = np.linspace(0,z_max,res)
+
+    #build RHO components
+    for c in range(len(comp_densities)):
+        RHO_array = np.zeros((len(rvals), len(zvals)))
+        for i in range(len(zvals)):
+            for j in range(len(rvals)):
+                r = rvals[j]
+                z = zvals[i]
+                RHO_array[len(zvals)-1-j,i] = comp_densities[c](z,r)
+
+    #Add RHO components to figure
+        params=""
+        p = open(parameters[c], "r").readlines()
+        params = params.join(p).strip().replace(",", ": ").replace('\n','  ')
+        plt.imshow(RHO_array, cmap='gist_heat', extent=(0,r_max,0,z_max))
+        plt.title("RHO comp %d \n" % c + params)
+        plt.savefig("RHO comp %d \n.png" % c)
+        plt.close()
+        #f.set_title("RHO component %d, " % c + dir.split('/')[-1])
+
+    #From here, calculate rotation curve
+    #v = sqrt(rU'(r, z))
+    #z value is constant
+    z = 0
+    dr = 10 ** -10
+    r_max = 50
+    res = 1000
+    rvals = np.linspace(0,r_max,res)
+    v = np.zeros(len(rvals))
+
+    inv_r = np.zeros(len(rvals))
+
+    for i in range(1, len(rvals)):
+            dUdr = (U(rvals[i] + dr,z) - U(rvals[i] - dr,z))/(2*dr)
+            v[i] = np.sqrt(rvals[i]*dUdr)
+            inv_r[i] = 1/np.sqrt(rvals[i])
+
+    plt.plot(rvals, v)
+    plt.plot(rvals[150:len(rvals)], inv_r[150:len(rvals)])
+    plt.title('Velocity vs. Radius')
+    plt.xlabel('radius')
+    plt.ylabel('velocity')
+    plt.savefig("Rotation Curve.png")
+    plt.close()
+###########################################################
+
+rotation_curve()

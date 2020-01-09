@@ -14,6 +14,7 @@ with setup.py installed in a docker container run
 geco-postprocess-rotation_curves
 
 from the directory that contains the solution directory(ies).
+All subdirectories are assumed to have the same number of matter-species
 
 '''
 
@@ -28,8 +29,11 @@ cwd = os.getcwd()
 dir_list = filter(os.path.isdir, os.listdir(os.getcwd()))
 num_dirs = len(dir_list)
 
-#change component number for layout purposes
-num_components = 2
+#Determine number of matter-species for layout purposes. Just checks the number
+#species in the first directory and assumes the other solutions have the same
+#number of species
+num_components = len([f for f in os.listdir(cwd+"/"+dir_list[0]) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))])
+
 
 fig = plt.figure(figsize=(10*num_components,num_dirs*5))
 gs = gridspec.GridSpec(num_dirs, 4)
