@@ -22,6 +22,8 @@ void init_parameters()
   parameters.add("k",   0.0);
   parameters.add("l",   0.0);
   parameters.add("Q",   0.0);
+  parameters.add("weight", 1.0);
+  parameters.add("model", "VP-E-Polytropic-L-Andreasson");
 }
 
 void read_parameters()
@@ -38,3 +40,5 @@ double E0;
 double k;
 double l;
 double Q;
+double weight;
+std::string model;

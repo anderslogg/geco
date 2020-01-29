@@ -8,14 +8,14 @@ double chi(double E, double L) const
 double ansatz(double E, double L) const
 {
   const double _chi = chi(E, L);
-  
+
   if ( _chi <= 0)
     return 0.0;
 
   /* if (E > E0) */
   /*    return 0.0; */
 
-  //  return std::exp(b*_chi) 
+  //  return std::exp(b*_chi)
   //  return std::exp(b*_chi) - 1.0;
   //  return std::pow(_chi, b);
   //  return std::log(_chi);
@@ -29,6 +29,8 @@ void init_parameters()
   parameters.add("W",   1.0);
   parameters.add("r0",  1.0);
   parameters.add("b",   0.1);
+  parameters.add("weight", 1.0);
+  parameters.add("model", "VP-Rowley");
 }
 
 void read_parameters()
@@ -47,3 +49,5 @@ double c0;
 double W;
 double r0;
 double b;
+double weight;
+std::string model;

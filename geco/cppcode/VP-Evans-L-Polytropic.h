@@ -19,7 +19,8 @@ void init_parameters()
   parameters.add("v0",  0.0);
   parameters.add("s0",  1.0);
   parameters.add("c",   0.1);
-
+  parameters.add("weight", 1.0);
+  parameters.add("model", "VP-Evans-L-Polytropic");
 }
 
 void read_parameters()
@@ -36,3 +37,5 @@ double E0;
 double v0;
 double s0;
 double c;
+double weight;
+std::string model;

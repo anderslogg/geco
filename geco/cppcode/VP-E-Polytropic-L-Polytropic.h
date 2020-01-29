@@ -19,6 +19,8 @@ void init_parameters()
   parameters.add("L0",  0.0);
   parameters.add("k",   0.0);
   parameters.add("l",   0.0);
+  parameters.add("weight", 1.0);
+  parameters.add("model", "VP-E-Polytropic-L-Polytropic");
 }
 
 void read_parameters()
@@ -35,3 +37,5 @@ double E0;
 double L0;
 double k;
 double l;
+double weight;
+std::string model;
