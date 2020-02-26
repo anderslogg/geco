@@ -104,7 +104,7 @@ namespace dolfin
           // Evaluate ansatz and add to integral
           const double L = rho*s;
 
-          I += s*ansatz(E, L)*ds*dE;
+          I += std::abs(s)*ansatz(E, L)*ds*dE;
         }
       }
 
