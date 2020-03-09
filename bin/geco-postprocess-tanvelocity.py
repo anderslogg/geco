@@ -82,8 +82,8 @@ def vel_tangential(tol=0):
         else:
             continue
 
-    if tol == 0:
-        tol = float(data_dict["tolerance"])
+    # if tol == 0:
+    #     tol = float(data_dict["tolerance"])
 
     r_max = np.ceil(float(data_dict["radius_of_support"]))
    #resolution of images
@@ -108,6 +108,27 @@ def vel_tangential(tol=0):
         #_vel_integral = project(model, V)/rho
         #vel_integral = Constant(weight)*_vel_integral
 
+#        nodal_values = rho.vector().array()
+#        nodal_values = rho.vector().get_local()
+
+        reset_tol=False
+        # if tol == 0:
+        #     reset_tol = True
+        #     TEMP_array = np.zeros((len(rvals), len(zvals)))
+        #     for i in range(len(zvals)):
+        #         for j in range(len(rvals)):
+        #             r = rvals[j]
+        #             z = zvals[i]
+        #             TEMP_array[j,i] = rho(r,z)
+        #     tol = np.amax(TEMP_array) * 0.00001
+        #
+        if tol == 0:
+            reset_tol = True
+            nodal_values = rho.vector().get_local()
+            tol = np.amax(nodal_values) * 0.00001
+
+
+
         RHO_array = np.zeros((len(rvals), len(zvals)))
         VEL_array = np.zeros((len(rvals), len(zvals)))
         for i in range(len(zvals)):
@@ -123,13 +144,8 @@ def vel_tangential(tol=0):
 
         VEL_array = VEL_array*(float(weight))
         RHO_array = RHO_array*(float(weight))
-       # fig = plt.figure(figsize=(10*num_components,num_dirs*5))
 
-        #gs = gridspec.GridSpec(1, 2)
-        #f = fig.add_subplot(gs)
-        #f.imshow(RHO_array, cmap='gist_heat', extent=(0,2*r_max,0,2*z_max))
-        #f.set_title("RHO comp %d \n" % c + params)
-        #VEL_array = weight*VEL_array
+
         plt.imshow(RHO_array, cmap='gist_heat', extent=(0,r_max,0,z_max), origin='lower')
         plt.title("RHO - " + name)
         plt.colorbar(format='%.0e')
@@ -154,14 +170,19 @@ def vel_tangential(tol=0):
                 v[i] = VEL_array[i,z]
                 inv_r[i-1] = 1/np.sqrt(rvals[i])
 
+        alpha = inv_r[1]*v[1]
+
         plt.plot(rvals, v)
-        #plt.plot(rvals[25:len(rvals)], inv_r[25:len(rvals)])
+        plt.plot(rvals[20:len(rvals)], alpha*inv_r[20:len(rvals)])
         plt.title('Velocity vs. Radius ' + name + '\n tolerance = {}'.format(tol))
         plt.xlabel('radius')
         plt.ylabel('velocity')
         plt.savefig("Rotation Curve" + name + ".png")
         plt.close()
 
+        if reset_tol ==True:
+            tol=0
+            reset_tol=False
 
     return ""
 
@@ -170,7 +191,6 @@ def build_model(param_dict):
 #Extract weight and model name parameters, then remove them
     weight = param_dict.get('weight')
     del param_dict['weight']
-    print(weight)
     name = param_dict.get('model')
     print(name)
     del param_dict['model']
@@ -230,5 +250,4 @@ args=vars(parser.parse_args())
 
 tol = 0 if args['tolerance'] is None else args['tolerance']
 
-print(tol)
 vel_tangential(tol)
