@@ -4,13 +4,21 @@ geco-postprocess-tanvelocity
 
 A script to calculate tangential velocity
 
-Required file: mesh.xml.gz
+Required files: mesh.xml.gz, U_##.xdmf, RHO_comp_#_##.xdmf,
+                data.csv, parameters_#.csv
 
 Usage:
 
 with setup.py installed in a docker container run
 
-geco-postprocess-deficitangle
+geco-postprocess-tanvelocity [-t] [-z]
+
+-t  Optional user defined tolerance cutoff
+    Default is relative to max value of RHO Components
+
+-z  Optional user defined z axis value about which
+    to calculate the rotation curve
+    Default z = 0
 
 from the solution directory.
 
@@ -26,7 +34,7 @@ from itertools import izip
 
 
 
-def vel_tangential(tol=0):
+def vel_tangential(tol=0,zed=0):
 
     dir = os.getcwd()
 
@@ -82,11 +90,9 @@ def vel_tangential(tol=0):
         else:
             continue
 
-    # if tol == 0:
-    #     tol = float(data_dict["tolerance"])
-
     r_max = np.ceil(float(data_dict["radius_of_support"]))
-   #resolution of images
+
+    #resolution of images
     res = 500
     rvals = np.linspace(0,r_max,res)
 
@@ -105,30 +111,19 @@ def vel_tangential(tol=0):
 
         vel_integral = project(model, V)
         vel_integral.set_allow_extrapolation(True)
-        #_vel_integral = project(model, V)/rho
-        #vel_integral = Constant(weight)*_vel_integral
 
-#        nodal_values = rho.vector().array()
-#        nodal_values = rho.vector().get_local()
-
+        #If the tolerance is not user defined, set it
+        #based on the maximum value of the current RHO
         reset_tol=False
-        # if tol == 0:
-        #     reset_tol = True
-        #     TEMP_array = np.zeros((len(rvals), len(zvals)))
-        #     for i in range(len(zvals)):
-        #         for j in range(len(rvals)):
-        #             r = rvals[j]
-        #             z = zvals[i]
-        #             TEMP_array[j,i] = rho(r,z)
-        #     tol = np.amax(TEMP_array) * 0.00001
-        #
         if tol == 0:
             reset_tol = True
             nodal_values = rho.vector().get_local()
             tol = np.amax(nodal_values) * 0.00001
 
 
-
+        #Perform the integration
+        #creates both the tanvelocity 2D numpy array
+        #AND outputs the original RHO as
         RHO_array = np.zeros((len(rvals), len(zvals)))
         VEL_array = np.zeros((len(rvals), len(zvals)))
         for i in range(len(zvals)):
@@ -140,11 +135,9 @@ def vel_tangential(tol=0):
                     VEL_array[j,i] = vel_integral(z,r)/rho(r,z)
                 else:
                     VEL_array[j,i] = 0
-                #VEL_array[j,i] = vel_integral(z,r)
 
         VEL_array = VEL_array*(float(weight))
         RHO_array = RHO_array*(float(weight))
-
 
         plt.imshow(RHO_array, cmap='gist_heat', extent=(0,r_max,0,z_max), origin='lower')
         plt.title("RHO - " + name)
@@ -160,14 +153,13 @@ def vel_tangential(tol=0):
         plt.close()
 
 
-        z = 0
         res = 500
         v = np.zeros(len(rvals))
         inv_r = np.zeros(len(rvals))
         rvals = np.linspace(0,r_max,res)
 
         for i in range(1,len(rvals)):
-                v[i] = VEL_array[i,z]
+                v[i] = VEL_array[i,zed]
                 inv_r[i-1] = 1/np.sqrt(rvals[i])
 
         alpha = inv_r[1]*v[1]
@@ -180,7 +172,7 @@ def vel_tangential(tol=0):
         plt.savefig("Rotation Curve" + name + ".png")
         plt.close()
 
-        if reset_tol ==True:
+        if reset_tol==True:
             tol=0
             reset_tol=False
 
@@ -245,9 +237,11 @@ def TangentialVelocityModel(model):
 parser = argparse.ArgumentParser()
 parser.add_argument('-t', '--tolerance', help="enter a tolerance cutoff",
                         type=float, required=False)
+parser.add_argument('-z', '--zaxis', help="enter a z-axis ",
+                        type=int, required=False)
 args=vars(parser.parse_args())
-#tol = args.t
 
 tol = 0 if args['tolerance'] is None else args['tolerance']
+zed = 0 if args['zaxis'] is None else args['zaxis']
 
-vel_tangential(tol)
+vel_tangential(tol,zed)
