@@ -5,7 +5,7 @@ geco-postprocess-rotation_curves
 
 A script to compute velocity of particles as a function of radius
 
-Required files: U_R.xml.gz, RHO_comp_i.xdmf, mesh.xml.gz, parameters_i.csv
+Required files: U_R.xml.gz, RHO_comp_i.xml.gz, mesh.xml.gz, parameters_i.csv
 
 Usage:
 

@@ -33,7 +33,7 @@ def contact_sheet(row, r_max, z_max, res):
     mesh, parameters, rho_components, U = gather_files()
 
     component_densities = evaluate_components(mesh, rho_components)
-    rho_arrays = to_np_arrays(component_densities)
+    rho_arrays = to_np_arrays(component_densities,r_max, z_max,res)
 
     title_list = make_plot_title(parameters)
     if (len(rho_arrays) == 1):

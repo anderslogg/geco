@@ -44,7 +44,7 @@ def vel_tangential(tol=0,zed=0):
     # Read mesh and create function space
     mesh = Mesh(dir + '/mesh.xml.gz')
     V = FunctionSpace(mesh, 'P', 1)
-    x = SpatialCoordinate(mesh)
+    #x = SpatialCoordinate(mesh)
 
     # Read and save U field
     U = Function(V)
@@ -57,9 +57,9 @@ def vel_tangential(tol=0,zed=0):
 
 
     components = [f for f in os.listdir(dir) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))]
+    components.sort()
     comp_densities = []
     C = components[0].split('.')[0].split('_')[1]
-
 
     for i in range(len(components)):
         rad_sup = components[i].split('_')[3].split('.')[0]
@@ -128,8 +128,8 @@ def vel_tangential(tol=0,zed=0):
         VEL_array = np.zeros((len(rvals), len(zvals)))
         for i in range(len(zvals)):
             for j in range(len(rvals)):
-                r = rvals[j]
-                z = zvals[i]
+                r = rvals[i]
+                z = zvals[j]
                 RHO_array[j,i] = rho(r,z)
                 if(RHO_array[j,i] > tol):
                     VEL_array[j,i] = vel_integral(z,r)/rho(r,z)
@@ -233,6 +233,7 @@ def TangentialVelocityModel(model):
 
     return rho
 
+############################################################3
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-t', '--tolerance', help="enter a tolerance cutoff",

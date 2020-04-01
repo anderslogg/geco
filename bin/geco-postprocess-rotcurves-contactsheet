@@ -5,7 +5,7 @@ geco-postprocess-rotation_curves
 
 A script to compute velocity of particles as a function of radius
 
-Required files: U_R.xml.gz, RHO_comp_i.xdmf, mesh.xml.gz
+Required files: U_R.xml.gz, RHO_comp_i.xml.gz, mesh.xml.gz
 
 Usage:
 
@@ -17,7 +17,7 @@ from the directory that contains the solution directory(ies).
 All subdirectories are assumed to have the same number of matter-species
 
 '''
-
+import csv
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -51,7 +51,6 @@ def rotation_curve(cur_dir):
     # Read mesh and create function space
     mesh = Mesh(subdir + '/mesh.xml.gz')
     V = FunctionSpace(mesh, 'P', 1)
-    x = SpatialCoordinate(mesh)
 
     # Read and save U field
     U = Function(V)
@@ -100,11 +99,10 @@ def rotation_curve(cur_dir):
 
     #Add RHO components to figure
         params=""
-        p = open(parameters[c], "r").readlines()
-        params = params.join(p).strip().replace(",", ": ").replace('\n','  ')
+        p = dict(csv.reader(open(parameters[c],'r')))
         f = fig.add_subplot(gs[cur_dir,c])
         f.imshow(RHO_array, cmap='gist_heat', extent=(0,r_max,0,z_max))
-        f.set_title("RHO comp %d \n" % c + params)
+        f.set_title(p['model']+"\n weight: "+p['weight'])
         #f.set_title("RHO component %d, " % c + subdir.split('/')[-1])
 
     #From here, calculate rotation curve

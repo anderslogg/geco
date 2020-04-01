@@ -21,6 +21,7 @@ geco-postprocess-abeltransform
 from the solution directory.
 
 '''
+#FIXME add a loop to work with multiple RHO components
 
 import abel
 import numpy as np
