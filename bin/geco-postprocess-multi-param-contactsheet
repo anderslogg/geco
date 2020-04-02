@@ -17,6 +17,7 @@ from the directory that contains the solution directory(ies).
 All subdirectories are assumed to have the same number of matter-species
 
 '''
+import argparse
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,7 +26,7 @@ from itertools import izip
 import sys, os, csv
 from dolfin import *
 
-def contact_sheet(row, r_max, z_max, res):
+def contact_sheet(row, r_max, res):
     subdir = os.getcwd()
     print(subdir)
     folder_name = subdir.split('/')[-2]
@@ -33,31 +34,31 @@ def contact_sheet(row, r_max, z_max, res):
     mesh, parameters, rho_components, U = gather_files()
 
     component_densities = evaluate_components(mesh, rho_components)
-    rho_arrays = to_np_arrays(component_densities,r_max, z_max,res)
+    rho_arrays = to_np_arrays(component_densities,r_max,res)
 
     title_list = make_plot_title(parameters)
     if (len(rho_arrays) == 1):
         param_str = params_to_strs(parameters)
 
     # f = fig.add_subplot(gs[row,0])
-    # f.imshow(rho_arrays[0], cmap='gist_heat', origin='lower', extent=(0,r_max,0,z_max))
+    # f.imshow(rho_arrays[0], cmap='gist_heat', origin='lower', extent=(0,r_max,0,r_max))
     # f.set_title(title_list[0])
     #t = plt.add_subplot(gs[row,1])
 
     #add_rho_subplot(rho_arrays[0], "title", row, 0)
     for i in range(len(rho_arrays)):
         f = fig.add_subplot(gs[row,i])
-        f.imshow(rho_arrays[i], cmap='gist_heat', origin='lower', extent=(0,r_max,0,z_max))
+        f.imshow(rho_arrays[i], cmap='gist_heat', origin='lower', extent=(0,r_max,0,r_max))
         f.set_title(title_list[i], fontsize=10)
 
 
     if (len(rho_arrays) == 1):
-        t = plt.text(r_max*2, z_max/10, param_str[0], fontsize=12)
+        t = plt.text(r_max*2, r_max/10, param_str[0], fontsize=12)
 
 '''
 def add_rho_subplot(arr,title, row, col=0):
     f = fig.add_subplot(gs[row,col])
-    f.imshow(arr, cmap='gist_heat', origin='lower', extent=(0,r_max,0,z_max))
+    f.imshow(arr, cmap='gist_heat', origin='lower', extent=(0,r_max,0,r_max))
     f.set_title(title)
 '''
 
@@ -125,10 +126,10 @@ def evaluate_components(mesh, components):
 
     return comp_densities
 
-def to_np_arrays(comp_densities, r_max=40,z_max=40, res=250):
+def to_np_arrays(comp_densities, r_max, res):
     rho_arrays = []
     rvals = np.linspace(0,r_max,res)
-    zvals = np.linspace(0,z_max,res)
+    zvals = np.linspace(0,r_max,res)
     for rho in comp_densities:
         RHO_array = np.zeros((len(rvals), len(zvals)))
         for i in range(len(zvals)):
@@ -140,7 +141,41 @@ def to_np_arrays(comp_densities, r_max=40,z_max=40, res=250):
 
     return rho_arrays
 
+
+
+def max_radius_of_support():
+    data_list = []
+    for root, dirs, files in os.walk(os.getcwd(), topdown=False):
+       for name in files:
+          if 'data.csv' in name:
+              data_list.append(os.path.join(root, name))
+
+    cur_support = 1
+    for d in data_list:
+        try:
+            header = np.genfromtxt(d, max_rows=1, delimiter=',', dtype=str)
+            data_lines = np.genfromtxt(d, delimiter=',', dtype=None)
+            data_lines = data_lines[-1]
+            data = dict( zip(header, data_lines) )
+        except:
+            print('Unable to find ' + d)
+
+        if float(data['radius_of_support']) > cur_support:
+            cur_support = np.ceil(float(data['radius_of_support']))
+
+    return cur_support
+
+
+
+
 ###########################################################
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-r', '--resolution', help="enter desired resolution of numpy arrays",
+                        type=int, required=False)
+args=vars(parser.parse_args())
+
+res = 150 if args['resolution'] is None else args['resolution']
 
 
 top = os.getcwd()
@@ -153,15 +188,16 @@ num_dirs = len(dir_list)
 #number of species
 #num_components = len([f for f in os.listdir(cwd+"/"+dir_list[0]) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))])
 #print(num_components)
-num = 10
 
+#Set up figure and spacing
+num_subdirs = 4
 fig = plt.figure(figsize=(6,num_dirs*10))
-gs = gridspec.GridSpec(num_dirs*4, 2)
+gs = gridspec.GridSpec(num_dirs*num_subdirs, 2)
 gs.update(wspace=0.0, hspace=0.5)
-#make these user inputs:
-res=100
-r_max = 20
-z_max = 20
+
+
+res=500
+r_max = max_radius_of_support()
 row=0
 for c_dir in range(num_dirs):
     os.chdir(os.getcwd()+"/"+dir_list[c_dir])
@@ -170,7 +206,7 @@ for c_dir in range(num_dirs):
     subdir_list.sort(key=len)
     for s_dir in range(len(subdir_list)):
         os.chdir(os.getcwd() + "/" + subdir_list[s_dir])
-        contact_sheet(row, r_max, z_max, res)
+        contact_sheet(row, r_max, res)
         os.chdir(os.getcwd() + "/..")
         row=row+1
 
