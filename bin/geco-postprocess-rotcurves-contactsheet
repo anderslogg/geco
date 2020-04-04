@@ -62,7 +62,9 @@ def rotation_curve(cur_dir):
         print('U_{:}.xml.gz file not found.'.format(R))
 
     parameters = [f for f in os.listdir(subdir) if (f.startswith('param'))]
+    parameters.sort()
     components = [f for f in os.listdir(subdir) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))]
+    components.sort()
     comp_densities = []
     C = components[0].split('.')[0].split('_')[1]
 
@@ -103,7 +105,6 @@ def rotation_curve(cur_dir):
         f = fig.add_subplot(gs[cur_dir,c])
         f.imshow(RHO_array, cmap='gist_heat', extent=(0,r_max,0,z_max))
         f.set_title(p['model']+"\n weight: "+p['weight'])
-        #f.set_title("RHO component %d, " % c + subdir.split('/')[-1])
 
     #From here, calculate rotation curve
     #v = sqrt(rU'(r, z))
