@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-geco-postprocess-rotation_curves
+geco-postprocess-multi-pa
 
 A script to compute velocity of particles as a function of radius
 
@@ -28,9 +28,9 @@ from dolfin import *
 
 def contact_sheet(row, r_max, res):
     subdir = os.getcwd()
-    print(subdir)
+    #print(subdir)
     folder_name = subdir.split('/')[-2]
-    print(folder_name)
+    #print(folder_name)
     mesh, parameters, rho_components, U = gather_files()
 
     component_densities = evaluate_components(mesh, rho_components)
@@ -53,7 +53,7 @@ def contact_sheet(row, r_max, res):
 
 
     if (len(rho_arrays) == 1):
-        t = plt.text(r_max*2, r_max/10, param_str[0], fontsize=12)
+        t = plt.text(r_max*1.5, r_max/10, param_str[0], fontsize=12)
 
 '''
 def add_rho_subplot(arr,title, row, col=0):
@@ -178,40 +178,58 @@ args=vars(parser.parse_args())
 res = 150 if args['resolution'] is None else args['resolution']
 
 
-top = os.getcwd()
-dir_list = filter(os.path.isdir, os.listdir(os.getcwd()))
-dir_list.sort(key=len)
-dir_list.sort()
-num_dirs = len(dir_list)
+# top = os.getcwd()
+# dir_list = filter(os.path.isdir, os.listdir(os.getcwd()))
+# dir_list.sort(key=len)
+# dir_list.sort()
+# num_dirs = len(dir_list)
 #Determine number of matter-species for layout purposes. Just checks the number
 #species in the first directory and assumes the other solutions have the same
 #number of species
 #num_components = len([f for f in os.listdir(cwd+"/"+dir_list[0]) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))])
 #print(num_components)
 
+# #Set up figure and spacing
+#num_subdirs = 4
+
+dir_list = []
+for root, dirs, files in os.walk(".", topdown=False):
+   for name in files:
+       if name == 'mesh.xml.gz':
+           dir_list.append(root)
+           #print(os.path.join(root, name))
+dir_list.sort()
+
+
 #Set up figure and spacing
-num_subdirs = 4
-fig = plt.figure(figsize=(6,num_dirs*10))
-gs = gridspec.GridSpec(num_dirs*num_subdirs, 2)
-gs.update(wspace=0.0, hspace=0.5)
+fig = plt.figure(figsize=(6,len(dir_list)*3.5))
+gs = gridspec.GridSpec(len(dir_list), 2)
+gs.update(wspace=0.5, hspace=0.25)
 
 
-res=500
 r_max = max_radius_of_support()
 row=0
-for c_dir in range(num_dirs):
-    os.chdir(os.getcwd()+"/"+dir_list[c_dir])
+top = os.getcwd()
+for d in dir_list:
     print(os.getcwd())
-    subdir_list = filter(os.path.isdir, os.listdir(os.getcwd()))
-    subdir_list.sort(key=len)
-    for s_dir in range(len(subdir_list)):
-        os.chdir(os.getcwd() + "/" + subdir_list[s_dir])
-        contact_sheet(row, r_max, res)
-        os.chdir(os.getcwd() + "/..")
-        row=row+1
+    os.chdir(d)
+    print(os.getcwd())
+    contact_sheet(row, r_max, res)
+    row=row+1
+    os.chdir(top)
+# for c_dir in range(num_dirs):
+#     os.chdir(os.getcwd()+"/"+dir_list[c_dir])
+#     print(os.getcwd())
+#     subdir_list = filter(os.path.isdir, os.listdir(os.getcwd()))
+#     subdir_list.sort(key=len)
+#     for s_dir in range(len(subdir_list)):
+#         os.chdir(os.getcwd() + "/" + subdir_list[s_dir])
+#         contact_sheet(row, r_max, res)
+#         os.chdir(os.getcwd() + "/..")
+#         row=row+1
+#
+#     os.chdir(os.getcwd() + "/..")
 
-    os.chdir(os.getcwd() + "/..")
 
-
-os.chdir(top)
+# os.chdir(top)
 fig.savefig("multi_param.png")
