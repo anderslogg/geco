@@ -206,7 +206,7 @@ class VlasovPoissonSolver(SolverBase):
         # Compute and store solution characteristics
         self._compute_solution_characteristics(C, _mass, ansatzes)
 
-        self._output_density_plots(ansatzes, V)
+        #self._output_density_plots(ansatzes, V)
 
         # Compute residuals as functions of space
         fs = assemble(F)
@@ -224,9 +224,10 @@ class VlasovPoissonSolver(SolverBase):
 
         matter_components = [RHO]
         matter_names = ["RHO"]
-        for i in range(len(ansatzes)):
-            matter_names.append("RHO_comp_%d" %i)
-            matter_components.append(project(ansatzes[i], V))
+        if len(ansatzes) > 1:
+            for i in range(len(ansatzes)):
+                matter_names.append("RHO_comp_%d" %i)
+                matter_components.append(project(ansatzes[i], V))
 
         matter_components = tuple(matter_components)
         names = ("U",)

@@ -27,6 +27,7 @@ from dolfin import *
 cwd = os.getcwd()
 
 dir_list = filter(os.path.isdir, os.listdir(os.getcwd()))
+dir_list.sort()
 num_dirs = len(dir_list)
 
 #Determine number of matter-species for layout purposes. Just checks the number
