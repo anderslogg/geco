@@ -17,155 +17,41 @@ from the directory that contains the solution directory(ies).
 All subdirectories are assumed to have the same number of matter-species
 
 '''
+import geco_utils as gu
 import argparse
-import csv
-import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import os
 from itertools import izip
-import sys, os, csv
-from dolfin import *
 
 def contact_sheet(row, r_max, res):
     subdir = os.getcwd()
     #print(subdir)
     folder_name = subdir.split('/')[-2]
     #print(folder_name)
-    mesh, parameters, rho_components, U = gather_files()
+    mesh, parameters, components, U,V = gu.GatherFiles(subdir)
+    components.remove(components[0])
 
-    component_densities = evaluate_components(mesh, rho_components)
-    rho_arrays = to_np_arrays(component_densities,r_max,res)
+    param_str=""
+    if (len(parameters) == 1):
+        param_str = gu.GetParametersStrings(parameters[0])
 
-    title_list = make_plot_title(parameters)
-    if (len(rho_arrays) == 1):
-        param_str = params_to_strs(parameters)
+    rho_arrays = list(map(gu.ToNumpyArray, components))
+    title_list = list(map(gu.GetTitle, parameters))
 
-    # f = fig.add_subplot(gs[row,0])
-    # f.imshow(rho_arrays[0], cmap='gist_heat', origin='lower', extent=(0,r_max,0,r_max))
-    # f.set_title(title_list[0])
-    #t = plt.add_subplot(gs[row,1])
+    for params,rho in izip(title_list, components):
+        rho = gu.ToNumpyArray(rho,r_max,res)
 
-    #add_rho_subplot(rho_arrays[0], "title", row, 0)
-    for i in range(len(rho_arrays)):
+
+
+    for i in range(len(components)):
         f = fig.add_subplot(gs[row,i])
         f.imshow(rho_arrays[i], cmap='gist_heat', origin='lower', extent=(0,r_max,0,r_max))
         f.set_title(title_list[i], fontsize=10)
 
 
     if (len(rho_arrays) == 1):
-        t = plt.text(r_max*1.5, r_max/10, param_str[0], fontsize=12)
-
-'''
-def add_rho_subplot(arr,title, row, col=0):
-    f = fig.add_subplot(gs[row,col])
-    f.imshow(arr, cmap='gist_heat', origin='lower', extent=(0,r_max,0,r_max))
-    f.set_title(title)
-'''
-
-def make_plot_title(parameters):
-    title_list=[]
-    for p in parameters:
-        param_dict = dict(csv.reader(open(p,'r')))
-        cur_title = param_dict.get('model') + '\n Weight:' + param_dict.get('weight')
-        del param_dict['weight']
-        del param_dict['model']
-        title_list.append(cur_title)
-    return title_list
-
-def params_to_strs(parameters):
-    param_str_list=[]
-    for p in parameters:
-        param_dict = dict(csv.reader(open(p,'r')))
-        del param_dict['model']
-        cur_str=""
-        for key, value in param_dict.iteritems():
-            temp = key + ': ' + value +'\n'
-            cur_str += temp
-        param_str_list.append(cur_str)
-        param_str_list[0] = os.getcwd().split('/')[-2] + '/\n' +param_str_list[0]
-    return param_str_list
-
-
-def gather_files():
-    cur_dir = os.getcwd()
-    try:
-        mesh = Mesh(cur_dir + '/mesh.xml.gz')
-    except:
-        print('mesh.xml.gz not found in: ' + cur_dir)
-
-    try:
-        potential = [f for f in os.listdir(cur_dir) if (f.startswith('U_') and not (f.startswith('U_R')))]
-        U = potential[0].split('.')[0].split('_')[1]
-    except:
-        print('Potential file not found in: ' + cur_dir)
-
-    parameters = [f for f in os.listdir(cur_dir) if (f.startswith('param'))]
-    parameters.sort()
-    components = [f for f in os.listdir(cur_dir) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))]
-    components.sort()
-
-
-    return mesh, parameters, components, U
-
-def evaluate_components(mesh, components):
-    V = FunctionSpace(mesh, 'P', 1)
-    comp_densities = []
-    C = components[0].split('.')[0].split('_')[1]
-
-    #gather the components
-    for i in range(len(components)):
-        rad_sup = components[i].split('_')[3].split('.')[0]
-        RHO_COMP = Function(V)
-        RHO_COMP.set_allow_extrapolation(True)
-        try:
-            str = 'RHO_comp_{}_{}.xml.gz'.format(i, rad_sup)
-            File(str.format(C)) >> RHO_COMP
-            comp_densities.append(RHO_COMP)
-        except:
-            print(str + ' file not found.'.format(C))
-
-    return comp_densities
-
-def to_np_arrays(comp_densities, r_max, res):
-    rho_arrays = []
-    rvals = np.linspace(0,r_max,res)
-    zvals = np.linspace(0,r_max,res)
-    for rho in comp_densities:
-        RHO_array = np.zeros((len(rvals), len(zvals)))
-        for i in range(len(zvals)):
-            for j in range(len(rvals)):
-                r = rvals[i]
-                z = zvals[j]
-                RHO_array[j,i] = rho(r,z)
-        rho_arrays.append(RHO_array)
-
-    return rho_arrays
-
-
-
-def max_radius_of_support():
-    data_list = []
-    for root, dirs, files in os.walk(os.getcwd(), topdown=False):
-       for name in files:
-          if 'data.csv' in name:
-              data_list.append(os.path.join(root, name))
-
-    cur_support = 1
-    for d in data_list:
-        try:
-            header = np.genfromtxt(d, max_rows=1, delimiter=',', dtype=str)
-            data_lines = np.genfromtxt(d, delimiter=',', dtype=None)
-            data_lines = data_lines[-1]
-            data = dict( zip(header, data_lines) )
-        except:
-            print('Unable to find ' + d)
-
-        if float(data['radius_of_support']) > cur_support:
-            cur_support = np.ceil(float(data['radius_of_support']))
-
-    return cur_support
-
-
+        t = plt.text(r_max*1.5, r_max/10, param_str, fontsize=12)
 
 
 ###########################################################
@@ -177,29 +63,7 @@ args=vars(parser.parse_args())
 
 res = 150 if args['resolution'] is None else args['resolution']
 
-
-# top = os.getcwd()
-# dir_list = filter(os.path.isdir, os.listdir(os.getcwd()))
-# dir_list.sort(key=len)
-# dir_list.sort()
-# num_dirs = len(dir_list)
-#Determine number of matter-species for layout purposes. Just checks the number
-#species in the first directory and assumes the other solutions have the same
-#number of species
-#num_components = len([f for f in os.listdir(cwd+"/"+dir_list[0]) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))])
-#print(num_components)
-
-# #Set up figure and spacing
-#num_subdirs = 4
-
-dir_list = []
-for root, dirs, files in os.walk(".", topdown=False):
-   for name in files:
-       if name == 'mesh.xml.gz':
-           dir_list.append(root)
-           #print(os.path.join(root, name))
-dir_list.sort()
-
+file_list, dir_list = gu.FilesDirsByName('mesh.xml.gz')
 
 #Set up figure and spacing
 fig = plt.figure(figsize=(6,len(dir_list)*3.5))
@@ -207,7 +71,7 @@ gs = gridspec.GridSpec(len(dir_list), 2)
 gs.update(wspace=0.5, hspace=0.25)
 
 
-r_max = max_radius_of_support()
+r_max = gu.MaxSupport()
 row=0
 top = os.getcwd()
 for d in dir_list:
@@ -217,19 +81,5 @@ for d in dir_list:
     contact_sheet(row, r_max, res)
     row=row+1
     os.chdir(top)
-# for c_dir in range(num_dirs):
-#     os.chdir(os.getcwd()+"/"+dir_list[c_dir])
-#     print(os.getcwd())
-#     subdir_list = filter(os.path.isdir, os.listdir(os.getcwd()))
-#     subdir_list.sort(key=len)
-#     for s_dir in range(len(subdir_list)):
-#         os.chdir(os.getcwd() + "/" + subdir_list[s_dir])
-#         contact_sheet(row, r_max, res)
-#         os.chdir(os.getcwd() + "/..")
-#         row=row+1
-#
-#     os.chdir(os.getcwd() + "/..")
 
-
-# os.chdir(top)
 fig.savefig("multi_param.png")

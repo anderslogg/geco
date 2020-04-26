@@ -26,8 +26,7 @@ void read_parameters()
   L0  = parameters["L0"];
   k   = parameters["k"];
   pm  = parameters["pm"];
-//  weight = parameters["weight"];
-//  model = parameters["model"];
+
 }
 
 // Member variables
