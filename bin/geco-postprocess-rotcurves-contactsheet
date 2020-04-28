@@ -17,13 +17,38 @@ from the directory that contains the solution directory(ies).
 All subdirectories are assumed to have the same number of matter-species
 
 '''
-import csv
-import numpy as np
+import geco_utils as gu
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-import sys, os, csv
-from dolfin import *
+import os
 
+def rotation_curve(cur_dir):
+    subdir = os.getcwd()
+
+    mesh, parameters, components, U, V = gu.GatherFiles(subdir)
+    components.remove(components[0]) #remove the combined density plot
+    rho_arrays = list(map(gu.ToNumpyArray, components))
+    title_list = list(map(gu.GetTitle, parameters))
+
+    r_max = gu.MaxSupport()
+    for i in range(len(rho_arrays)):
+        f = fig.add_subplot(gs[cur_dir,i])
+        f.imshow(rho_arrays[i], cmap='gist_heat', origin='lower', extent=(0,r_max,0,r_max))
+        f.set_title(title_list[i], fontsize=10)
+
+
+    r_max *= 3
+
+    #FIXME change size of rotation curve plots
+    rvals, inv_r, v = gu.RotationCurve(U,r_max)
+    f = fig.add_subplot(gs[cur_dir,2:4])
+    f.plot(rvals, v)
+    f.plot(rvals[150:len(rvals)], inv_r[150:len(rvals)])
+
+    f.set_title('Velocity vs. Radius')
+    f.set_xlabel('radius')
+    f.set_ylabel('velocity')
+###########################################################3
 cwd = os.getcwd()
 
 dir_list = filter(os.path.isdir, os.listdir(os.getcwd()))
@@ -35,102 +60,9 @@ num_dirs = len(dir_list)
 #number of species
 num_components = len([f for f in os.listdir(cwd+"/"+dir_list[0]) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))])
 
-
 fig = plt.figure(figsize=(10*num_components,num_dirs*5))
 gs = gridspec.GridSpec(num_dirs, 4)
 
-
-def rotation_curve(cur_dir):
-    subdir = os.getcwd()
-
-    try:
-        potential = [f for f in os.listdir(subdir) if (f.startswith('U_') and not (f.startswith('U_R')))]
-        R = potential[0].split('.')[0].split('_')[1]
-    except:
-        print('Potential file not found in: ' + subdir)
-
-    # Read mesh and create function space
-    mesh = Mesh(subdir + '/mesh.xml.gz')
-    V = FunctionSpace(mesh, 'P', 1)
-
-    # Read and save U field
-    U = Function(V)
-    U.set_allow_extrapolation(True)
-
-    try:
-        File('U_{:}.xml.gz'.format(R)) >> U
-    except:
-        print('U_{:}.xml.gz file not found.'.format(R))
-
-    parameters = [f for f in os.listdir(subdir) if (f.startswith('param'))]
-    parameters.sort()
-    components = [f for f in os.listdir(subdir) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))]
-    components.sort()
-    comp_densities = []
-    C = components[0].split('.')[0].split('_')[1]
-
-
-    for i in range(len(components)):
-        rad_sup = components[i].split('_')[3].split('.')[0]
-        RHO_COMP = Function(V)
-        RHO_COMP.set_allow_extrapolation(True)
-        try:
-            str = 'RHO_comp_{}_{}.xml.gz'.format(i, rad_sup)
-            File(str.format(C)) >> RHO_COMP
-            comp_densities.append(RHO_COMP)
-        except:
-            print(str + ' file not found.'.format(C))
-
-
-    #r_max,z_max - dimensions of quarter-image
-    r_max = 25
-    #resolution of images
-    res = 250
-    rvals = np.linspace(0,r_max,res)
-
-    z_max = 25
-    zvals = np.linspace(0,z_max,res)
-
-    #build RHO components
-    for c in range(len(comp_densities)):
-        RHO_array = np.zeros((len(rvals), len(zvals)))
-        for i in range(len(zvals)):
-            for j in range(len(rvals)):
-                r = rvals[j]
-                z = zvals[i]
-                RHO_array[len(zvals)-1-j,i] = comp_densities[c](z,r)
-
-    #Add RHO components to figure
-        params=""
-        p = dict(csv.reader(open(parameters[c],'r')))
-        f = fig.add_subplot(gs[cur_dir,c])
-        f.imshow(RHO_array, cmap='gist_heat', extent=(0,r_max,0,z_max))
-        f.set_title(p['model']+"\n weight: "+p['weight'])
-
-    #From here, calculate rotation curve
-    #v = sqrt(rU'(r, z))
-    #z value is constant
-    z = 0
-    dr = 10 ** -10
-    r_max = 50
-    res = 1000
-    rvals = np.linspace(0,r_max,res)
-    v = np.zeros(len(rvals))
-
-    inv_r = np.zeros(len(rvals))
-
-    for i in range(1, len(rvals)):
-            dUdr = (U(rvals[i] + dr,z) - U(rvals[i] - dr,z))/(2*dr)
-            v[i] = np.sqrt(rvals[i]*dUdr)
-            inv_r[i] = 1/np.sqrt(rvals[i])
-
-    f = fig.add_subplot(gs[cur_dir,2:4])
-    f.plot(rvals, v)
-    f.plot(rvals[150:len(rvals)], inv_r[150:len(rvals)])
-    f.set_title('Velocity vs. Radius')
-    f.set_xlabel('radius')
-    f.set_ylabel('velocity')
-###########################################################3
 for cur_dir in range(num_dirs):
     os.chdir(cwd+"/"+dir_list[cur_dir])
     rotation_curve(cur_dir)

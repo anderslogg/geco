@@ -43,7 +43,7 @@ def GatherFiles(dir):
     parameters[0] = ../parameters_0.csv
     parameters[1] = ../parameters_1.csv
 
-    Note: the first model in component does not have a corresponding parameter
+    Note: the first model in component does not have a corresponding parameter.csv
     file so the component-parameter indices are off by one.
     '''
     try:
@@ -73,19 +73,18 @@ def GatherFiles(dir):
         c = [f for f in os.listdir(dir) if (f.startswith('RHO_') and (f.endswith('.xml.gz')))]
     except:
         print('RHO component files not found in found in: ' + dir)
-    c.sort()
     c.sort(key=len)
+    c.sort()
 
     components = []
     for i in range(len(c)):
         rho = Function(V)
         rho.set_allow_extrapolation(True)
         try:
-            str = c[i]
-            File(str) >> rho
+            File(c[i]) >> rho
             components.append(rho)
         except:
-            print(str + 'file not found.')
+            print(c[i] + '{} file not found.'.format(i))
 
     return mesh, parameters, components, U, V
 
@@ -130,6 +129,24 @@ def TangentialVelocityCurve(vel_array, r_max, z=0):
 
     return vel, inv_r, r_vals
 
+def RotationCurve(U, r_max, res=500, z=0):
+
+    #v = sqrt(rU'(r, z))
+    #z value is constant
+    dr = 10 ** -10
+    rvals = np.linspace(0,r_max,res)
+    v = np.zeros(len(rvals))
+    inv_r = np.zeros(len(rvals))
+
+    for i in range(1,len(rvals)):
+        dUdr = (U(rvals[i] + dr,z) - U(rvals[i] - dr,z))/(2*dr)
+        v[i] = np.sqrt(rvals[i]*dUdr)
+        inv_r[i] = 1/np.sqrt(rvals[i])
+
+    return rvals, inv_r, v
+
+
+
 def FilesDirsByName(filename):
     '''returns sorted list of files in all subdirectories
     matching "filename" as the first list and a list of the
@@ -148,7 +165,7 @@ def FilesDirsByName(filename):
 
 def MaxSupport(data_list = None):
     '''Returns the largest radius of support found
-     after searching all subdirectories data.csv files'''
+     after searching all subdirectory data.csv files'''
     if data_list == None:
         data_list, dir_list = FilesDirsByName("data.csv")
 

@@ -11,7 +11,7 @@ Usage:
 
 with setup.py installed in a docker container run
 
-geco-postprocess-rotation_curves
+geco-postprocess-rotationcurve
 
 run in the directory that contains the solutions.
 Reuses the same code as the contact sheet, unlike the

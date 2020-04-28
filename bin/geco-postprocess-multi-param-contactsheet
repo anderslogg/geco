@@ -26,9 +26,7 @@ from itertools import izip
 
 def contact_sheet(row, r_max, res):
     subdir = os.getcwd()
-    #print(subdir)
-    folder_name = subdir.split('/')[-2]
-    #print(folder_name)
+
     mesh, parameters, components, U,V = gu.GatherFiles(subdir)
     components.remove(components[0])
 
@@ -39,12 +37,8 @@ def contact_sheet(row, r_max, res):
     rho_arrays = list(map(gu.ToNumpyArray, components))
     title_list = list(map(gu.GetTitle, parameters))
 
-    for params,rho in izip(title_list, components):
-        rho = gu.ToNumpyArray(rho,r_max,res)
 
-
-
-    for i in range(len(components)):
+    for i in range(len(rho_arrays)):
         f = fig.add_subplot(gs[row,i])
         f.imshow(rho_arrays[i], cmap='gist_heat', origin='lower', extent=(0,r_max,0,r_max))
         f.set_title(title_list[i], fontsize=10)
