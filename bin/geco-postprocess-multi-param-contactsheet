@@ -28,7 +28,8 @@ def contact_sheet(row, r_max, res):
     subdir = os.getcwd()
 
     mesh, parameters, components, U,V = gu.GatherFiles(subdir)
-    components.remove(components[0])
+    if len(components) > 1:
+        components.remove(components[0])
 
     param_str=""
     if (len(parameters) == 1):
