@@ -111,20 +111,21 @@ def TangentialVelocityArray(model, V, rho, tol=1e-3, r_max=20, res=250):
          for j in range(len(rvals)):
             r = rvals[j]
             z = zvals[i]
-            if(rho[j,i] > tol):
-                vel_array[j,i] = vel_integral(z,r)/rho[j,i]
-            else:
-                vel_array[j,i] = 0
+            vel_array[j,i] = vel_integral(z,r)
+            # if(rho[j,i] > tol):
+            #     vel_array[j,i] = vel_integral(z,r)/rho[j,i]
+            # else:
+            #     vel_array[j,i] = 0
 
      return vel_array
 
 def TangentialVelocityCurve(vel_array, r_max, z=0):
-    r_length = np.shape(vel_array)[1]
+    r_length = np.shape(vel_array)[0]
     vel=np.zeros(r_length)
     inv_r = np.zeros(r_length)
     r_vals=np.linspace(0,r_max,r_length)
     for i in range(1,r_length):
-        vel[i]=vel_array[i,z]
+        vel[i]=vel_array[z,i]
         inv_r[i-1] = 1/np.sqrt(r_vals[i])
 
     return vel, inv_r, r_vals

@@ -17,10 +17,31 @@ from the directory that contains the solution directory(ies).
 All subdirectories are assumed to have the same number of matter-species
 
 '''
-import geco_utils as gu
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import geco_utils as gu
+
 import os
+
+cwd = os.getcwd()
+
+dir_list = filter(os.path.isdir, os.listdir(os.getcwd()))
+#dir_list.sort()
+num_dirs = len(dir_list)
+
+#Determine number of matter-species for layout purposes. Just checks the number
+#species in the first directory and assumes the other solutions have the same
+#number of species
+#num_components = len([f for f in os.listdir(cwd+"/"+dir_list[0]) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))])
+#print(num_components)
+
+#FIXME - this shouldnt be hardcoded
+num_components=2
+
+fig = plt.figure(figsize=(10*num_components,num_dirs*5))
+gs = gridspec.GridSpec(num_dirs, 4)
+
+
 
 def rotation_curve(cur_dir):
     subdir = os.getcwd()
@@ -28,6 +49,7 @@ def rotation_curve(cur_dir):
     mesh, parameters, components, U, V = gu.GatherFiles(subdir)
     if len(components) > 1:
         components.remove(components[0]) #remove the combined density plot
+
     rho_arrays = list(map(gu.ToNumpyArray, components))
     title_list = list(map(gu.GetTitle, parameters))
 
@@ -40,7 +62,6 @@ def rotation_curve(cur_dir):
 
     r_max *= 3
 
-    #FIXME change size of rotation curve plots
     rvals, inv_r, v = gu.RotationCurve(U,r_max)
     f = fig.add_subplot(gs[cur_dir,2:4])
     f.plot(rvals, v)
@@ -50,19 +71,6 @@ def rotation_curve(cur_dir):
     f.set_xlabel('radius')
     f.set_ylabel('velocity')
 ###########################################################3
-cwd = os.getcwd()
-
-dir_list = filter(os.path.isdir, os.listdir(os.getcwd()))
-dir_list.sort()
-num_dirs = len(dir_list)
-
-#Determine number of matter-species for layout purposes. Just checks the number
-#species in the first directory and assumes the other solutions have the same
-#number of species
-num_components = len([f for f in os.listdir(cwd+"/"+dir_list[0]) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))])
-
-fig = plt.figure(figsize=(10*num_components,num_dirs*5))
-gs = gridspec.GridSpec(num_dirs, 4)
 
 for cur_dir in range(num_dirs):
     os.chdir(cwd+"/"+dir_list[cur_dir])

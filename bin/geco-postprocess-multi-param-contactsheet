@@ -17,6 +17,10 @@ from the directory that contains the solution directory(ies).
 All subdirectories are assumed to have the same number of matter-species
 
 '''
+#import sys
+
+#print(sys.path)
+
 import geco_utils as gu
 import argparse
 import matplotlib.pyplot as plt

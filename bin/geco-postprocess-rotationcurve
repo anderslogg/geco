@@ -69,12 +69,12 @@ def rotation_curve():
 
 
     #r_max,z_max - dimensions of quarter-image
-    r_max = 25
+    r_max = 100
     #resolution of images
     res = 250
     rvals = np.linspace(0,r_max,res)
 
-    z_max = 25
+    z_max = 100
     zvals = np.linspace(0,z_max,res)
 
     #build RHO components
