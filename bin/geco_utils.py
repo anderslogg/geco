@@ -31,7 +31,7 @@ def GetParametersDicts(parameters):
     p.close()
     return param_dict
 
-def GatherFiles(dir):
+def GatherFiles(sdir):
     ''' Returns often used postprocessing objects. All "RHO...xml.gz" are
     evaluated and returned in the list "components". The list is sorted first
     by length of filename then alphabetically so for example:
@@ -47,32 +47,32 @@ def GatherFiles(dir):
     file so the component-parameter indices are off by one.
     '''
     try:
-        mesh = Mesh(dir + '/mesh.xml.gz')
+        mesh = Mesh(sdir + '/mesh.xml.gz')
     except:
-        print('mesh.xml.gz not found in: ' + dir)
+        print('mesh.xml.gz not found in: ' + sdir)
 
     V=FunctionSpace(mesh,'P',1)
 
     try:
-        potential = [f for f in os.listdir(dir) if (f.startswith('U_')
+        potential = [f for f in os.listdir(sdir) if (f.startswith('U_')
          and not (f.startswith('U_R')) and (f.endswith('.xml.gz')))]
         _U = potential[0].split('.')[0].split('_')[1]
         U = Function(V)
         U.set_allow_extrapolation(True)
-        File(potential[0]) >> U
+        File(os.path.join(sdir, potential[0])) >> U
     except:
         print('U_{:}.xml.gz file not found.'.format(_U))
 
     try:
-        parameters = [f for f in os.listdir(dir) if (f.startswith('param'))]
+        parameters = [f for f in os.listdir(sdir) if (f.startswith('param'))]
     except:
-        print('component CSV files not found in found in: ' + dir)
+        print('component CSV files not found in found in: ' + sdir)
     parameters.sort()
 
     try:
-        c = [f for f in os.listdir(dir) if (f.startswith('RHO_') and (f.endswith('.xml.gz')))]
+        c = [f for f in os.listdir(sdir) if (f.startswith('RHO_') and (f.endswith('.xml.gz')))]
     except:
-        print('RHO component files not found in found in: ' + dir)
+        print('RHO component files not found in found in: ' + sdir)
     c.sort(key=len)
     c.sort()
 
@@ -81,7 +81,7 @@ def GatherFiles(dir):
         rho = Function(V)
         rho.set_allow_extrapolation(True)
         try:
-            File(c[i]) >> rho
+            File(os.path.join(sdir, c[i])) >> rho
             components.append(rho)
         except:
             print(c[i] + '{} file not found.'.format(i))
