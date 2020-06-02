@@ -15,6 +15,9 @@ namespace dolfin
     {
       // Set default parameter values
       init_parameters();
+
+      // Add particle mass parameter
+      parameters.add("particle_mass", 1.0);
     }
 
     // Note: We need to implement both eval functions (with and
@@ -61,7 +64,7 @@ namespace dolfin
       const double z = x[1];
 
       // Check cut-off
-      if (U >= E0)
+      if (_particle_mass*U >= E0)
         return 0.0;
 
       // Get resolution
@@ -72,7 +75,7 @@ namespace dolfin
       double I = 0.0;
 
       // Compute integration limits for E-integral
-      const double Ea = U;
+      const double Ea = _particle_mass*U;
       const double Eb = E0;
       const double dE = (Eb - Ea) / static_cast<double>(n);
       if (dE <= 0.0) error("Strange stuff: dE <= 0.0");
@@ -84,10 +87,10 @@ namespace dolfin
         const double E = Ea + static_cast<double>(i)*dE + 0.5*dE;
 
         // Check expression for integration limit
-        if (E < U) error("Strange stuff: E < U");
+        if (E < _particle_mass*U) error("Strange stuff: E < U");
 
         // Compute integration limits for s-integral
-        const double sm = std::sqrt(2.0*(E - U));
+        const double sm = std::sqrt(2.0*_particle_mass*(E - _particle_mass*U));
         const double sa = -sm;
         const double sb = sm;
 
@@ -108,7 +111,7 @@ namespace dolfin
       }
 
       // Scale integral
-      I *= 2.0*DOLFIN_PI;
+      I *= 2.0*DOLFIN_PI*_particle_mass;
 
       // Update radius of support
       const double R = std::sqrt(x[0]*x[0] + x[1]*x[1]);
@@ -128,6 +131,7 @@ namespace dolfin
     void set_integration_parameters(std::size_t resolution)
     {
       _resolution = resolution;
+      _particle_mass = parameters["particle_mass"];
     }
 
     // Reset computation of radius of support
@@ -152,6 +156,9 @@ namespace dolfin
 
     // Number of steps to use in numerical integration
     std::size_t _resolution;
+
+   // Particle Mass
+    double _particle_mass;    
 
     // Radius of support
     mutable double _R;
