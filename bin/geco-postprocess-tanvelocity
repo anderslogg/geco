@@ -47,7 +47,7 @@ def vel_tangential(tol=0,zed=0):
 
     r_max = gu.MaxSupport()
     res = 500
-    for param_dict,rho in izip(param_dict_list, components):
+    for param_dict, rho in izip(param_dict_list, components):
 
         model,weight,name = gu.BuildTanVelModel(param_dict, U)
 
@@ -70,14 +70,14 @@ def vel_tangential(tol=0,zed=0):
         plt.imshow(arr, cmap='gist_heat', extent=(0,r_max,0,r_max) , origin='lower')
         plt.title("RHO - " + name)
         plt.colorbar(format='%.0e')
-        plt.savefig("RHO " + name)
+        plt.savefig("RHO-" + name)
         plt.close()
 
 
         plt.imshow(v_array, cmap='gist_heat', extent=(0,r_max,0,r_max), origin='lower')
         plt.title("Velocity - " + name)
         plt.colorbar(format='%.0e')
-        plt.savefig("Velocity " + name)
+        plt.savefig("AvgTanVelocity-" + name)
         plt.close()
 
         v, inv_r, r_vals = gu.TangentialVelocityCurve(v_array, r_max)

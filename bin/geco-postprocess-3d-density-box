@@ -2,27 +2,41 @@
 
 """
 Postprocessing script to generate 3D density data sampled in a box.
+
+Usage: 
+cd /demo_directory
+geco-postprocess-3d-density-box -d 50 -r 32 -f RHO.xml
+
+Arguments: 
+    -d (--dimension). float. Specified number is half length of side of box.
+    -r (--resolution). int. Number of cells per side of box. 
+    -f (--file). str. XML file to be sampled. 
 """
 
 import sys, os
-from fenics import *
+import argparse
+from dolfin import *
 from geco import *
 from geco.models import Density3D
 
-# Program input
-if len(sys.argv) != 3:
-    print "Usage: geco-postprocess-3d-density-box D N"
-    print ""
-    print "D = box size / 2 (float)"
-    print "N = box resolution (integer)"
-    exit(1)
 
-# Get input parameters
-D = float(sys.argv[1])
-N = int(sys.argv[2])
+
+# Program Input
+parser = argparse.ArgumentParser()
+parser.add_argument('-d', '--dimension', help="enter box size over 2",
+                        type=float, required=True)
+parser.add_argument('-r', '--resolution', help="enter box resolution ",
+                        type=int, required=True)
+parser.add_argument('-f', '--file', help="enter file name ",
+                        type=str, required=False)                        
+args=vars(parser.parse_args())
+   
+rhofile = 'RHO' if args['file'] is None else args['file']    
+D = args['dimension']   
+N = args['resolution']   
 
 # Identify 2D RHO file
-files = [f for f in os.listdir('.') if "RHO_" in f and f.endswith('xml.gz')]
+files = [f for f in os.listdir('.') if rhofile in f and f.endswith('xml.gz')]
 
 # Check that we got exactly one file
 if len(files) > 1:
@@ -32,9 +46,6 @@ elif len(files) == 0:
 
 # Get data filename
 data_filename = files[0]
-
-# Get radius
-R = int(data_filename.split("RHO_")[1].split(".")[0])
 
 # Read mesh and reconstruct 2D function space
 mesh_filename = "mesh.xml.gz"
@@ -56,6 +67,6 @@ V3D = FunctionSpace(mesh3d, "Lagrange", 1)
 RHO3D = interpolate(Density3D(RHO2D), V3D)
 
 # Save 3D density
-filename = "postprocess-3d-density-box.pvd"
+filename = "postprocess-3d-density-box_{}.pvd".format(data_filename.split(".")[0])
 File(filename) << RHO3D
 info("Postprocessing data save to file %s" % filename)

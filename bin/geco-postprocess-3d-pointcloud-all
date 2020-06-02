@@ -12,13 +12,13 @@ from geco import *
 from geco.models import PointCloud
 
 # Parameters
-num_points = 1000000
-resolution = 64
+num_points = 100
+resolution = 32
 mass = 1.0
 size = 25
 
 # Find RHO datafile
-files = [f for f in os.listdir(".") if "RHO_" in f and f.endswith(".xml.gz")]
+files = [f for f in os.listdir(".") if "RHO_comp" in f and f.endswith(".xml.gz")]
 if len(files) == 0:
     error("Unable to find XML data for RHO.")
 names = [f.split(".")[0] for f in files]
