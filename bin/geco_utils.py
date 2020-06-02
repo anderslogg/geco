@@ -10,11 +10,21 @@ from dolfin import *
 
 
 def GetTitle(parameters, variables=["model", "weight"], sep="\n"):
+    '''Pass the parameters file as the csv returned by GatherFiles()
+    Creates a title from list of "variables" which match parameters in the csv
+
+    could be made more robust by implementing a
+       try:
+           [build title]
+       except KeyError:
+           print("variable not found in dictionary")
+    '''
     param_dict=GetParametersDicts(parameters)
     title=sep.join(map(str, [param_dict[x] for x in variables]))
     return title
 
 def GetParametersStrings(parameters, sep="\n"):
+
     param_dict=GetParametersDicts(parameters)
     del param_dict['model']
     param_str=""
@@ -25,10 +35,30 @@ def GetParametersStrings(parameters, sep="\n"):
     return param_str
 
 def GetParametersDicts(parameters):
+    '''Basic csv to dictionary functionality,
+    called by other functions in this module
+
+    data.csv and parameters_#.csv have different formats which seems to
+    require different mechanisms for reading in to dictionary. Reading
+    in data.csv as is done in the param_dict=dict(...) line raises a ValueError
+    Hence the the outer try-except block.
+    We could harmonize csv format or use a more general read-in method
+    (The second method might be universal, haven't tested for parameters_#.csv)
+    '''
     param_dict=None
-    with open(parameters) as p:
-        param_dict = dict(filter(None, csv.reader(p)))
-    p.close()
+    try:
+        with open(parameters) as p:
+            param_dict = dict(filter(None, csv.reader(p)))
+        p.close()
+    except ValueError:
+        try:
+            header = np.genfromtxt(parameters, max_rows=1, delimiter=',', dtype=str)
+            data_lines = np.genfromtxt(parameters, delimiter=',', dtype=None)
+            data_lines = data_lines[-1]
+            param_dict = dict( zip(header, data_lines) )
+        except:
+            print('Unable to find ' + parameters)
+
     return param_dict
 
 def GatherFiles(sdir):
@@ -43,7 +73,7 @@ def GatherFiles(sdir):
     parameters[0] = ../parameters_0.csv
     parameters[1] = ../parameters_1.csv
 
-    Note: the first model in component does not have a corresponding parameter.csv
+    Note: the first model in "components" does not have a corresponding parameter.csv
     file so the component-parameter indices are off by one.
     '''
     try:
@@ -89,7 +119,25 @@ def GatherFiles(sdir):
     return mesh, parameters, components, U, V
 
 
-def ToNumpyArray(comp_density, r_max=20, res=250):
+def ToNumpyArray(comp_density, r_max=30, res=500):
+    '''Converts a fenics object to a numpy array.
+    ATTN:
+    the line:
+        rho_array[j,i]  = comp_density(z,r)
+    would seem to make more sense as:
+                   ...  = comp_density(r,z)
+    But, for reasons that are unclear, the resulting
+    numpy array in that case requires a flip and rotation to
+    assume the proper orientation i.e. the orientation that
+    matches the image in Paraview
+
+    rho_array1[j,i] = comp_density(z,r) #current version
+    rho_array2[j,i] = comp_density(z,r) #"expected" version
+    rho_array1 == np.rot90(np.flipud(rho_array2)) == True
+
+    We opt here not to do the extra flip/rotation (but could if it makes more sense?)
+    All of the above also applies to TangentialVelocityArray() below
+    '''
     rvals = np.linspace(0,r_max,res)
     zvals = np.linspace(0,r_max,res)
     rho_array = np.zeros((len(rvals), len(zvals)))
@@ -97,11 +145,26 @@ def ToNumpyArray(comp_density, r_max=20, res=250):
         for j in range(len(rvals)):
             r = rvals[j]
             z = zvals[i]
+            #rho_array[j,i] = comp_density(r,z)
             rho_array[j,i] = comp_density(z,r)
+
+    # Working on making this better
+    # test_rvals = np.linspace(0,r_max,res)
+    # test_zvals = np.linspace(0,r_max,res)
+    # test_rho_array = np.zeros((len(test_rvals), len(test_zvals)))
+    # for zndx, z in enumerate(test_zvals):
+    #     for rndx, r in enumerate(test_rvals):
+    #         #rho_array[j,i] = comp_density(r,z)
+    #         rho_array[rndx,zndx] = comp_density(z,r)
+    #
+    # print(rho_array)
+    # print(test_rho_array)
+    # print(rho_array==test_rho_array)
+    # print("NUMPY TEST: "+ str((rho_array==test_rho_array).all()))
 
     return rho_array
 
-def TangentialVelocityArray(model, V, rho, tol=1e-3, r_max=20, res=250):
+def TangentialVelocityArray(model, V, rho, tol=1e-3, r_max=30, res=500):
      vel_integral = project(model, V)
      vel_integral.set_allow_extrapolation(True)
      rvals = np.linspace(0,r_max,res)
@@ -120,6 +183,7 @@ def TangentialVelocityArray(model, V, rho, tol=1e-3, r_max=20, res=250):
      return vel_array
 
 def TangentialVelocityCurve(vel_array, r_max, z=0):
+    ''''''
     r_length = np.shape(vel_array)[0]
     vel=np.zeros(r_length)
     inv_r = np.zeros(r_length)
@@ -130,7 +194,27 @@ def TangentialVelocityCurve(vel_array, r_max, z=0):
 
     return vel, inv_r, r_vals
 
-def RotationCurve(U, r_max, res=500, z=0):
+def GetRadiusSupport(comp_density, domain=50, res=1000):
+    ''''''
+
+    try:
+        data_file, _ = FilesDirsByName("data.csv")
+        domain = int(GetParametersDicts(data_file[0])['domain_radius'])
+    except IndexError:
+        print("Unable to locate data.csv file in {} to set domain radius\n"
+              "Proceeding with domain radius: {}".format(os.getcwd(), domain))
+
+    rvals = np.linspace(0,domain,res)
+    density = np.zeros_like(rvals)
+    for ndx, r in enumerate(rvals):
+        density[ndx] = comp_density(r,0)
+
+    normalized_support = np.amax(rvals[density>1e-15])
+
+    return round(normalized_support,2)
+
+
+def RotationCurve(U, r_max, res=1000, z=0):
 
     #v = sqrt(rU'(r, z))
     #z value is constant
@@ -151,7 +235,9 @@ def RotationCurve(U, r_max, res=500, z=0):
 def FilesDirsByName(filename):
     '''returns sorted list of files in all subdirectories
     matching "filename" as the first list and a list of the
-    subdirectories themselves as the second list'''
+    subdirectories themselves as the second list
+    For en example use case see MaxSupport() below
+    '''
     file_list = []
     dir_list = []
     for root, dirs, files in os.walk(os.getcwd(), topdown=False):
@@ -166,19 +252,15 @@ def FilesDirsByName(filename):
 
 def MaxSupport(data_list = None):
     '''Returns the largest radius of support found
-     after searching all subdirectory data.csv files'''
+     after searching all subdirectory data.csv files
+     Useful for making contact sheets with all components
+     using the same radius'''
     if data_list == None:
         data_list, dir_list = FilesDirsByName("data.csv")
 
     cur_support = 1
     for d in data_list:
-        try:
-            header = np.genfromtxt(d, max_rows=1, delimiter=',', dtype=str)
-            data_lines = np.genfromtxt(d, delimiter=',', dtype=None)
-            data_lines = data_lines[-1]
-            data = dict( zip(header, data_lines) )
-        except:
-            print('Unable to find ' + d)
+        data = GetParametersDicts(d)
 
         if float(data['radius_of_support']) > cur_support:
             cur_support = np.ceil(float(data['radius_of_support']))
@@ -248,4 +330,31 @@ def TangentialVelocityModel(model):
 
 
 #####################################################
-''' From ROTATION CURVE '''
+def CalcMass(radius, velocity):
+   '''
+   Assumes: radius in kiloparsecs
+            veclocity in km/s
+   Returns mass in solar mass units
+   '''
+   G = 4.30091e-3
+   r_in_pscs = radius*1000
+   mass = "{:e}".format((r_in_pscs*velocity**2)/G)
+   return mass + " Solar Mass Units"
+
+def ModelToObsVelocity(obs_r, obs_v, model_r, model_v):
+    '''
+    Takes a pair of numpy vectors of observed radii and velocity measurements
+    Takes a pair of model
+    '''
+    closest_r = [np.argmin(abs(model_r-pnt)) for pnt in obs_r]
+    closest_v = np.array([model_v[i] for i in closest_r])
+    sumsq = np.sum((closest_v - obs_v)**2)
+    mlplr=1
+    for i in range(10000):
+        cur = np.sum(((i*closest_v) - obs_v)**2)
+        if(cur < sumsq):
+            mltplr = i
+            sumsq=cur
+
+    error = round(sumsq**.5,2)
+    return mltplr, error

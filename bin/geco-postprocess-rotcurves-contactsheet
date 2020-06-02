@@ -20,7 +20,6 @@ All subdirectories are assumed to have the same number of matter-species
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import geco_utils as gu
-
 import os
 
 cwd = os.getcwd()

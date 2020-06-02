@@ -36,9 +36,9 @@ from itertools import izip
 
 def vel_tangential(tol=0,zed=0):
 
-    dir = os.getcwd()
+    subdir = os.getcwd()
 
-    mesh, parameters, components, U, V = gu.GatherFiles(dir)
+    mesh, parameters, components, U, V = gu.GatherFiles(subdir)
     if len(components) > 1:
         components.remove(components[0]) #remove the combined density plot
 
