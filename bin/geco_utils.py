@@ -7,6 +7,7 @@ import numpy as np
 from itertools import izip
 import sys, os, csv
 from dolfin import *
+import matplotlib.pyplot as plt
 
 
 def GetTitle(parameters, variables=["model", "weight"], sep="\n"):
@@ -24,7 +25,15 @@ def GetTitle(parameters, variables=["model", "weight"], sep="\n"):
     return title
 
 def GetParametersStrings(parameters, sep="\n"):
-
+'''
+Given a parameter file path, returns a string of parameters for display
+in a figure.
+It removes the model name because they are usually too long:
+e.g. VP-E-Polytropic-L-Gaussian (this could instead be kept and shortened
+to "Gaussian").
+For an example of how to place in matplotlib figure see:
+bin\geco-postprocess-multi-param-contactsheet
+'''
     param_dict=GetParametersDicts(parameters)
     del param_dict['model']
     param_str=""
@@ -120,7 +129,9 @@ def GatherFiles(sdir):
 
 
 def ToNumpyArray(comp_density, r_max=30, res=500):
-    '''Converts a fenics object to a numpy array.
+    '''Converts a fenics object to a numpy array. A two dimensional numpy
+    array is built where r_max is used for both the r and z axes creating a square array
+
     ATTN:
     the line:
         rho_array[r_ndx,z_ndx]  = comp_density(z,r)
@@ -140,8 +151,8 @@ def ToNumpyArray(comp_density, r_max=30, res=500):
     '''
 
     rho_array = np.zeros((res,res))
-    for z_ndx, z in enumerate(np.linspace(0,r_max, res)):
-        for r_ndx, r in enumerate(np.linspace(0,r_max, res)):
+    for r_ndx, r in enumerate(np.linspace(0,r_max, res)):
+        for z_ndx, z in enumerate(np.linspace(0,r_max, res)):
             rho_array[r_ndx,z_ndx] = comp_density(z,r)
 
     return rho_array
@@ -162,7 +173,11 @@ def TangentialVelocityArray(model, V, rho, tol=1e-3, r_max=30, res=500):
      return vel_array
 
 def TangentialVelocityCurve(vel_array, r_max, z=0):
-    ''''''
+    '''Takes an array of the tangential velocity - as in
+    the output of TangentialVelocityArray() and returns
+    a "slice" along a given z-axis. Also returns
+    1/sqrt(r) for comparison
+    '''
     r_length = np.shape(vel_array)[0]
     vel=np.zeros(r_length)
     inv_r = np.zeros(r_length)
@@ -174,7 +189,10 @@ def TangentialVelocityCurve(vel_array, r_max, z=0):
     return vel, inv_r, r_vals
 
 def GetRadiusSupport(comp_density, domain=50, res=1000):
-    ''''''
+    '''Tries to find the domain radius in a "data.csv" file
+
+
+    '''
 
     try:
         data_file, _ = FilesDirsByName("data.csv")
@@ -194,9 +212,13 @@ def GetRadiusSupport(comp_density, domain=50, res=1000):
 
 
 def RotationCurve(U, r_max, res=1000, z=0):
+''' Determines the circular velocity at a fized 'z'
+v = sqrt(rU'(r,z))
 
-    #v = sqrt(rU'(r, z))
-    #z value is constant
+Also returns:
+inv_r = 1/sqrt(r)
+For comparison
+'''
     dr = 10 ** -10
     rvals = np.linspace(0,r_max,res)
     v = np.zeros(len(rvals))
@@ -233,7 +255,7 @@ def MaxSupport(data_list = None):
     '''Returns the largest radius of support found
      after searching all subdirectory data.csv files
      Useful for making contact sheets with all components
-     using the same radius'''
+     plotted at the same radius'''
     if data_list == None:
         data_list, dir_list = FilesDirsByName("data.csv")
 
@@ -254,7 +276,8 @@ def MaxSupport(data_list = None):
 
 def BuildTanVelModel(param_dict, U, num_steps=150):
     '''This reconstructs a model by evaluating passed parameter file
-    It calls '''
+    It calls
+    '''
 
 #in case a string to the parameter.csv file is passed instead of a dictionary
     if type(param_dict) is not dict:
@@ -323,26 +346,20 @@ def CalcMass(radius, velocity):
 def ModelToObsVelocity(obs_r, obs_v, model_r, model_v):
     '''
     Takes a pair of numpy vectors of observed radii and velocity measurements
-    Takes a pair of model
+    Takes a pair of numpy vectors of model radii and velocity - as in the
+    output of RotationCurve()
 
-    Trying to find constant 'c' s.t. SUM[ c*v_model - obs_v]^2 is minimized
+    The purpose of the function is to find constant 'c' s.t.
+    SUM[ (c*v_model - obs_v)^2 ] is minimized
     '''
     closest_r = [np.argmin(abs(model_r-pnt)) for pnt in obs_r]
     closest_v = np.array([model_v[i] for i in closest_r])
 
-
     modelV_obsV = np.dot(closest_v, obs_v)
-    modelV_sqrd = np.dot(closest_v, closest_v)
-    c = modelV_obsV / modelV_sqrd
+    modelV_modelV = np.dot(closest_v, closest_v)
+    c = modelV_obsV / modelV_modelV
 
-    sumsq = np.sum((c*closest_v - obs_v)**2)
-    #
-    # mlplr=1
-    # for i in range(10000):
-    #     cur = np.sum(((i*closest_v) - obs_v)**2)
-    #     if(cur < sumsq):
-    #         mltplr = i
-    #         sumsq=cur
-
+    sumsq = round(np.sum((c*closest_v - obs_v)**2),4)
     error = round(sumsq**.5,2)
+
     return c, error
