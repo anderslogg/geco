@@ -123,7 +123,7 @@ def ToNumpyArray(comp_density, r_max=30, res=500):
     '''Converts a fenics object to a numpy array.
     ATTN:
     the line:
-        rho_array[j,i]  = comp_density(z,r)
+        rho_array[r_ndx,z_ndx]  = comp_density(z,r)
     would seem to make more sense as:
                    ...  = comp_density(r,z)
     But, for reasons that are unclear, the resulting
@@ -131,54 +131,33 @@ def ToNumpyArray(comp_density, r_max=30, res=500):
     assume the proper orientation i.e. the orientation that
     matches the image in Paraview
 
-    rho_array1[j,i] = comp_density(z,r) #current version
-    rho_array2[j,i] = comp_density(z,r) #"expected" version
+    rho_array1[r_ndx,z_ndx] = comp_density(z,r) #current version
+    rho_array2[r_ndx,z_ndx] = comp_density(r,z) #"expected" version
     rho_array1 == np.rot90(np.flipud(rho_array2)) == True
 
     We opt here not to do the extra flip/rotation (but could if it makes more sense?)
     All of the above also applies to TangentialVelocityArray() below
     '''
-    rvals = np.linspace(0,r_max,res)
-    zvals = np.linspace(0,r_max,res)
-    rho_array = np.zeros((len(rvals), len(zvals)))
-    for i in range(len(zvals)):
-        for j in range(len(rvals)):
-            r = rvals[j]
-            z = zvals[i]
-            #rho_array[j,i] = comp_density(r,z)
-            rho_array[j,i] = comp_density(z,r)
 
-    # Working on making this better
-    # test_rvals = np.linspace(0,r_max,res)
-    # test_zvals = np.linspace(0,r_max,res)
-    # test_rho_array = np.zeros((len(test_rvals), len(test_zvals)))
-    # for zndx, z in enumerate(test_zvals):
-    #     for rndx, r in enumerate(test_rvals):
-    #         #rho_array[j,i] = comp_density(r,z)
-    #         rho_array[rndx,zndx] = comp_density(z,r)
-    #
-    # print(rho_array)
-    # print(test_rho_array)
-    # print(rho_array==test_rho_array)
-    # print("NUMPY TEST: "+ str((rho_array==test_rho_array).all()))
+    rho_array = np.zeros((res,res))
+    for z_ndx, z in enumerate(np.linspace(0,r_max, res)):
+        for r_ndx, r in enumerate(np.linspace(0,r_max, res)):
+            rho_array[r_ndx,z_ndx] = comp_density(z,r)
 
     return rho_array
 
 def TangentialVelocityArray(model, V, rho, tol=1e-3, r_max=30, res=500):
      vel_integral = project(model, V)
      vel_integral.set_allow_extrapolation(True)
-     rvals = np.linspace(0,r_max,res)
-     zvals = np.linspace(0,r_max,res)
-     vel_array = np.zeros((len(rvals), len(zvals)))
-     for i in range(len(zvals)):
-         for j in range(len(rvals)):
-            r = rvals[j]
-            z = zvals[i]
-            vel_array[j,i] = vel_integral(z,r)
-            # if(rho[j,i] > tol):
-            #     vel_array[j,i] = vel_integral(z,r)/rho[j,i]
+
+     vel_array = np.zeros((res, res))
+     for z_ndx, z in enumerate(np.linspace(0,r_max,res)):
+         for x_ndx, r in enumerate(np.linspace(0,r_max,res)):
+            vel_array[r_ndx,z_ndx] = vel_integral(z,r)
+            # if(rho[r_ndx,z_ndx] > tol):
+            #     vel_array[r_ndx,z_ndx] = vel_integral(z,r)/rho[r_ndx,z_ndx]
             # else:
-            #     vel_array[j,i] = 0
+            #     vel_array[r_ndx,z_ndx] = 0
 
      return vel_array
 
@@ -337,24 +316,33 @@ def CalcMass(radius, velocity):
    Returns mass in solar mass units
    '''
    G = 4.30091e-3
-   r_in_pscs = radius*1000
-   mass = "{:e}".format((r_in_pscs*velocity**2)/G)
-   return mass + " Solar Mass Units"
+   r_in_pcs = radius*1000
+   mass = "{:e}".format((r_in_pcs*velocity**2)/G)
+   return "{} Solar Mass Units".format(mass)
 
 def ModelToObsVelocity(obs_r, obs_v, model_r, model_v):
     '''
     Takes a pair of numpy vectors of observed radii and velocity measurements
     Takes a pair of model
+
+    Trying to find constant 'c' s.t. SUM[ c*v_model - obs_v]^2 is minimized
     '''
     closest_r = [np.argmin(abs(model_r-pnt)) for pnt in obs_r]
     closest_v = np.array([model_v[i] for i in closest_r])
-    sumsq = np.sum((closest_v - obs_v)**2)
-    mlplr=1
-    for i in range(10000):
-        cur = np.sum(((i*closest_v) - obs_v)**2)
-        if(cur < sumsq):
-            mltplr = i
-            sumsq=cur
+
+
+    modelV_obsV = np.dot(closest_v, obs_v)
+    modelV_sqrd = np.dot(closest_v, closest_v)
+    c = modelV_obsV / modelV_sqrd
+
+    sumsq = np.sum((c*closest_v - obs_v)**2)
+    #
+    # mlplr=1
+    # for i in range(10000):
+    #     cur = np.sum(((i*closest_v) - obs_v)**2)
+    #     if(cur < sumsq):
+    #         mltplr = i
+    #         sumsq=cur
 
     error = round(sumsq**.5,2)
-    return mltplr, error
+    return c, error
