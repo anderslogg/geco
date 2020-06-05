@@ -25,15 +25,15 @@ def GetTitle(parameters, variables=["model", "weight"], sep="\n"):
     return title
 
 def GetParametersStrings(parameters, sep="\n"):
-'''
-Given a parameter file path, returns a string of parameters for display
-in a figure.
-It removes the model name because they are usually too long:
-e.g. VP-E-Polytropic-L-Gaussian (this could instead be kept and shortened
-to "Gaussian").
-For an example of how to place in matplotlib figure see:
-bin\geco-postprocess-multi-param-contactsheet
-'''
+    '''
+    Given a parameter file path, returns a string of parameters for display
+    in a figure.
+    It removes the model name because they are usually too long:
+    e.g. VP-E-Polytropic-L-Gaussian (this could instead be kept and shortened
+    to "Gaussian").
+    For an example of how to place in matplotlib figure see:
+    bin\geco-postprocess-multi-param-contactsheet
+    '''
     param_dict=GetParametersDicts(parameters)
     del param_dict['model']
     param_str=""
@@ -151,9 +151,10 @@ def ToNumpyArray(comp_density, r_max=30, res=500):
     '''
 
     rho_array = np.zeros((res,res))
-    for r_ndx, r in enumerate(np.linspace(0,r_max, res)):
+    for r_ndx, r in enumerate(np.linspace(0, r_max, res)):
         for z_ndx, z in enumerate(np.linspace(0,r_max, res)):
             rho_array[r_ndx,z_ndx] = comp_density(z,r)
+
 
     return rho_array
 
@@ -206,19 +207,23 @@ def GetRadiusSupport(comp_density, domain=50, res=1000):
     for ndx, r in enumerate(rvals):
         density[ndx] = comp_density(r,0)
 
-    normalized_support = np.amax(rvals[density>1e-15])
+    #This handles the case when there is no solution
+    try:
+        normalized_support = np.amax(rvals[density>1e-15])
+    except:
+        return 0
 
     return round(normalized_support,2)
 
 
 def RotationCurve(U, r_max, res=1000, z=0):
-''' Determines the circular velocity at a fized 'z'
-v = sqrt(rU'(r,z))
+    ''' Determines the circular velocity at a fized 'z'
+    v = sqrt(rU'(r,z))
 
-Also returns:
-inv_r = 1/sqrt(r)
-For comparison
-'''
+    Also returns:
+    inv_r = 1/sqrt(r)
+    For comparison
+    '''
     dr = 10 ** -10
     rvals = np.linspace(0,r_max,res)
     v = np.zeros(len(rvals))
@@ -332,6 +337,19 @@ def TangentialVelocityModel(model):
 
 
 #####################################################
+def ForwardAbelTransform(density_array):
+    #potential solution (2) to lack of Pyabel
+    import pip
+    try:
+        import abel
+    except ImportError:
+        pip.main(['install','--user', 'PyAbel'])
+        import abel
+
+    return  abel.Transform(density_array, direction='forward', method='hansenlaw').transform
+
+
+
 def CalcMass(radius, velocity):
    '''
    Assumes: radius in kiloparsecs

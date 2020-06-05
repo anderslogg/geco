@@ -17,68 +17,55 @@ from the directory that contains the solution directory(ies).
 All subdirectories are assumed to have the same number of matter-species
 
 '''
-#import sys
-
-#print(sys.path)
-
+import sys
 import geco_utils as gu
 import argparse
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import os
 from itertools import izip
+import solution as sol
 
-def contact_sheet(row, r_max, res):
+def DensityAndParameterContactSheet(row, r_max, res, fig, gs):
     subdir = os.getcwd()
+    solution = sol.Solution(subdir, radius = r_max, resolution=res)
 
-    mesh, parameters, components, U,V = gu.GatherFiles(subdir)
-    if len(components) > 1:
-        components.remove(components[0])
+    for ndx, d_arr in enumerate(solution.density_arrays):
+        f = fig.add_subplot(gs[row,ndx])
+        f.imshow(d_arr, cmap='gist_heat', extent=(0,r_max,0,r_max),origin='lower')
+        f.set_title(solution.titles_for_plot[ndx], fontsize=10)
 
-    param_str=""
-    if (len(parameters) == 1):
-        param_str = gu.GetParametersStrings(parameters[0])
-
-    rho_arrays = list(map(gu.ToNumpyArray, components))
-    title_list = list(map(gu.GetTitle, parameters))
-
-
-    for i in range(len(rho_arrays)):
-        f = fig.add_subplot(gs[row,i])
-        f.imshow(rho_arrays[i], cmap='gist_heat', origin='lower', extent=(0,r_max,0,r_max))
-        f.set_title(title_list[i], fontsize=10)
-
-
-    if (len(rho_arrays) == 1):
-        t = plt.text(r_max*1.5, r_max/10, param_str, fontsize=12)
+    if (len(solution.density_arrays) == 1):
+        text = "Radius of Support: {}\n{}".format(solution.radius_of_support[0],solution.parameter_str[0])
+        t = plt.text(r_max*1.5, r_max/10,  text, fontsize=12)
 
 
 ###########################################################
+def main(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-r', '--resolution', help="enter desired resolution of numpy arrays",
+                            type=int, required=False)
+    args=vars(parser.parse_args())
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-r', '--resolution', help="enter desired resolution of numpy arrays",
-                        type=int, required=False)
-args=vars(parser.parse_args())
+    res = 250 if args['resolution'] is None else args['resolution']
 
-res = 150 if args['resolution'] is None else args['resolution']
+    file_list, dir_list = gu.FilesDirsByName('mesh.xml.gz')
 
-file_list, dir_list = gu.FilesDirsByName('mesh.xml.gz')
-
-#Set up figure and spacing
-fig = plt.figure(figsize=(6,len(dir_list)*3.5))
-gs = gridspec.GridSpec(len(dir_list), 2)
-gs.update(wspace=0.5, hspace=0.25)
+    #Set up figure and spacing
+    fig = plt.figure(figsize=(6,len(dir_list)*3.5))
+    gs = gridspec.GridSpec(len(dir_list), 2)
+    gs.update(wspace=0.5, hspace=0.25)
 
 
-r_max = gu.MaxSupport()
-row=0
-top = os.getcwd()
-for d in dir_list:
-    print(os.getcwd())
-    os.chdir(d)
-    print(os.getcwd())
-    contact_sheet(row, r_max, res)
-    row=row+1
-    os.chdir(top)
+    r_max = gu.MaxSupport()
+    print(r_max)
+    top = os.getcwd()
+    for row, sdir in enumerate(dir_list):
+        os.chdir(sdir)
+        DensityAndParameterContactSheet(row,r_max, res, fig, gs)
+        os.chdir(top)
 
-fig.savefig("multi_param.png")
+    fig.savefig("multi_param.png")
+
+if __name__ == "__main__" :
+    sys.exit(main(sys.argv))
