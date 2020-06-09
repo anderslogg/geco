@@ -2,6 +2,11 @@ from setuptools import setup
 from os.path import join as pj
 from os import listdir
 
+#Potential solution (1) to lack of pyable
+#import subprocess
+#import sys
+#subprocess.check_call([sys.executable, "-m", "pip", "install", "PyAbel"])
+
 cppfiles = [pj('geco', 'cppcode', f) for f in listdir('geco/cppcode')]
 meshfiles = [pj('geco', 'meshes', f) for f in listdir('geco/meshes')]
 

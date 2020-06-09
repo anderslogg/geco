@@ -1,7 +1,7 @@
 '''
 A collection of useful post processing functions
 '''
-from geco import *
+#from geco import *
 import csv
 import numpy as np
 from itertools import izip
@@ -338,6 +338,15 @@ def TangentialVelocityModel(model):
 
 #####################################################
 def ForwardAbelTransform(density_array):
+    '''STILL VERY MUCH IN TESTING
+    main issue: is there a way to perform abeltransform on a non-axially symmetric image?
+    currently the image only comes out right if the component density is reconstructed as a full
+    image from the quarter image. It would be better to not have to do this.
+
+    Also not clear where/how pyabel should be installed
+    '''
+
+
     #potential solution (2) to lack of Pyabel
     import pip
     try:
@@ -346,9 +355,14 @@ def ForwardAbelTransform(density_array):
         pip.main(['install','--user', 'PyAbel'])
         import abel
 
-    return  abel.Transform(density_array, direction='forward', method='hansenlaw').transform
+    density_array_ = np.flipud(density_array)
+    density_array_combined = np.concatenate((density_array_combined,density_array), axis=0)
 
+    #this line mirrors over vert. axis
+    density_array_combined = np.concatenate((np.fliplr(density_array_combined),density_array_combined), axis=1)
 
+    transformed = abel.Transform(density_array_combined, direction='forward', method='hansenlaw').transform
+    return transformed
 
 def CalcMass(radius, velocity):
    '''

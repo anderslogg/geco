@@ -53,21 +53,7 @@ class Solution:
       return error, scaled_velocity, scaled_radius
 
     def forward_abel_transform(self):
-      '''STILL VERY MUCH IN TESTING
-      main issue: is there a way to perform abeltransform on a non-axially symmetric image?
-      currently the image only comes out right if the component density is reconstructed as a full
-      image from the quarter image. It would be better to not have to do this.
-      '''
-      RHO_array_A = self.density_arrays[0]
-      RHO_array_B = np.flipud(RHO_array_A)
-      RHO_array_C = np.concatenate((RHO_array_B,RHO_array_A), axis=0)
 
-      #this line mirrors over vert. axis
-      RHO_array = np.concatenate((np.fliplr(RHO_array_C),RHO_array_C), axis=1)
+      transformed = [gu.ForwardAbelTransform(arr) for arr in self.density_arrays]
 
-      transformed = gu.ForwardAbelTransform(RHO_array)
-
-      #transformed = [gu.ForwardAbelTransform(arr) for arr in self.density_arrays]
-
-
-      return RHO_array, transformed
+      return transformed

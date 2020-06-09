@@ -56,7 +56,6 @@ def main(args):
     gs = gridspec.GridSpec(len(dir_list), 2)
     gs.update(wspace=0.5, hspace=0.25)
 
-
     r_max = gu.MaxSupport()
     print(r_max)
     top = os.getcwd()
