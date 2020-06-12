@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import geco_utils as gu
 import os
+import post_process as sol
 
 cwd = os.getcwd()
 
@@ -43,20 +44,14 @@ gs = gridspec.GridSpec(num_dirs, 4)
 
 
 def rotation_curve(cur_dir):
-    subdir = os.getcwd()
-
-    mesh, parameters, components, U, V = gu.GatherFiles(subdir)
-    if len(components) > 1:
-        components.remove(components[0]) #remove the combined density plot
-
-    rho_arrays = list(map(gu.ToNumpyArray, components))
-    title_list = list(map(gu.GetTitle, parameters))
+    sub_dir = os.getcwd()
+    solution = sol.PostProcess(sub_dir)
 
     r_max = gu.MaxSupport()
-    for i in range(len(rho_arrays)):
-        f = fig.add_subplot(gs[cur_dir,i])
-        f.imshow(rho_arrays[i], cmap='gist_heat', origin='lower', extent=(0,r_max,0,r_max))
-        f.set_title(title_list[i], fontsize=10)
+    for ndx, d_arr in enumerate(solution.density_arrays):
+        f = fig.add_subplot(gs[cur_dir,ndx])
+        f.imshow(d_arr, cmap='gist_heat', origin='lower', extent=(0,r_max,0,r_max))
+        f.set_title(solution.titles_for_plot[ndx], fontsize=10)
 
 
     r_max *= 3

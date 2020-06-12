@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-geco-postprocess-multi-pa
+geco-postprocess-multi-param-contactsheet
 
 A script to compute velocity of particles as a function of radius
 
@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import os
 from itertools import izip
-import solution as sol
+import post_process as sol
 
 def DensityAndParameterContactSheet(row, r_max, res, fig, gs):
     subdir = os.getcwd()
@@ -60,6 +60,7 @@ def main(args):
     print(r_max)
     top = os.getcwd()
     for row, sdir in enumerate(dir_list):
+        print(sdir)
         os.chdir(sdir)
         DensityAndParameterContactSheet(row,r_max, res, fig, gs)
         os.chdir(top)

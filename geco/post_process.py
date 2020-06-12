@@ -5,7 +5,7 @@ import geco_utils as gu
 import os
 import numpy as np
 
-class Solution:
+class PostProcess:
 
     def __init__(self, subdir, resolution=250, radius=50, z=0):
       print(os.getcwd())
@@ -25,8 +25,8 @@ class Solution:
       self.titles_for_plot = [gu.GetTitle(params) for params in parameters]
       self.parameter_dict = [gu.GetParametersDicts(params) for params in parameters]
       self.parameter_str = [gu.GetParametersStrings(params) for params in parameters]
-      self.density_arrays = [gu.ToNumpyArray(comp, radius, resolution) for comp in density_components]
-      self.radius_of_support = [gu.GetRadiusSupport(sup, res=resolution) for sup in density_components]
+      self.density_arrays = [gu.ToNumpyArray(comp, r_max=self.radius, res=self.resolution) for comp in density_components]
+      self.radius_of_support = [gu.GetRadiusSupport(sup, res=self.resolution) for sup in density_components]
 
       self.radii, self.inv_sqrt_r,self.circular_velocity = [],[],[]
       rotation_curve_output= [gu.RotationCurve(self.U, sup, res=resolution,z=z) for sup in self.radius_of_support]

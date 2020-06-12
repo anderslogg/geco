@@ -22,146 +22,72 @@ from the solution directory.
 
 '''
 #FIXME add a loop to work with multiple RHO components
-
-import abel
+#Add option run time option to allow choice between individual images or contact sheet
 import numpy as np
 import matplotlib.pyplot as plt
-import sys, os, csv
-from dolfin import *
+import sys, os
 from timeit import default_timer as timer
+import argparse
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+from itertools import izip
+import geco_utils as gu
+import post_process as sol
 
 
-#Set title of output figure
-SOLUTION = raw_input("Describe the configuration of matter (disk, toroid, etc.) to set the title: \n")
+def AbelTransform(r_max, res, row=0, fig=None, gs=None):
+	subdir = os.getcwd()
+	solution = sol.Solution(subdir, radius = r_max, resolution=res)
+
+	#Building the quarter image into a full image
+	density_ = [np.flipud(arr) for arr in solution.density_arrays]
+	combined = [np.concatenate((arr_,arr), axis=0) for arr_, arr in izip(density_, solution.density_arrays)]
+	full_density_arrays = [np.concatenate((np.fliplr(arr),arr), axis=1) for arr in combined]
+	forward_abel = solution.forward_abel_transform()
+
+	max_originals = [np.amax(arr) for arr in full_density_arrays]
+	countours_orig = [np.linspace(0.1*m_o, m_o, 10) for m_o in max_originals]
+	max_tforms = [np.amax(forw) for forw in forward_abel]
+	countours_forw = [np.linspace(0.01*m_t, m_t, 10) for m_t in max_tforms]
+
+	if fig is None:
+	    for ndx, d_arr in enumerate(full_density_arrays):
+			plt.contour(d_arr, countours_orig[ndx], colors='white', linewidths = 0.3, extent=(-r_max,r_max,-r_max,r_max), alpha=1)
+			plt.imshow(d_arr, cmap='gist_heat', origin='lower', extent=(-r_max,r_max,-r_max,r_max))
+			plt.colorbar(format='%.0e')
+			plt.savefig("Original " + solution.titles_for_plot[ndx] + ".png", bbox_inches='tight')
+			plt.close()
+
+			plt.contour(forward_abel[ndx], countours_forw[ndx], colors='white', linewidths = 0.3, extent=(-r_max,r_max,-r_max,r_max), alpha=1)
+			plt.imshow(forward_abel[ndx], cmap='gist_heat',extent=(-r_max,r_max,-r_max,r_max))
+			plt.colorbar(format='%.0e')
+			plt.savefig("TForm " +  solution.titles_for_plot[ndx] + ".png", bbox_inches='tight')
+			plt.close()
 
 
-cwd = os.getcwd()
+def main(args):
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-r', '--resolution', help="enter desired resolution of numpy arrays",
+	                        type=int, required=False)
 
+	# parser.add_argument('-c','--contactsheet', default=False,
+	# 					help="Default is to create a contact sheet. If this is set to false \
+	# 					the program will instead save individual images")
+	args=vars(parser.parse_args())
 
-#Changed this line to avoid conflicts over multiple RHOs, havent tested since
-filename = [f for f in os.listdir(cwd) if (f.startswith('RHO_') and not (f.startswith('RHO_comp_')))]
-R = filename[0].split('.')[0].split('_')[1]
+	res = 250 if args['resolution'] is None else args['resolution']
+	file_list, dir_list = gu.FilesDirsByName('mesh.xml.gz')
+	top = os.getcwd()
 
+	r_max = gu.MaxSupport()
+	AbelTransform(r_max, res, row=None, fig=None, gs=None)
 
-# Read mesh and create function space
-mesh = Mesh(cwd + '/mesh.xml.gz')
-V = FunctionSpace(mesh, 'P', 1)
+if __name__ == "__main__" :
+    sys.exit(main(sys.argv))
 
-#Function::set_allow_extrapolation(true)
-# Read and save RHO field
-RHO  = Function(V)
-RHO.set_allow_extrapolation(True)
-
-
-
-try:
-    File('RHO_{:}.xml.gz'.format(R)) >> RHO
-except:
-    print('RHO_{:}.xml.gz file not found.'.format(R) )
-
-
-def forward_abel_transform(RHO):
-    #r_max,z_max - dimensions of quarter-image
-    r_max = 15
-    #resolution of images
-    res = 500
-    rvals = np.linspace(0,r_max,res)
-
-    z_max = 15
-    zvals = np.linspace(0,z_max,res)
-
-    #build
-    RHO_array_A = np.zeros((len(rvals), len(zvals)))
-
-    for i in range(len(rvals)):
-        for j in range(len(zvals)):
-            r = rvals[i]
-            z = zvals[j]
-            RHO_array_A[j,i] = RHO(r,z)
-
-
-	#These two lines create a reflection of the array across horiz. axis
-	RHO_array_B = np.flipud(RHO_array_A)
-    RHO_array_C = np.concatenate((RHO_array_B,RHO_array_A), axis=0)
-
-	#this line mirrors over vert. axis
-    RHO_array = np.concatenate((np.fliplr(RHO_array_C),RHO_array_C), axis=1)
-
-    max_original = np.amax(RHO_array)
-
-    #countour lines for origiinal figure
-    countours_orig = np.linspace(0.1*max_original, max_original, 10)
-
-	#Using 'hansenlaw' is much faster than 'direct' without cython implementation
-    forward_abel = abel.Transform(RHO_array, direction='forward', method='hansenlaw').transform
-    max_forward = np.amax(forward_abel)
-
-
-    #countour lines for forward transform
-    countours_forw = np.linspace(0.1*max_forward, max_forward, 10)
-
-    plt.title("Original - " + SOLUTION)
-    plt.imshow(RHO_array, cmap='gist_heat', extent=(-r_max,r_max,-z_max,z_max))
-    plt.colorbar(format='%.0e')
-    plt.savefig("Original_res%d.png" % res, bbox_inches='tight')
-    plt.close()
-
-    plt.title("Forward Transform - " + SOLUTION)
-    plt.imshow(forward_abel, cmap='gist_heat', extent=(-r_max,r_max,-z_max,z_max))
-    plt.colorbar(format='%.0e')
-    plt.savefig("Forward_res%d.png" % res, bbox_inches='tight')
-    plt.close()
-
-
-    plt.title("Original - " + SOLUTION)
-    plt.contour(RHO_array, countours_orig, colors='white', linewidths = 0.3, extent=(-r_max,r_max,-z_max,z_max))
-    plt.imshow(RHO_array, cmap='gist_heat', alpha=1, extent=(-r_max,r_max,-z_max,z_max))
-    plt.colorbar(format='%.0e')
-    plt.savefig("Original_cont_res%d.png" % res, bbox_inches='tight')
-    plt.close()
-
-    plt.title("Forward Transform - " + SOLUTION)
-    plt.contour(forward_abel, countours_forw, colors='white', linewidths = 0.3, extent=(-r_max,r_max,-z_max,z_max))
-    plt.imshow(forward_abel, cmap='gist_heat', alpha=5, extent=(-r_max,r_max,-z_max,z_max))
-    plt.colorbar(format='%.0e')
-    plt.savefig("Forward_cont_res%d.png" % res, bbox_inches='tight')
-    plt.close()
-
-    # plt.title("Original, resolution = %d" % res)
-    # plt.imshow(RHO_array, cmap='gist_heat')
-    # plt.colorbar()
-    # plt.savefig("abel_out/Original_res%d.svg" % res, format = 'svg', dpi = 1200)
-    # plt.close()
-
-    # plt.title("Forward Transform, resolution = %d" % res)
-    # plt.imshow(forward_abel, cmap='gist_heat')
-    # plt.colorbar()
-    # plt.savefig("abel_out/Forward_res%d.svg" % res, format = 'svg', dpi = 1200)
-    # plt.close()
-
-    # plt.title("Original, resolution = %d" % res)
-    # plt.contour(RHO_array, 10, colors='white', linewidths = 0.3)
-    # plt.imshow(RHO_array, cmap='gist_heat', alpha=1)
-    # plt.colorbar()
-    # plt.savefig("abel_out/Original_cont_res%d.svg" % res, format = 'svg', dpi = 1200)
-    # plt.close()
-
-    # plt.title("Forward Transform, resolution = %d" % res)
-    # plt.contour(forward_abel, 10, colors='white', linewidths = 0.3)
-    # plt.imshow(forward_abel, cmap='gist_heat', alpha=5)
-    # plt.colorbar()
-    # plt.savefig("abel_out/Forward_cont_res%d.svg" % res, format = 'svg', dpi = 1200)
-    # plt.close()
-
-
-start = timer()
-forward_abel_transform(RHO)
-end = timer()
-print(end - start)
-
-# res   |   time (s)
-# 500       3.14830684662
-# 1000      11.8434147835
-# 1500      27.00735116
-# 3000      173.100042105
-# 5000      Killed
+	# res   |   time (s)
+	# 500       3.14830684662
+	# 1000      11.8434147835
+	# 1500      27.00735116
+	# 3000      173.100042105
+	# 5000      Killed

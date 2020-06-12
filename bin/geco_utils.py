@@ -149,11 +149,22 @@ def ToNumpyArray(comp_density, r_max=30, res=500):
     We opt here not to do the extra flip/rotation (but could if it makes more sense?)
     All of the above also applies to TangentialVelocityArray() below
     '''
-
+    print("RES: " , res)
+    print("TYPE: " , type(res))
     rho_array = np.zeros((res,res))
     for r_ndx, r in enumerate(np.linspace(0, r_max, res)):
         for z_ndx, z in enumerate(np.linspace(0,r_max, res)):
             rho_array[r_ndx,z_ndx] = comp_density(z,r)
+            '''
+    #makes more sense to call this column ndx, because r is like a column in comp_density()
+    for col_ndx, r in enumerate(np.linspace(0, r_max, res)):
+
+        #makes more sense to call this row_ndx, because z is like a row in comp_density()
+        for row_ndx, z in enumerate(np.linspace(0,r_max, res)):
+
+            #rho_array[(res-row_ndx)-1,col_ndx] = comp_density(r,z)
+            #rho_array[row_ndx,col_ndx] = comp_density(r,z) #with plt.imshow(origin='lower')
+            '''
 
 
     return rho_array
@@ -356,7 +367,7 @@ def ForwardAbelTransform(density_array):
         import abel
 
     density_array_ = np.flipud(density_array)
-    density_array_combined = np.concatenate((density_array_combined,density_array), axis=0)
+    density_array_combined = np.concatenate((density_array_,density_array), axis=0)
 
     #this line mirrors over vert. axis
     density_array_combined = np.concatenate((np.fliplr(density_array_combined),density_array_combined), axis=1)
@@ -392,6 +403,7 @@ def ModelToObsVelocity(obs_r, obs_v, model_r, model_v):
     c = modelV_obsV / modelV_modelV
 
     sumsq = round(np.sum((c*closest_v - obs_v)**2),4)
-    error = round(sumsq**.5,2)
+    #error per observation
+    error = round(sumsq**.5,2)/len(obs_r)
 
     return c, error
