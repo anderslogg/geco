@@ -17,58 +17,64 @@ from the directory that contains the solution directory(ies).
 All subdirectories are assumed to have the same number of matter-species
 
 '''
+import sys
+import geco_utils as gu
+import argparse
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-import geco_utils as gu
 import os
+from itertools import izip
 import post_process as sol
 
-cwd = os.getcwd()
-
-dir_list = filter(os.path.isdir, os.listdir(os.getcwd()))
-#dir_list.sort()
-num_dirs = len(dir_list)
-
-#Determine number of matter-species for layout purposes. Just checks the number
-#species in the first directory and assumes the other solutions have the same
-#number of species
-#num_components = len([f for f in os.listdir(cwd+"/"+dir_list[0]) if (f.startswith('RHO_comp_') and (f.endswith('.xml.gz')))])
-#print(num_components)
-
-#FIXME - this shouldnt be hardcoded
-num_components=2
-
-fig = plt.figure(figsize=(10*num_components,num_dirs*5))
-gs = gridspec.GridSpec(num_dirs, 4)
 
 
-
-def rotation_curve(cur_dir):
+def RotationCurve(row,r_max,res, fig, gs):
     sub_dir = os.getcwd()
     solution = sol.PostProcess(sub_dir)
 
-    r_max = gu.MaxSupport()
     for ndx, d_arr in enumerate(solution.density_arrays):
-        f = fig.add_subplot(gs[cur_dir,ndx])
-        f.imshow(d_arr, cmap='gist_heat', origin='lower', extent=(0,r_max,0,r_max))
-        f.set_title(solution.titles_for_plot[ndx], fontsize=10)
+        f = fig.add_subplot(gs[row,ndx])
+        f.imshow(d_arr, cmap='gist_heat', extent=(0,r_max,0,r_max))
+        f.set_title(solution.titles_for_plot[ndx].split("-")[-1], fontsize=10)
 
+        f = fig.add_subplot(gs[row,2*ndx+2:2*ndx+4])
 
-    r_max *= 3
+        rvals = solution.radii[ndx]
+        f.plot(rvals, solution.circular_velocity[ndx])
 
-    rvals, inv_r, v = gu.RotationCurve(U,r_max)
-    f = fig.add_subplot(gs[cur_dir,2:4])
-    f.plot(rvals, v)
-    f.plot(rvals[150:len(rvals)], inv_r[150:len(rvals)])
+        f.set_title('Velocity vs. Radius')
+        f.set_xlabel('radius')
+        f.set_ylabel('velocity')
 
-    f.set_title('Velocity vs. Radius')
-    f.set_xlabel('radius')
-    f.set_ylabel('velocity')
+    if (len(solution.density_arrays) == 1):
+        t = plt.text(-5*r_max, r_max/10, solution.parameter_str[0], fontsize=10)
+
 ###########################################################3
 
-for cur_dir in range(num_dirs):
-    os.chdir(cwd+"/"+dir_list[cur_dir])
-    rotation_curve(cur_dir)
 
-os.chdir(cwd)
-fig.savefig("rotation_curve.png")
+def main(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-r', '--resolution', help="enter desired resolution of numpy arrays",
+                            type=int, required=False)
+    args=vars(parser.parse_args())
+
+    res = 500 if args['resolution'] is None else args['resolution']
+
+    _, dir_list = gu.FilesDirsByName('mesh.xml.gz')
+
+    #Set up figure and spacing
+    fig = plt.figure(figsize=(14,len(dir_list)*3))
+    gs = gridspec.GridSpec(len(dir_list)+2, 6)
+    gs.update(wspace=0.75, hspace=0.75)
+
+    r_max = gu.MaxSupport()
+    top = os.getcwd()
+    for row, sdir in enumerate(dir_list):
+        os.chdir(sdir)
+        RotationCurve(row,r_max, res, fig, gs)
+        os.chdir(top)
+
+    fig.savefig("rotation_curves.png")
+
+if __name__ == "__main__" :
+    sys.exit(main(sys.argv))

@@ -29,7 +29,7 @@ class PostProcess:
       self.radius_of_support = [gu.GetRadiusSupport(sup, res=self.resolution) for sup in density_components]
 
       self.radii, self.inv_sqrt_r,self.circular_velocity = [],[],[]
-      rotation_curve_output= [gu.RotationCurve(self.U, sup, res=resolution,z=z) for sup in self.radius_of_support]
+      rotation_curve_output= [gu.RotationCurve(self.U, sup, res=self.resolution,z=self.z) for sup in self.radius_of_support]
 
       for entry in rotation_curve_output:
         self.radii.append(entry[0])

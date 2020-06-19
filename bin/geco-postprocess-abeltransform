@@ -26,22 +26,19 @@ from the solution directory.
 import numpy as np
 import matplotlib.pyplot as plt
 import sys, os
-from timeit import default_timer as timer
 import argparse
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 from itertools import izip
 import geco_utils as gu
 import post_process as sol
 
 
-def AbelTransform(r_max, res, row=0, fig=None, gs=None):
+def AbelTransform(r_max, res):
 	subdir = os.getcwd()
-	solution = sol.Solution(subdir, radius = r_max, resolution=res)
+	solution = sol.PostProcess(subdir, radius = r_max, resolution=res)
 
 	#Building the quarter image into a full image
 	density_ = [np.flipud(arr) for arr in solution.density_arrays]
-	combined = [np.concatenate((arr_,arr), axis=0) for arr_, arr in izip(density_, solution.density_arrays)]
+	combined = [np.concatenate((arr,arr_), axis=0) for arr_, arr in izip(density_, solution.density_arrays)]
 	full_density_arrays = [np.concatenate((np.fliplr(arr),arr), axis=1) for arr in combined]
 	forward_abel = solution.forward_abel_transform()
 
@@ -50,44 +47,32 @@ def AbelTransform(r_max, res, row=0, fig=None, gs=None):
 	max_tforms = [np.amax(forw) for forw in forward_abel]
 	countours_forw = [np.linspace(0.01*m_t, m_t, 10) for m_t in max_tforms]
 
-	if fig is None:
-	    for ndx, d_arr in enumerate(full_density_arrays):
-			plt.contour(d_arr, countours_orig[ndx], colors='white', linewidths = 0.3, extent=(-r_max,r_max,-r_max,r_max), alpha=1)
-			plt.imshow(d_arr, cmap='gist_heat', origin='lower', extent=(-r_max,r_max,-r_max,r_max))
-			plt.colorbar(format='%.0e')
-			plt.savefig("Original " + solution.titles_for_plot[ndx] + ".png", bbox_inches='tight')
-			plt.close()
+	for ndx, d_arr in enumerate(full_density_arrays):
+		plt.contour(d_arr, countours_orig[ndx], colors='white', linewidths = 0.3, extent=(-r_max,r_max,-r_max,r_max), alpha=1)
+		plt.imshow(d_arr, cmap='gist_heat', extent=(-r_max,r_max,-r_max,r_max))
+		plt.colorbar(format='%.0e')
+		plt.savefig("Original " + solution.titles_for_plot[ndx] + ".png", bbox_inches='tight')
+		plt.close()
 
-			plt.contour(forward_abel[ndx], countours_forw[ndx], colors='white', linewidths = 0.3, extent=(-r_max,r_max,-r_max,r_max), alpha=1)
-			plt.imshow(forward_abel[ndx], cmap='gist_heat',extent=(-r_max,r_max,-r_max,r_max))
-			plt.colorbar(format='%.0e')
-			plt.savefig("TForm " +  solution.titles_for_plot[ndx] + ".png", bbox_inches='tight')
-			plt.close()
+		plt.contour(forward_abel[ndx], countours_forw[ndx], colors='white', linewidths = 0.3, extent=(-r_max,r_max,-r_max,r_max), alpha=1)
+		plt.imshow(forward_abel[ndx], cmap='gist_heat',extent=(-r_max,r_max,-r_max,r_max))
+		plt.colorbar(format='%.0e')
+		plt.savefig("TForm " +  solution.titles_for_plot[ndx] + ".png", bbox_inches='tight')
+		plt.close()
 
 
 def main(args):
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-r', '--resolution', help="enter desired resolution of numpy arrays",
-	                        type=int, required=False)
+	                        type=int, required=False, default=250)
 
-	# parser.add_argument('-c','--contactsheet', default=False,
-	# 					help="Default is to create a contact sheet. If this is set to false \
-	# 					the program will instead save individual images")
 	args=vars(parser.parse_args())
 
-	res = 250 if args['resolution'] is None else args['resolution']
 	file_list, dir_list = gu.FilesDirsByName('mesh.xml.gz')
 	top = os.getcwd()
 
 	r_max = gu.MaxSupport()
-	AbelTransform(r_max, res, row=None, fig=None, gs=None)
+	AbelTransform(r_max, args['resolution'])
 
 if __name__ == "__main__" :
     sys.exit(main(sys.argv))
-
-	# res   |   time (s)
-	# 500       3.14830684662
-	# 1000      11.8434147835
-	# 1500      27.00735116
-	# 3000      173.100042105
-	# 5000      Killed

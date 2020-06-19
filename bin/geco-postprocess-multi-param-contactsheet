@@ -28,11 +28,11 @@ import post_process as sol
 
 def DensityAndParameterContactSheet(row, r_max, res, fig, gs):
     subdir = os.getcwd()
-    solution = sol.Solution(subdir, radius = r_max, resolution=res)
+    solution = sol.PostProcess(subdir, radius = r_max, resolution=res)
 
     for ndx, d_arr in enumerate(solution.density_arrays):
         f = fig.add_subplot(gs[row,ndx])
-        f.imshow(d_arr, cmap='gist_heat', extent=(0,r_max,0,r_max),origin='lower')
+        f.imshow(d_arr, cmap='gist_heat', extent=(0,r_max,0,r_max))
         f.set_title(solution.titles_for_plot[ndx], fontsize=10)
 
     if (len(solution.density_arrays) == 1):
@@ -57,10 +57,8 @@ def main(args):
     gs.update(wspace=0.5, hspace=0.25)
 
     r_max = gu.MaxSupport()
-    print(r_max)
     top = os.getcwd()
     for row, sdir in enumerate(dir_list):
-        print(sdir)
         os.chdir(sdir)
         DensityAndParameterContactSheet(row,r_max, res, fig, gs)
         os.chdir(top)

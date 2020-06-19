@@ -128,7 +128,7 @@ def GatherFiles(sdir):
     return mesh, parameters, components, U, V
 
 
-def ToNumpyArray(comp_density, r_max=30, res=500):
+def ToNumpyArray(component, r_max=30, res=500):
     '''Converts a fenics object to a numpy array. A two dimensional numpy
     array is built where r_max is used for both the r and z axes creating a square array
 
@@ -149,25 +149,14 @@ def ToNumpyArray(comp_density, r_max=30, res=500):
     We opt here not to do the extra flip/rotation (but could if it makes more sense?)
     All of the above also applies to TangentialVelocityArray() below
     '''
-    print("RES: " , res)
-    print("TYPE: " , type(res))
-    rho_array = np.zeros((res,res))
-    for r_ndx, r in enumerate(np.linspace(0, r_max, res)):
-        for z_ndx, z in enumerate(np.linspace(0,r_max, res)):
-            rho_array[r_ndx,z_ndx] = comp_density(z,r)
-            '''
-    #makes more sense to call this column ndx, because r is like a column in comp_density()
+
+    array = np.zeros((res,res))
+
     for col_ndx, r in enumerate(np.linspace(0, r_max, res)):
-
-        #makes more sense to call this row_ndx, because z is like a row in comp_density()
         for row_ndx, z in enumerate(np.linspace(0,r_max, res)):
+            array[(res-row_ndx)-1,col_ndx] = component(r,z)
 
-            #rho_array[(res-row_ndx)-1,col_ndx] = comp_density(r,z)
-            #rho_array[row_ndx,col_ndx] = comp_density(r,z) #with plt.imshow(origin='lower')
-            '''
-
-
-    return rho_array
+    return array
 
 def TangentialVelocityArray(model, V, rho, tol=1e-3, r_max=30, res=500):
      vel_integral = project(model, V)
@@ -235,6 +224,7 @@ def RotationCurve(U, r_max, res=1000, z=0):
     inv_r = 1/sqrt(r)
     For comparison
     '''
+
     dr = 10 ** -10
     rvals = np.linspace(0,r_max,res)
     v = np.zeros(len(rvals))
@@ -367,7 +357,7 @@ def ForwardAbelTransform(density_array):
         import abel
 
     density_array_ = np.flipud(density_array)
-    density_array_combined = np.concatenate((density_array_,density_array), axis=0)
+    density_array_combined = np.concatenate((density_array,density_array_), axis=0)
 
     #this line mirrors over vert. axis
     density_array_combined = np.concatenate((np.fliplr(density_array_combined),density_array_combined), axis=1)
