@@ -32,7 +32,7 @@ Tip for working with different directories inside a Docker container:
 Dependencies
 ------------
 
-GECo depends on the very latest version of FEniCS.
+GECo depends on FEniCS version 2017.2.0.
 
 -----
 Usage
@@ -53,9 +53,13 @@ Authors
 
 GECo is written by
 
-   Ellery Ames <ellery@kth.se>
+   Ellery Ames <ellery.ames@humboldt.edu>
    Anders Logg <logg@chalmers.se>
 
 with valuable theoretical / modeling / algorithmic input from
 
    Håkan Andreasson <hand@chalmers.se>
+
+and contributions to postprocessing capabilities by 
+
+    Eric Malekos. 
