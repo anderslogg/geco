@@ -1,21 +1,41 @@
-"""This module implements a solver for the Vlasov-Poisson
-equations in axial symmetry."""
+"""
+-----------
+vpsolver.py
+-----------
+This module implements a solver for the Vlasov-Poisson
+equations in axial symmetry.
+
+Copyright 2019 Anders Logg, Ellery Ames, Håkan Andréasson
+
+This file is part of GECo.
+GECo is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+GECo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with GECo. If not, see <https://www.gnu.org/licenses/>.
+
+"""
 
 from solverbase import *
 
+
 def _lhs(u, v, r):
-    return dot(grad(u), grad(v))*r*dx
+    return dot(grad(u), grad(v)) * r * dx
+
 
 def _rhs(rho, v, r):
-    return -4*pi*rho*v*r*dx
+    return -4 * pi * rho * v * r * dx
+
 
 def _flat(m):
     return Expression("-m / sqrt(x[0]*x[0] + x[1]*x[1])", degree=1, m=m)
+
 
 def _init(e0, m, V):
     parameters = {"E": e0, "r0": -m / e0}
     u = "2.0*E / (1.0 + sqrt(x[0]*x[0] + x[1]*x[1]) / r0)"
     return project(Expression(u, degree=1, **parameters), V)
+
 
 class VlasovPoissonSolver(SolverBase):
     "Solver for the axisymmetric Vlasov-Poisson equations"
@@ -27,21 +47,23 @@ class VlasovPoissonSolver(SolverBase):
         "Compute solution"
 
         # Initialize solve
-        self._init_solve()        
+        self._init_solve()
 
         # Extract all ansatzes from model
-        ansatzes = [c for c in extract_coefficients(model) if not isinstance(c, Constant)]
+        ansatzes = [
+            c for c in extract_coefficients(model) if not isinstance(c, Constant)
+        ]
 
         # Get common model parameters (use first)
         e0 = ansatzes[0].parameters.E0
 
         # Get discretization parameters
-        m         = self.parameters.discretization.mass
-        maxiter   = self.parameters.discretization.maxiter
-        tol       = self.parameters.discretization.tolerance
+        m = self.parameters.discretization.mass
+        maxiter = self.parameters.discretization.maxiter
+        tol = self.parameters.discretization.tolerance
         num_steps = self.parameters.discretization.num_steps
-        degree    = self.parameters.discretization.degree
-        depth     = self.parameters.discretization.anderson_depth
+        degree = self.parameters.discretization.degree
+        depth = self.parameters.discretization.anderson_depth
 
         # Get output parameters
         plot_iteration = self.parameters.output.plot_iteration
@@ -76,7 +98,7 @@ class VlasovPoissonSolver(SolverBase):
         infty = CompiledSubDomain("on_boundary && x[0] > 1e-10")
 
         # Create boundary conditions
-        bc  = DirichletBC(V, U_R, infty)
+        bc = DirichletBC(V, U_R, infty)
         bc0 = DirichletBC(V, 0.0, infty)
 
         # Initialize all ansatzes
@@ -94,11 +116,11 @@ class VlasovPoissonSolver(SolverBase):
 
         # Scale density
         C = Constant(1)
-        density = C*_density
+        density = C * _density
 
         # Define unscaled and scaled mass
-        _mass = 2*2*pi*_density*r*dx
-        mass  = C*_mass
+        _mass = 2 * 2 * pi * _density * r * dx
+        mass = C * _mass
 
         # Create trial and test functions
         u = TrialFunction(V)
@@ -128,7 +150,9 @@ class VlasovPoissonSolver(SolverBase):
             solver = LinearSolver(mpi_comm_world(), "gmres")
 
         # Set linear solver parameters
-        solver.parameters["relative_tolerance"] = self.parameters.discretization.krylov_tolerance
+        solver.parameters[
+            "relative_tolerance"
+        ] = self.parameters.discretization.krylov_tolerance
 
         # Initialize Anderson acceleration
         anderson = Anderson(depth, U.vector())
@@ -145,7 +169,8 @@ class VlasovPoissonSolver(SolverBase):
 
             # Rescale right-hand side to preserve mass
             _m = assemble(_mass)
-            if _m == 0.0: error("Zero mass distribution.")
+            if _m == 0.0:
+                error("Zero mass distribution.")
             C.assign(m / _m)
             info("C = %.15g" % float(C))
 
@@ -158,17 +183,17 @@ class VlasovPoissonSolver(SolverBase):
 
             # Fixed-point iteration with Anderson acceleration
             U.vector()[:] = anderson.update(Y)
-            
+
             # Damped fixed-point update of solution vector
-            #theta = self._get_theta()
-            #X = U.vector()
-            #X *= (1.0 - theta)
-            #Y *= theta
-            #X += Y
+            # theta = self._get_theta()
+            # X = U.vector()
+            # X *= (1.0 - theta)
+            # Y *= theta
+            # X += Y
 
             # Plot density distribution
             project(density, mesh=mesh, function=RHO)
-            self._save_density(RHO, iter)            
+            self._save_density(RHO, iter)
             self._plot_density(RHO)
 
             # Compute residual
@@ -213,8 +238,16 @@ class VlasovPoissonSolver(SolverBase):
         matter_components = (RHO,)
         names = ("U",)
         matter_names = ("RHO",)
-        #self._postprocess(ansatzes, solutions, flat_solutions, names)
-        self._postprocess(ansatzes, solutions, flat_solutions, names, residual_functions, matter_components, matter_names)
+        # self._postprocess(ansatzes, solutions, flat_solutions, names)
+        self._postprocess(
+            ansatzes,
+            solutions,
+            flat_solutions,
+            names,
+            residual_functions,
+            matter_components,
+            matter_names,
+        )
 
         # Print nice message
         info("Solver complete")
@@ -232,14 +265,16 @@ class VlasovPoissonSolver(SolverBase):
         # Get radius of support and compute areal radius of support
         r0 = max([ansatz.radius_of_support() for ansatz in ansatzes])
         r0 = MPI.max(mpi_comm_world(), r0)
-        R0 = r0*(1.0 + m/(2.0*r0))**2
+        R0 = r0 * (1.0 + m / (2.0 * r0)) ** 2
 
         # Compute Buchdahl quantity
-        Gamma = 2.0*m/R0
+        Gamma = 2.0 * m / R0
 
         # Store results
-        self.data = {"ansatz_coefficient": float(C),
-                     "mass": m,
-                     "radius_of_support": r0,
-                     "areal_radius_of_support": R0,
-                     "gamma": Gamma}
+        self.data = {
+            "ansatz_coefficient": float(C),
+            "mass": m,
+            "radius_of_support": r0,
+            "areal_radius_of_support": R0,
+            "gamma": Gamma,
+        }

@@ -1,44 +1,69 @@
-"""This module implements a solver for the Einsten-Vlasov equations in
-axial symmetry with or without net angular momentum."""
+"""
+-----------
+evsolver.py
+-----------
+This module implements a solver for the Einsten-Vlasov equations in
+axial symmetry with or without net angular momentum.
 
-from solverbase import *
-from solution import *
+Copyright 2019 Anders Logg, Ellery Ames, Håkan Andréasson
+
+This file is part of GECo.
+GECo is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+GECo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with GECo. If not, see <https://www.gnu.org/licenses/>.
+"""
+
 import physicalquantities as pq
+from solution import *
+from solverbase import *
 
-def _lhs(nu, bb, mu, ww, v0, v1, v2, v3, r,
-         P00, P11, P33, P03):
 
-    a0 = dot(grad(nu), grad(v0))*r*dx
-    a1 = dot(grad(bb), grad(v1))*r*dx - bb.dx(0)*v1*dx + 8*pi*bb*P11*v1*r*dx 
-    a2 = dot(grad(mu), grad(v2))*r*dx + mu.dx(0)*v2*dx
-    a3 = dot(grad(ww), grad(v3))*r*dx - 2.0*ww.dx(0)*v3*dx
+def _lhs(nu, bb, mu, ww, v0, v1, v2, v3, r, P00, P11, P33, P03):
+
+    a0 = dot(grad(nu), grad(v0)) * r * dx
+    a1 = (
+        dot(grad(bb), grad(v1)) * r * dx
+        - bb.dx(0) * v1 * dx
+        + 8 * pi * bb * P11 * v1 * r * dx
+    )
+    a2 = dot(grad(mu), grad(v2)) * r * dx + mu.dx(0) * v2 * dx
+    a3 = dot(grad(ww), grad(v3)) * r * dx - 2.0 * ww.dx(0) * v3 * dx
 
     return a0, a1, a2, a3
 
-def _rhs(nu, bb, mu, ww, v0, v1, v2, v3, r,
-         P00, P11, P33, P03):
 
-    L0 = - 4*pi*(P00 + P11)*v0*r*dx \
-         - 4*pi*(1.0 + (r*bb)**2*exp(-4*nu)*ww**2)*P33*v0*r*dx \
-         - 8*pi*exp(-4*nu)*ww*P03*v0*r*dx \
-         + (1/bb)*dot(grad(bb), grad(nu))*v0*r*dx \
-         - 0.5*exp(-4.0*nu)*(r*bb)**2*dot(grad(ww), grad(ww))*v0*r*dx
+def _rhs(nu, bb, mu, ww, v0, v1, v2, v3, r, P00, P11, P33, P03):
 
-    L1 = Constant(0.0)*v1*dx
+    L0 = (
+        -4 * pi * (P00 + P11) * v0 * r * dx
+        - 4 * pi * (1.0 + (r * bb) ** 2 * exp(-4 * nu) * ww**2) * P33 * v0 * r * dx
+        - 8 * pi * exp(-4 * nu) * ww * P03 * v0 * r * dx
+        + (1 / bb) * dot(grad(bb), grad(nu)) * v0 * r * dx
+        - 0.5 * exp(-4.0 * nu) * (r * bb) ** 2 * dot(grad(ww), grad(ww)) * v0 * r * dx
+    )
 
-    L2 = 4*pi*(P00 + P11)*v2*r*dx \
-         + 4*pi*((r*bb)**2*exp(-4.0*nu)*ww**2 - 1.0)*P33*v2*r*dx \
-         + 8*pi*exp(-4.0*nu)*ww*P03*v2*r*dx \
-         - (1/bb)*dot(grad(bb), grad(nu))*v2*r*dx \
-         - nu.dx(0)*v2*dx \
-         + dot(grad(nu), grad(nu))*v2*r*dx \
-         - 0.25*exp(-4.0*nu)*(r*bb)**2*dot(grad(ww), grad(ww))*v2*r*dx
+    L1 = Constant(0.0) * v1 * dx
 
-    L3 = - 16*pi/(r*bb)**2*(P03 + ww*(r*bb)**2*P33)*v3*r*dx \
-         + 3.0*(1/bb)*dot(grad(bb), grad(ww))*v3*r*dx \
-         - 4.0*dot(grad(nu), grad(ww))*v3*r*dx
+    L2 = (
+        4 * pi * (P00 + P11) * v2 * r * dx
+        + 4 * pi * ((r * bb) ** 2 * exp(-4.0 * nu) * ww**2 - 1.0) * P33 * v2 * r * dx
+        + 8 * pi * exp(-4.0 * nu) * ww * P03 * v2 * r * dx
+        - (1 / bb) * dot(grad(bb), grad(nu)) * v2 * r * dx
+        - nu.dx(0) * v2 * dx
+        + dot(grad(nu), grad(nu)) * v2 * r * dx
+        - 0.25 * exp(-4.0 * nu) * (r * bb) ** 2 * dot(grad(ww), grad(ww)) * v2 * r * dx
+    )
+
+    L3 = (
+        -16 * pi / (r * bb) ** 2 * (P03 + ww * (r * bb) ** 2 * P33) * v3 * r * dx
+        + 3.0 * (1 / bb) * dot(grad(bb), grad(ww)) * v3 * r * dx
+        - 4.0 * dot(grad(nu), grad(ww)) * v3 * r * dx
+    )
 
     return L0, L1, L2, L3
+
 
 def _flat(m, J):
 
@@ -51,6 +76,7 @@ def _flat(m, J):
 
     return [Expression(v, degree=1, **parameters) for v in (nu, bb, mu, ww)]
 
+
 def _init(e0, V):
 
     parameters = {"E": e0, "r0": 4.0, "c": 0.25, "d": 0.25}
@@ -61,6 +87,7 @@ def _init(e0, V):
     ww = "0.0"
 
     return [project(Expression(v, degree=1, **parameters), V) for v in (nu, bb, mu, ww)]
+
 
 class EinsteinVlasovSolver(SolverBase):
     "Solver for the axisymmetric Einstein-Vlasov equations"
@@ -76,23 +103,25 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Initialize solve
         self._init_solve()
-        
+
         # Extract all ansatzes from model
-        ansatzes = [c for c in extract_coefficients(model) if not isinstance(c, Constant)]
+        ansatzes = [
+            c for c in extract_coefficients(model) if not isinstance(c, Constant)
+        ]
 
         # Get common model parameters (use first)
         e0 = ansatzes[0].parameters.E0
 
         # Get discretization parameters
-        m         = self.parameters.discretization.mass
-        J         = self.parameters.discretization.ang_mom
-        maxiter   = self.parameters.discretization.maxiter
-        theta     = self.parameters.discretization.theta
-        tol       = self.parameters.discretization.tolerance
+        m = self.parameters.discretization.mass
+        J = self.parameters.discretization.ang_mom
+        maxiter = self.parameters.discretization.maxiter
+        theta = self.parameters.discretization.theta
+        tol = self.parameters.discretization.tolerance
         num_steps = self.parameters.discretization.num_steps
-        R         = self.parameters.discretization.domain_radius
-        degree    = self.parameters.discretization.degree
-        depth     = self.parameters.discretization.anderson_depth
+        R = self.parameters.discretization.domain_radius
+        degree = self.parameters.discretization.degree
+        depth = self.parameters.discretization.anderson_depth
 
         # Get output parameters
         plot_iteration = self.parameters.output.plot_iteration
@@ -132,7 +161,7 @@ class EinsteinVlasovSolver(SolverBase):
         # Create spatial coordinates
         x = SpatialCoordinate(mesh)
         r = x[0]
-        z = x[1]       
+        z = x[1]
 
         # Create asymptotically flat solutions for boundary conditions
         NU_R, BB_R, MU_R, WW_R = _flat(m, J)
@@ -141,7 +170,7 @@ class EinsteinVlasovSolver(SolverBase):
         eps = 1e-5
         axis_test = "x[0] < eps"
         infty_test = "x[0]*x[0] + x[1]*x[1] > (R - eps)*(R - eps)"
-        axis  = CompiledSubDomain(axis_test, eps=eps)
+        axis = CompiledSubDomain(axis_test, eps=eps)
         infty = CompiledSubDomain(infty_test, eps=eps, R=R)
 
         # Create boundary condition on axis for MU
@@ -152,6 +181,7 @@ class EinsteinVlasovSolver(SolverBase):
                 self.BB.eval_cell(BB_values, x, cell)
                 self.NU.eval_cell(NU_values, x, cell)
                 values[0] = math.log(BB_values[0]) - NU_values[0]
+
         MU_a = AxisValueMU(degree=1)
         MU_a.BB = BB
         MU_a.NU = NU
@@ -161,7 +191,7 @@ class EinsteinVlasovSolver(SolverBase):
         bci_BB = (1, DirichletBC(V, BB_R, infty, method="pointwise"))
         bci_MU = (2, DirichletBC(V, MU_R, infty, method="pointwise"))
         bci_WW = (3, DirichletBC(V, WW_R, infty, method="pointwise"))
-        bca_MU = (2, DirichletBC(V, MU_a, axis,  method="pointwise"))
+        bca_MU = (2, DirichletBC(V, MU_a, axis, method="pointwise"))
         bc0 = DirichletBC(V, 0.0, DomainBoundary())
 
         # Collect boundary conditions
@@ -185,17 +215,19 @@ class EinsteinVlasovSolver(SolverBase):
         _P03 = _Phi[3]
 
         # Scale matter fields
-        C   = Constant(1)
-        P00 = C*_P00
-        P11 = C*_P11
-        P33 = C*_P33
-        P03 = C*_P03
+        C = Constant(1)
+        P00 = C * _P00
+        P11 = C * _P11
+        P33 = C * _P33
+        P03 = C * _P03
 
         # Define density and mass
-        _density = BB*(_P00 + _P11 + _P33*(1.0 - (r*BB)**2*WW**2*exp(-4*NU)))
-        density  = C*_density
-        _mass    = 2*2*pi*_density*r*dx
-        #mass     = C*_mass
+        _density = BB * (
+            _P00 + _P11 + _P33 * (1.0 - (r * BB) ** 2 * WW**2 * exp(-4 * NU))
+        )
+        density = C * _density
+        _mass = 2 * 2 * pi * _density * r * dx
+        # mass     = C*_mass
 
         # Create trial and test functions
         nu = TrialFunction(V)
@@ -209,7 +241,7 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Create forms for variational problem
         as_ = _lhs(nu, bb, mu, ww, v0, v1, v2, v3, r, P00, P11, P33, P03)
-        Ls  = _rhs(NU, BB, MU, WW, v0, v1, v2, v3, r, P00, P11, P33, P03)
+        Ls = _rhs(NU, BB, MU, WW, v0, v1, v2, v3, r, P00, P11, P33, P03)
 
         # Create residuals
         Fs = _lhs(NU, BB, MU, WW, v0, v1, v2, v3, r, P00, P11, P33, P03)
@@ -227,13 +259,15 @@ class EinsteinVlasovSolver(SolverBase):
         # Create linear solver
         preconditioners = [pc for pc in krylov_solver_preconditioners()]
         if "amg" in preconditioners:
-            solver = LinearSolver(mpi_comm_world(), "bicgstab", "hypre_amg")            
+            solver = LinearSolver(mpi_comm_world(), "bicgstab", "hypre_amg")
         else:
             warning("Missing AMG preconditioner, using ILU.")
             solver = LinearSolver(mpi_comm_world(), "bicgstab")
 
         # Set linear solver parameters
-        solver.parameters["relative_tolerance"] = self.parameters.discretization.krylov_tolerance
+        solver.parameters[
+            "relative_tolerance"
+        ] = self.parameters.discretization.krylov_tolerance
 
         # Initialize Anderson acceleration
         anderson = Anderson(depth, [Ui.vector() for Ui in U])
@@ -250,9 +284,10 @@ class EinsteinVlasovSolver(SolverBase):
 
             # Rescale right-hand side to preserve mass
             _m = assemble(_mass)
-            if _m == 0.0: error("Zero mass distribution.")
+            if _m == 0.0:
+                error("Zero mass distribution.")
             C.assign(m / _m)
-            info("C = %.15g" % float(C))           
+            info("C = %.15g" % float(C))
 
             # Iterate over equations and solve
             for i in range(4):
@@ -260,7 +295,7 @@ class EinsteinVlasovSolver(SolverBase):
                 # Assemble right-hand side
                 assemble(Ls[i], tensor=bs[i])
 
-	            # Apply boundary condition(s)
+                # Apply boundary condition(s)
                 [bc.apply(bs[i]) for j, bc in bcs if j == i]
 
                 # Extra left-hand side assembly for B equation
@@ -272,10 +307,10 @@ class EinsteinVlasovSolver(SolverBase):
                 solver.solve(As[i], Ys[i], bs[i])
 
                 # Damped fixed-point update of solution vector
-                #X = U[i].vector()
-                #X *= (1.0 - theta)
-                #Ys[i] *= theta
-                #X += Ys[i]
+                # X = U[i].vector()
+                # X *= (1.0 - theta)
+                # Ys[i] *= theta
+                # X += Ys[i]
 
             # Fixed-point iteration with Anderson acceleration
             Ys = anderson.update_system(Ys)
@@ -285,7 +320,7 @@ class EinsteinVlasovSolver(SolverBase):
             # Plot density distribution
             project(density, mesh=mesh, function=RHO)
             self._save_density(RHO, iter)
-            self._plot_density(RHO)            
+            self._plot_density(RHO)
 
             # Compute residual
             info("Computing residual")
@@ -293,7 +328,9 @@ class EinsteinVlasovSolver(SolverBase):
             [bc0.apply(f) for f in fs]
             residuals = [norm(f, "linf") for f in fs]
             residual = max(r for r in residuals)
-            info("||F|| = %.3g (%.3g, %.3g, %.3g, %.3g)" % tuple([residual] + residuals))
+            info(
+                "||F|| = %.3g (%.3g, %.3g, %.3g, %.3g)" % tuple([residual] + residuals)
+            )
             self._save_residual(residual)
             end()
 
@@ -322,8 +359,8 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Define rest mass density
         RMD = Function(V)
-        rest_density = C*_Phi[4]
-        project(rest_density, mesh=mesh, function=RMD)        
+        rest_density = C * _Phi[4]
+        project(rest_density, mesh=mesh, function=RMD)
 
         # Compute final unscaled mass and scale ansatz coefficient
         prescribed_mass = self.parameters.discretization.mass
@@ -343,7 +380,9 @@ class EinsteinVlasovSolver(SolverBase):
         self.data["solution_converged"] = solution_converged
 
         # Pack solutions
-        computed_solution = Solution(NU, BB, MU, WW, RHO, P00, P11, P33, P03, RMD, self.data)
+        computed_solution = Solution(
+            NU, BB, MU, WW, RHO, P00, P11, P33, P03, RMD, self.data
+        )
 
         # Compute and store solution characteristics
         computed_data = pq.compute_default_physical_quantities(computed_solution)
@@ -351,23 +390,31 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Compute residuals as functions of space
         fs = [assemble(F) for F in Fs]
-        [bc0.apply(f) for f in fs]        
+        [bc0.apply(f) for f in fs]
         nu_res = Function(V)
         bb_res = Function(V)
         mu_res = Function(V)
         ww_res = Function(V)
         residual_functions = [nu_res, bb_res, mu_res, ww_res]
         for fres, f in zip(residual_functions, fs):
-            fres.vector()[:] = f 
+            fres.vector()[:] = f
 
         # Post processing
         solutions = (NU, BB, MU, WW, RHO)
         flat_solutions = (NU_R, BB_R, MU_R, WW_R)
-        matter_components = [project(p, V) for p in (P00, P11, P33, P03)]        
+        matter_components = [project(p, V) for p in (P00, P11, P33, P03)]
         names = ("NU", "BB", "MU", "WW", "RHO")
         matter_names = ("P00", "P11", "P33", "P03")
-        
-        self._postprocess(ansatzes, solutions, flat_solutions, names, residual_functions, matter_components, matter_names)
+
+        self._postprocess(
+            ansatzes,
+            solutions,
+            flat_solutions,
+            names,
+            residual_functions,
+            matter_components,
+            matter_names,
+        )
 
         # Print nice message
         info("Solver complete.")
