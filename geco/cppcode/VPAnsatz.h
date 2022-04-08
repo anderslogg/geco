@@ -3,13 +3,22 @@
 // is used instead of C++ inheritance since that is not supported by
 // the DOLFIN JIT compiler.
 
+// ---------------------------------------------------------
+// Copyright 2019 Anders Logg, Ellery Ames, Håkan Andréasson
+
+// This file is part of GECo.
+// GECo is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+// GECo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License along with GECo. If not, see <https://www.gnu.org/licenses/>.
+
 namespace dolfin
 {
 
   class VPAnsatz : public Expression
   {
   public:
-
     // Constructor
     VPAnsatz() : Expression(), _resolution(0)
     {
@@ -25,9 +34,9 @@ namespace dolfin
     // tree.
 
     // Evaluate at given point in cell
-    void eval(Array<double>& values,
-              const Array<double>& x,
-              const ufc::cell& cell) const
+    void eval(Array<double> &values,
+              const Array<double> &x,
+              const ufc::cell &cell) const
     {
       // Evaluate potential at point in cell
       dolfin_assert(_U);
@@ -39,8 +48,8 @@ namespace dolfin
     }
 
     // Evaluate at given point
-    void eval(Array<double>& values,
-              const Array<double>& x) const
+    void eval(Array<double> &values,
+              const Array<double> &x) const
     {
       // Evaluate potential at point
       dolfin_assert(_U);
@@ -53,7 +62,7 @@ namespace dolfin
 
     // Evaluation of ansatz
     double eval(double U,
-                const Array<double>& x) const
+                const Array<double> &x) const
     {
       // Get coordinates
       const double rho = x[0];
@@ -74,43 +83,46 @@ namespace dolfin
       const double Ea = U;
       const double Eb = E0;
       const double dE = (Eb - Ea) / static_cast<double>(n);
-      if (dE <= 0.0) error("Strange stuff: dE <= 0.0");
+      if (dE <= 0.0)
+        error("Strange stuff: dE <= 0.0");
 
       // Integrate over E
       for (std::size_t i = 0; i < n; i++)
       {
         // Compute integration variable
-        const double E = Ea + static_cast<double>(i)*dE + 0.5*dE;
+        const double E = Ea + static_cast<double>(i) * dE + 0.5 * dE;
 
         // Check expression for integration limit
-        if (E < U) error("Strange stuff: E < U");
+        if (E < U)
+          error("Strange stuff: E < U");
 
         // Compute integration limits for s-integral
-        const double sm = std::sqrt(2.0*(E - U));
+        const double sm = std::sqrt(2.0 * (E - U));
         const double sa = -sm;
         const double sb = sm;
 
         // Compute step size for s-integral
         const double ds = (sb - sa) / static_cast<double>(n);
-        if (ds < 0.0) error("Strange stuff: ds < 0.0");
+        if (ds < 0.0)
+          error("Strange stuff: ds < 0.0");
 
         // Integrate over s
         for (std::size_t j = 0; j < n; j++)
         {
           // Compute integration variable
-          const double s = sa + static_cast<double>(j)*ds + 0.5*ds;
+          const double s = sa + static_cast<double>(j) * ds + 0.5 * ds;
 
           // Evaluate ansatz and add to integral
-          const double L = rho*s;
-          I += ansatz(E, L)*ds*dE;
+          const double L = rho * s;
+          I += ansatz(E, L) * ds * dE;
         }
       }
 
       // Scale integral
-      I *= 2.0*DOLFIN_PI;
+      I *= 2.0 * DOLFIN_PI;
 
       // Update radius of support
-      const double R = std::sqrt(x[0]*x[0] + x[1]*x[1]);
+      const double R = std::sqrt(x[0] * x[0] + x[1] * x[1]);
       if (I > DOLFIN_EPS && R > _R)
         _R = R;
 
@@ -145,12 +157,12 @@ namespace dolfin
     Parameters parameters;
 
     // Member functions (to be defined by specific ansatz)
-    %(member_functions)s
+    % (member_functions)s
 
-  private:
+        private :
 
-    // Number of steps to use in numerical integration
-    std::size_t _resolution;
+        // Number of steps to use in numerical integration
+        std::size_t _resolution;
 
     // Radius of support
     mutable double _R;
@@ -159,8 +171,7 @@ namespace dolfin
     std::shared_ptr<const Function> _U;
 
     // Member variables (to be defined by specific ansatz)
-    %(member_variables)s
-
+    % (member_variables)s
   };
 
 }

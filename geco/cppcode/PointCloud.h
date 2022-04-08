@@ -3,6 +3,16 @@
 // subclassing is used as a convenient way to inject C++ code in
 // Python.
 
+// ---------------------------------------------------------
+// Copyright 2019 Anders Logg, Ellery Ames, Håkan Andréasson
+
+// This file is part of GECo.
+// GECo is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+// GECo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License along with GECo. If not, see <https://www.gnu.org/licenses/>.
+
 #include <cstdlib>
 #include "dolfin/io/XDMFFile.h"
 
@@ -11,14 +21,13 @@ namespace dolfin
   class PointCloud : public Expression
   {
   public:
-
     // Constructor
     PointCloud() : Expression(),
                    _R(0), _resolution(0), _num_points(0) {}
 
     // Evaluation
-    void eval(Array<double>& values, const Array<double>& x,
-              const ufc::cell& cell) const
+    void eval(Array<double> &values, const Array<double> &x,
+              const ufc::cell &cell) const
     {
       error("Evaluation of point cloud not implemented.");
     }
@@ -53,11 +62,10 @@ namespace dolfin
       const std::size_t N = _num_points;
 
       // Compute some data for point cloud
-      const std::size_t points_per_box
-        = static_cast<std::size_t>(static_cast<double>(N) / static_cast<double>(n*n*n));
-      const double h = 2.0*_R / static_cast<double>(n);
+      const std::size_t points_per_box = static_cast<std::size_t>(static_cast<double>(N) / static_cast<double>(n * n * n));
+      const double h = 2.0 * _R / static_cast<double>(n);
       info("Number of points:         %d", N);
-      info("Number of boxes:          %d", n*n*n);
+      info("Number of boxes:          %d", n * n * n);
 
       // Create empty point cloud data
       std::vector<Point> point_cloud;
@@ -66,13 +74,13 @@ namespace dolfin
       // Iterate over boxes
       for (std::size_t nx = 0; nx < n; nx++)
       {
-        const double x0 = -_R + nx*h;
+        const double x0 = -_R + nx * h;
         for (std::size_t ny = 0; ny < n; ny++)
         {
-          const double y0 = -_R + ny*h;
+          const double y0 = -_R + ny * h;
           for (std::size_t nz = 0; nz < n; nz++)
           {
-            const double z0 = -_R + nz*h;
+            const double z0 = -_R + nz * h;
 
             // Note: We flip the axes here to get a plot that
             // can be viewed at the same time as the xy-plane plot
@@ -82,22 +90,22 @@ namespace dolfin
             // anything sensible (double/int issue?) so we use our own.
 
             // Compute cylindrical coordinates for midpoint of box
-            const double _x = x0 + 0.5*h;
-            const double _y = y0 + 0.5*h;
-            const double _z = z0 + 0.5*h;
-            const double s = sqrt(_x*_x + _z*_z);
+            const double _x = x0 + 0.5 * h;
+            const double _y = y0 + 0.5 * h;
+            const double _z = z0 + 0.5 * h;
+            const double s = sqrt(_x * _x + _z * _z);
             const double z = (_y >= 0.0 ? _y : -_y);
 
             // Skip if point is outside of domain (sphere)
-            if (sqrt(_x*_x + _y*_y + _z*_z) > 0.999*_R)
+            if (sqrt(_x * _x + _y * _y + _z * _z) > 0.999 * _R)
               continue;
 
             // Evaluate density at midpoint of box
             const double box_density = (*_rho)(s, z);
 
             // Compute number of points in box
-            const double box_mass = box_density*h*h*h;
-            std::size_t points_in_box = static_cast<std::size_t>(box_mass*N / _M);
+            const double box_mass = box_density * h * h * h;
+            std::size_t points_in_box = static_cast<std::size_t>(box_mass * N / _M);
 
             // Randomize positions of points in box
             for (std::size_t i = 0; i < points_in_box; i++)
@@ -106,9 +114,9 @@ namespace dolfin
               const double rx = rand();
               const double ry = rand();
               const double rz = rand();
-              const double x = x0 + rx*h;
-              const double y = y0 + ry*h;
-              const double z = z0 + rz*h;
+              const double x = x0 + rx * h;
+              const double y = y0 + ry * h;
+              const double z = z0 + rz * h;
 
               // Add box to point cloud
               Point p(x, y, z);
@@ -132,7 +140,6 @@ namespace dolfin
     }
 
   private:
-
     // Axially symmetric density (2D)
     std::shared_ptr<const Function> _rho;
 
@@ -141,7 +148,6 @@ namespace dolfin
     double _M; // total mass (integral of RHO)
     std::size_t _resolution;
     std::size_t _num_points;
-
   };
 
 }

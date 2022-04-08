@@ -3,13 +3,22 @@
 // is used instead of C++ inheritance since that is not supported by
 // the DOLFIN JIT compiler.
 
+// ---------------------------------------------------------
+// Copyright 2019 Anders Logg, Ellery Ames, Håkan Andréasson
+
+// This file is part of GECo.
+// GECo is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+// GECo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License along with GECo. If not, see <https://www.gnu.org/licenses/>.
+
 namespace dolfin
 {
 
   class EVAnsatz : public Expression
   {
   public:
-
     // Constructor
     EVAnsatz() : Expression(5), _resolution(0)
     {
@@ -31,9 +40,9 @@ namespace dolfin
     // tree.
 
     // Evaluate at given point in cell
-    void eval(Array<double>& values,
-              const Array<double>& x,
-              const ufc::cell& cell) const
+    void eval(Array<double> &values,
+              const Array<double> &x,
+              const ufc::cell &cell) const
     {
       dolfin_assert(_NU);
       dolfin_assert(_BB);
@@ -66,8 +75,8 @@ namespace dolfin
     }
 
     // Evaluate at given point
-    void eval(Array<double>& values,
-              const Array<double>& x) const
+    void eval(Array<double> &values,
+              const Array<double> &x) const
     {
       dolfin_assert(_NU);
       dolfin_assert(_BB);
@@ -100,9 +109,9 @@ namespace dolfin
     }
 
     // Evaluation of ansatz
-    void eval(Array<double>& values,
-	      double NU, double BB, double MU, double WW,
-	      const Array<double>& x) const
+    void eval(Array<double> &values,
+              double NU, double BB, double MU, double WW,
+              const Array<double> &x) const
     {
       // We want WW non-negative
       _min_WW = std::min(_min_WW, WW);
@@ -117,7 +126,7 @@ namespace dolfin
       const double K1 = exp(NU);
 
       // Check cut-off
-      if (_particle_mass*K1 >= E0)
+      if (_particle_mass * K1 >= E0)
       {
         values[0] = 0.0;
         values[1] = 0.0;
@@ -139,24 +148,26 @@ namespace dolfin
       double I4 = 0.0;
 
       // Compute integration limits for h-integral
-      const double ha = _particle_mass*K1;
+      const double ha = _particle_mass * K1;
       const double hb = E0;
       const double dh = (hb - ha) / static_cast<double>(n);
-      if (dh <= 0.0) error("Strange stuff: dh <= 0.0");
+      if (dh <= 0.0)
+        error("Strange stuff: dh <= 0.0");
 
       // Integrate over h
       for (std::size_t i = 0; i < n; i++)
       {
         // Compute integration variable
-        const double h = ha + static_cast<double>(i)*dh + 0.5*dh;
+        const double h = ha + static_cast<double>(i) * dh + 0.5 * dh;
 
         // Check expression for integration limit
-        const double K2 = h*h / (K1*K1) - _particle_mass*_particle_mass;
-        if (K2 < 0.0) error("Strange stuff: K2 < 0.0");
+        const double K2 = h * h / (K1 * K1) - _particle_mass * _particle_mass;
+        if (K2 < 0.0)
+          error("Strange stuff: K2 < 0.0");
 
         // Compute integration limits for s-integral
         double sa = 0.0;
-        const double sb = (BB/K1)*sqrt(K2);
+        const double sb = (BB / K1) * sqrt(K2);
 
         // Change lower limit if not rotating
         if (!_rotation)
@@ -164,36 +175,39 @@ namespace dolfin
 
         // Compute step size for s-integral
         const double ds = (sb - sa) / static_cast<double>(n);
-        if (ds < -10.0*DOLFIN_EPS)
-	  {
-	    std::cout << "BB:" << BB << "\n";
-	    std::cout << "sb:" << sb << "\n";
-	    std::cout << "ds:" << ds << "\n";
-	    error("Strange stuff: ds < 0.0");
-	  }
+        if (ds < -10.0 * DOLFIN_EPS)
+        {
+          std::cout << "BB:" << BB << "\n";
+          std::cout << "sb:" << sb << "\n";
+          std::cout << "ds:" << ds << "\n";
+          error("Strange stuff: ds < 0.0");
+        }
 
         // Integrate over s
         for (std::size_t j = 0; j < n; j++)
         {
           // Compute integration variable
-          const double s = sa + static_cast<double>(j)*ds + 0.5*ds;
+          const double s = sa + static_cast<double>(j) * ds + 0.5 * ds;
 
           // Compute variables for ansatz
-          const double L = rho*s;
-          const double E = h + WW*L;
-          if (L < 0.0 && _rotation) error("Strange stuff: L < 0.0");
-          if (E < 0.0) error("Strange stuff: E < 0.0");
+          const double L = rho * s;
+          const double E = h + WW * L;
+          if (L < 0.0 && _rotation)
+            error("Strange stuff: L < 0.0");
+          if (E < 0.0)
+            error("Strange stuff: E < 0.0");
 
           // Evaluate ansatz
           const double f = ansatz(E, L);
-          if (f < 0.0) error("Strange stuff: f < 0.0");
+          if (f < 0.0)
+            error("Strange stuff: f < 0.0");
 
           // Compute integrals
-          I0 += E*E*f*ds*dh;
-          I1 += (sb*sb - s*s)*f*ds*dh;
-          I2 += s*s*f*ds*dh;
-          I3 += s*E*f*ds*dh;
-          I4 += f*h*ds*dh;
+          I0 += E * E * f * ds * dh;
+          I1 += (sb * sb - s * s) * f * ds * dh;
+          I2 += s * s * f * ds * dh;
+          I3 += s * E * f * ds * dh;
+          I4 += f * h * ds * dh;
         }
       }
 
@@ -201,23 +215,23 @@ namespace dolfin
       const double XI = MU + NU;
 
       // Scale integrals to compute Phi00, Phi11, Phi33, Phi03, density distribution
-      values[0] =  2.0*pi*exp(2.0*XI)*std::pow(BB, -1)*std::pow(K1, -4.0)*I0;     // Integral for PHI_00
-      values[1] =  2.0*pi*exp(2.0*XI)*std::pow(BB, -3)*I1;                        // Integral for PHI_11
-      values[2] =  2.0*pi*exp(2.0*XI)*std::pow(BB, -3)*I2;                        // Integral for PHI_33
-      values[3] = -2.0*pi*exp(2.0*XI)*std::pow(BB, -1)*rho*I3;                    // Integral for PHI_03
-      values[4] =  2.0*pi*exp(2.0*MU - 2.0*NU)*_particle_mass*I4;                 // Integral for the rest density
+      values[0] = 2.0 * pi * exp(2.0 * XI) * std::pow(BB, -1) * std::pow(K1, -4.0) * I0; // Integral for PHI_00
+      values[1] = 2.0 * pi * exp(2.0 * XI) * std::pow(BB, -3) * I1;                      // Integral for PHI_11
+      values[2] = 2.0 * pi * exp(2.0 * XI) * std::pow(BB, -3) * I2;                      // Integral for PHI_33
+      values[3] = -2.0 * pi * exp(2.0 * XI) * std::pow(BB, -1) * rho * I3;               // Integral for PHI_03
+      values[4] = 2.0 * pi * exp(2.0 * MU - 2.0 * NU) * _particle_mass * I4;             // Integral for the rest density
 
       // Update radius of support
-      const double R = std::sqrt(x[0]*x[0] + x[1]*x[1]);
+      const double R = std::sqrt(x[0] * x[0] + x[1] * x[1]);
       if (I4 > DOLFIN_EPS && R > _R)
         _R = R;
     }
 
     // Set fields
     void set_fields(std::shared_ptr<const Function> NU,
-		    std::shared_ptr<const Function> BB,
+                    std::shared_ptr<const Function> BB,
                     std::shared_ptr<const Function> MU,
-		    std::shared_ptr<const Function> WW)
+                    std::shared_ptr<const Function> WW)
     {
       _NU = NU;
       _BB = BB;
@@ -256,12 +270,12 @@ namespace dolfin
     Parameters parameters;
 
     // Member functions (to be defined by specific ansatz)
-    %(member_functions)s
+    % (member_functions)s
 
-  private:
+        private :
 
-    // Number of steps to use in numerical integration
-    std::size_t _resolution;
+        // Number of steps to use in numerical integration
+        std::size_t _resolution;
 
     // Rotating or not
     bool _rotation;
@@ -282,8 +296,7 @@ namespace dolfin
     std::shared_ptr<const Function> _WW;
 
     // Member variables (to be defined by specific ansatz)
-    %(member_variables)s
-
+    % (member_variables)s
   };
 
 }

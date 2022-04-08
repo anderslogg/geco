@@ -1,15 +1,32 @@
-"This module defines models for the density."
+"""
+---------
+models.py
+---------
+This module defines models for the density.
+
+Copyright 2019 Anders Logg, Ellery Ames, Håkan Andréasson
+
+This file is part of GECo.
+GECo is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+GECo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with GECo. If not, see <https://www.gnu.org/licenses/>.
+"""
 
 import os
+
 from dolfin import Expression, error
 
 # List of all available models (grab all files from directory)
 library_dir = os.path.dirname(os.path.abspath(__file__))
 cppcode_dir = os.path.join(library_dir, "cppcode")
-model_data = [m.split(".")[0] for m in os.listdir(cppcode_dir) if \
-              m.endswith(".h") and \
-             (m.startswith("VP-") or
-              m.startswith("EV-"))]
+model_data = [
+    m.split(".")[0]
+    for m in os.listdir(cppcode_dir)
+    if m.endswith(".h") and (m.startswith("VP-") or m.startswith("EV-"))
+]
+
 
 def MaterialModel(model):
     "Create given material model"
@@ -20,7 +37,7 @@ def MaterialModel(model):
 
     # Get model data
     if not model in model_data:
-        error("Unknown material model: \"%s\"." % str(model))
+        error('Unknown material model: "%s".' % str(model))
     model_filename = model + ".h"
     template_filename = model.split("-")[0] + "Ansatz.h"
 
@@ -33,12 +50,16 @@ def MaterialModel(model):
     model_code = open(os.path.join(cppcode_dir, model_filename)).read()
 
     # Extract relevant model code
-    member_functions = model_code.split("// Member functions")[1].split("// Member variables")[0]
+    member_functions = model_code.split("// Member functions")[1].split(
+        "// Member variables"
+    )[0]
     member_variables = model_code.split("// Member variables")[1]
 
     # Stick specialized code into template and return
-    cppcode = template_code % {"member_functions": member_functions,
-                               "member_variables": member_variables}
+    cppcode = template_code % {
+        "member_functions": member_functions,
+        "member_variables": member_variables,
+    }
 
     # Create expression
     rho = Expression(cppcode=cppcode, degree=1)
@@ -47,6 +68,7 @@ def MaterialModel(model):
     rho.parameters.rename(model)
 
     return rho
+
 
 # Function for creating 2D representation density (extension to R2 from first quadrant)
 def Density2D(rho):
@@ -66,6 +88,7 @@ def Density2D(rho):
 
     return rho2d
 
+
 # Function for creating 3D representation density
 def Density3D(rho):
 
@@ -84,6 +107,7 @@ def Density3D(rho):
 
     return rho3d
 
+
 # Function for creating indicator function on matter support
 def SupportBump(rho):
 
@@ -101,6 +125,7 @@ def SupportBump(rho):
     rho_support.set_density(rho)
 
     return rho_support
+
 
 # Function for creating point cloud representation of density
 def PointCloud(rho, R, M, resolution, num_points):
