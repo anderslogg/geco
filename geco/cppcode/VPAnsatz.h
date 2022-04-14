@@ -4,7 +4,7 @@
 // the DOLFIN JIT compiler.
 
 // ---------------------------------------------------------
-// Copyright 2019 Anders Logg, Ellery Ames, Håkan Andréasson
+// Copyright 2019 Anders Logg, Ellery Ames, Haakan Andreasson
 
 // This file is part of GECo.
 // GECo is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -83,8 +83,7 @@ namespace dolfin
       const double Ea = U;
       const double Eb = E0;
       const double dE = (Eb - Ea) / static_cast<double>(n);
-      if (dE <= 0.0)
-        error("Strange stuff: dE <= 0.0");
+      if (dE <= 0.0) error("Strange stuff: dE <= 0.0");
 
       // Integrate over E
       for (std::size_t i = 0; i < n; i++)
@@ -93,8 +92,7 @@ namespace dolfin
         const double E = Ea + static_cast<double>(i) * dE + 0.5 * dE;
 
         // Check expression for integration limit
-        if (E < U)
-          error("Strange stuff: E < U");
+        if (E < U) error("Strange stuff: E < U");
 
         // Compute integration limits for s-integral
         const double sm = std::sqrt(2.0 * (E - U));
@@ -103,8 +101,7 @@ namespace dolfin
 
         // Compute step size for s-integral
         const double ds = (sb - sa) / static_cast<double>(n);
-        if (ds < 0.0)
-          error("Strange stuff: ds < 0.0");
+        if (ds < 0.0) error("Strange stuff: ds < 0.0");
 
         // Integrate over s
         for (std::size_t j = 0; j < n; j++)
@@ -157,7 +154,7 @@ namespace dolfin
     Parameters parameters;
 
     // Member functions (to be defined by specific ansatz)
-    % (member_functions)s
+    %(member_functions)s
 
         private :
 
@@ -171,7 +168,7 @@ namespace dolfin
     std::shared_ptr<const Function> _U;
 
     // Member variables (to be defined by specific ansatz)
-    % (member_variables)s
+    %(member_variables)s
   };
 
 }

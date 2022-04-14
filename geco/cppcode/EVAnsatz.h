@@ -151,8 +151,7 @@ namespace dolfin
       const double ha = _particle_mass * K1;
       const double hb = E0;
       const double dh = (hb - ha) / static_cast<double>(n);
-      if (dh <= 0.0)
-        error("Strange stuff: dh <= 0.0");
+      if (dh <= 0.0) error("Strange stuff: dh <= 0.0");
 
       // Integrate over h
       for (std::size_t i = 0; i < n; i++)
@@ -162,8 +161,7 @@ namespace dolfin
 
         // Check expression for integration limit
         const double K2 = h * h / (K1 * K1) - _particle_mass * _particle_mass;
-        if (K2 < 0.0)
-          error("Strange stuff: K2 < 0.0");
+        if (K2 < 0.0) error("Strange stuff: K2 < 0.0");
 
         // Compute integration limits for s-integral
         double sa = 0.0;
@@ -192,15 +190,12 @@ namespace dolfin
           // Compute variables for ansatz
           const double L = rho * s;
           const double E = h + WW * L;
-          if (L < 0.0 && _rotation)
-            error("Strange stuff: L < 0.0");
-          if (E < 0.0)
-            error("Strange stuff: E < 0.0");
+          if (L < 0.0 && _rotation) error("Strange stuff: L < 0.0");
+          if (E < 0.0) error("Strange stuff: E < 0.0");
 
           // Evaluate ansatz
           const double f = ansatz(E, L);
-          if (f < 0.0)
-            error("Strange stuff: f < 0.0");
+          if (f < 0.0) error("Strange stuff: f < 0.0");
 
           // Compute integrals
           I0 += E * E * f * ds * dh;
@@ -270,7 +265,7 @@ namespace dolfin
     Parameters parameters;
 
     // Member functions (to be defined by specific ansatz)
-    % (member_functions)s
+    %(member_functions)s
 
         private :
 
@@ -296,7 +291,7 @@ namespace dolfin
     std::shared_ptr<const Function> _WW;
 
     // Member variables (to be defined by specific ansatz)
-    % (member_variables)s
+    %(member_variables)s
   };
 
 }
