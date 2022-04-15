@@ -59,6 +59,7 @@ class VlasovPoissonSolver(SolverBase):
 
         # Get discretization parameters
         m = self.parameters.discretization.mass
+        R = self.parameters.discretization.domain_radius
         maxiter = self.parameters.discretization.maxiter
         tol = self.parameters.discretization.tolerance
         num_steps = self.parameters.discretization.num_steps
@@ -95,11 +96,13 @@ class VlasovPoissonSolver(SolverBase):
         U_R = _flat(m)
 
         # Create subdomains for boundaries
-        infty = CompiledSubDomain("on_boundary && x[0] > 1e-10")
+        eps = 1e-5
+        infty_test = "x[0]*x[0] + x[1]*x[1] > (R - eps)*(R - eps)"
+        infty = CompiledSubDomain(infty_test, eps=eps, R=R)
 
         # Create boundary conditions
-        bc = DirichletBC(V, U_R, infty)
-        bc0 = DirichletBC(V, 0.0, infty)
+        bc  = DirichletBC(V, U_R, infty, method="pointwise")
+        bc0 = DirichletBC(V, 0.0, DomainBoundary())
 
         # Initialize all ansatzes
         for ansatz in ansatzes:

@@ -18,10 +18,3 @@ model.parameters.rotation = False
 
 # Compute solution 
 solution = solver.solve(model)
-
-# Extract solution components
-NU, BB, MU, WW, RHO, data = solution
-
-# Plot density
-plot(RHO)
-interactive()
