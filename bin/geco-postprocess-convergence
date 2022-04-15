@@ -5,6 +5,7 @@
 # residual. Usage: geco-postprocess-convergence residuals.csv.
 
 import sys
+
 import pylab as pl
 
 # Get filename
@@ -41,4 +42,5 @@ else:
 pl.xlabel("Iteration")
 pl.ylabel("Residual")
 pl.grid(True)
+pl.savefig("convergence_of_residual.png")
 pl.show()
