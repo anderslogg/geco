@@ -23,7 +23,3 @@ model.parameters.l = 1.0
 
 # Solve
 U, RHO, data = solver.solve(model)
-
-# Plot density
-plot(RHO)
-interactive()
