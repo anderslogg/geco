@@ -3,9 +3,11 @@ Equation: Einstein-Vlasov
 Ansatz:   EV-E-Polytropic-L-Andreasson (spindle)
           EV-E-Polytropic-L-Polytropic (torus) 
 
-This creates an hoag-type object with a spindle center and a toroidal ring and zero net angular momentum.
-The shape is stable under changes to the parameters.
-The present choice gives a nice near-vacuum region between the components.
+This creates a multi-component body with a spindle center and a toroidal ring and zero net angular momentum.
+The morphology is stable under changes to the parameters.
+The present choice gives a near-vacuum region between the components.
+
+Converges in 5 iterations at a tolerance of 1e-3. 
 """
 
 from geco import *
@@ -13,7 +15,8 @@ from geco import *
 # Create solver
 solver = EinsteinVlasovSolver()
 solver.parameters.output.plot_solution = False
-solver.parameters.discretization.radius = 100
+solver.parameters.discretization.domain_radius = 60
+solver.parameters.discretization.resolution = 90
 
 # Create ansatzes
 S = MaterialModel("EV-E-Polytropic-L-Andreasson")
@@ -37,10 +40,3 @@ T.parameters.rotation = False
 
 # Compute solution for initial guess
 solution = solver.solve(model)
-
-# Extract solution components
-NU, BB, MU, WW, RHO, data = solution
-
-# Plot density
-plot(RHO)
-interactive()
