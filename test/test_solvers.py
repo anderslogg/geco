@@ -2,6 +2,7 @@ from geco import *
 
 eps = 1e-10
 
+
 def test_vp():
     "Test VP solver"
 
@@ -9,7 +10,7 @@ def test_vp():
     solver = VlasovPoissonSolver()
     solver.parameters.output.plot_solution = False
     solver.parameters.output.plot_iteration = False
-    solver.parameters.discretization.radius = 50
+    solver.parameters.discretization.domain_radius = 50
     solver.parameters.discretization.resolution = 16
 
     # Create ansatz for initial guess
@@ -20,7 +21,8 @@ def test_vp():
 
     # Check results
     C = data["ansatz_coefficient"]
-    assert(abs(C - 0.0027841502772863623) < eps)
+    assert(abs(C - 0.0025108107357906897) < eps)
+
 
 def test_ev():
     "Test EV solver, non-rotating"
@@ -29,7 +31,7 @@ def test_ev():
     solver = EinsteinVlasovSolver()
     solver.parameters.output.plot_solution = False
     solver.parameters.output.plot_iteration = False
-    solver.parameters.discretization.radius = 50
+    solver.parameters.discretization.domain_radius = 50
     solver.parameters.discretization.resolution = 16
 
     # Create ansatz for initial guess
@@ -40,11 +42,14 @@ def test_ev():
     model.parameters.rotation = False
 
     # Compute solution
-    NU, BB, NU, WW, RHO, data = solver.solve(model)
+    solution = solver.solve(model)
 
     # Check results
+    data = solution.data
     C = data["ansatz_coefficient"]
-    assert(abs(C - 0.0007798089721151605) < eps)
+    assert(abs(C - 0.0007272865499169678) < eps)
+    
+
 
 def test_evr():
     "Test EV solver, rotating"
@@ -53,22 +58,24 @@ def test_evr():
     solver = EinsteinVlasovSolver()
     solver.parameters.output.plot_solution = False
     solver.parameters.output.plot_iteration = False
-    solver.parameters.discretization.radius = 50
+    solver.parameters.discretization.domain_radius = 50
     solver.parameters.discretization.resolution = 16
 
-    # Create ansatz for initial guess
+    # Create ansatz
     model = MaterialModel("EV-E-Polytropic-L-Polytropic")
     model.parameters.E0 = 0.942
     model.parameters.k = 0.0
     model.parameters.l = 0.0
 
     # Compute solution
-    NU, BB, NU, WW, RHO, data = solver.solve(model)
+    solution = solver.solve(model)
 
     # Check results
+    data = solution.data
     C = data["ansatz_coefficient"]
-    assert(abs(C - 0.0015973635377758526) < eps)
-
+    assert(abs(C - 0.0015031671809747657) < eps)
+    
+    
 def test_evr_gaussian():
     "Test EV solver, rotating, with E-Poly : L-Guassian ansatz"
     
@@ -76,19 +83,10 @@ def test_evr_gaussian():
     solver = EinsteinVlasovSolver()
     solver.parameters.output.plot_solution = False
     solver.parameters.output.plot_iteration = False    
-    solver.parameters.discretization.radius = 50
+    solver.parameters.discretization.domain_radius = 50
     solver.parameters.discretization.resolution = 32
 
-    # Create ansatz for initial guess
-    model = MaterialModel("EV-E-Polytropic-L-Polytropic")
-    model.parameters.E0 = 0.942
-    model.parameters.k = 0.5
-    model.parameters.l = 0.0
-
-    # Compute solution for initial guess
-    solution = solver.solve(model)
-
-    # Create main ansatz
+    # Create ansatz
     model = MaterialModel("EV-E-Polytropic-L-Gaussian")
     model.parameters.E0 = 0.942
     model.parameters.pm = 1.0
@@ -96,14 +94,13 @@ def test_evr_gaussian():
     model.parameters.L0 = 2.0
 
     # Compute solution
-    solution = solver.solve(model, solution)
-
-    # Extract solution components
-    NU, BB, MU, WW, RHO, data = solution
+    solution = solver.solve(model)
 
     # Check results
+    data = solution.data
     C = data["ansatz_coefficient"]
-    assert(abs(C - 0.01637260340798612) < eps)
+    assert(abs(C - 0.015902229428470693) < eps)
+
 
 if __name__ == "__main__":
 
