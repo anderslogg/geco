@@ -2,9 +2,7 @@
 Equation: Einstein-Vlasov (rotating)
 Ansatz:   EV-E-Polytropic-L-Gaussian
 
-This creates a rotating disk of particles with positive angular momentum.
-
-Note: Because of the large E0 parameter, this dem should be run on a mesh of at least 50.
+This creates a rotating solution of the EV system with oblate (disk) morphology.
 """
 
 from geco import *
@@ -12,7 +10,7 @@ from geco import *
 # Create solver
 solver = EinsteinVlasovSolver()
 solver.parameters.output.plot_solution = False
-solver.parameters.discretization.radius = 50
+solver.parameters.discretization.domain_radius = 50
 solver.parameters.discretization.resolution = 64
 
 # Create ansatz for initial guess
@@ -33,10 +31,3 @@ model.parameters.L0 = 1.27
 
 # Compute solution
 solution = solver.solve(model, solution)
-
-# Extract solution components
-NU, BB, MU, WW, RHO, data = solution
-
-# Plot density
-plot(RHO)
-interactive()
