@@ -124,7 +124,7 @@ class SolverBase:
     def _generate_mesh(self):
 
         # Note that we generate the mesh with unit radius and
-        # then scale the mesh so as not to confiuse the mshr
+        # then scale the mesh so as not to confuse the mshr
         # resolution...
 
         # Get parameters
@@ -136,7 +136,7 @@ class SolverBase:
         rectangle = Rectangle(Point(0, 0), Point(2, 2))
         domain = circle * rectangle
 
-        # Generate mesh
+        # Generate uniform mesh
         mesh = generate_mesh(domain, N)
 
         # Scale mesh
@@ -148,7 +148,7 @@ class SolverBase:
     def _generate_mesh_annulus(self, R, N):
 
         # Note that we generate the mesh with unit radius and
-        # then scale the mesh so as not to confiuse the mshr
+        # then scale the mesh so as not to confuse the mshr
         # resolution...
 
         # Get parameters
@@ -161,7 +161,7 @@ class SolverBase:
         rectangle = Rectangle(Point(0, 0), Point(4, 4))
         domain = big_circle * rectangle - circle
 
-        # Generate mesh
+        # Generate uniform mesh
         mesh = generate_mesh(domain, N)
 
         # Scale mesh
