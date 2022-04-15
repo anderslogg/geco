@@ -96,13 +96,13 @@ class VlasovPoissonSolver(SolverBase):
         U_R = _flat(m)
 
         # Create subdomains for boundaries
-        eps = 1e-3
+        eps = 1e-5
         infty_test = "x[0]*x[0] + x[1]*x[1] > (R - eps)*(R - eps)"
         infty = CompiledSubDomain(infty_test, eps=eps, R=R)
 
         # Create boundary conditions
-        bc = DirichletBC(V, U_R, infty)
-        bc0 = DirichletBC(V, 0.0, infty)
+        bc  = DirichletBC(V, U_R, infty, method="pointwise")
+        bc0 = DirichletBC(V, 0.0, DomainBoundary())
 
         # Initialize all ansatzes
         for ansatz in ansatzes:
