@@ -4,7 +4,7 @@ physicalquantities.py
 ---------------------
 A library of functions to compute various characteristics of the numerically computed solutions. 
 
-Copyright 2019 Anders Logg, Ellery Ames, Håkan Andréasson
+Copyright 2019 Anders Logg, Ellery Ames, Haakan Andreasson
 
 This file is part of GECo.
 GECo is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.

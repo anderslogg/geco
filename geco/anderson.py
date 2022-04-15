@@ -14,7 +14,7 @@ general fixed-point iterations. Often, it is enough to set m = 3.
     x = anderson.update(gx)
 
 ---------------------------------------------------------
-Copyright 2019 Anders Logg, Ellery Ames, Håkan Andréasson
+Copyright 2019 Anders Logg, Ellery Ames, Haakan Andreasson
 
 This file is part of GECo.
 GECo is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
