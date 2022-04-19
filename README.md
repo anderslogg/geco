@@ -1,17 +1,12 @@
-GECo - Gothenburg Einstein solver Collection
-============================================
+# GECo - Gothenburg Einstein solver Collection
 
-------------
-Introduction
-------------
+## Introduction
 
 GECo is a collection of solvers for the Einstein-Vlasov equations
 developed at Chalmers University of Technology / University of
 Gothenburg.
 
-------------
-Installation
-------------
+## Installation
 
 GECo is installed like any other Python module:
 
@@ -27,25 +22,18 @@ Tip for working with different directories inside a Docker container:
 
     alias make='pushd . && cd ~/shared/geco && sudo -H pip install --upgrade . && popd'
 
-------------
-Dependencies
-------------
+## Dependencies
 
 GECo depends on FEniCS version 2017.2.0.
 
------
-Usage
------
+## Usage
 
 GECo can be used either as a programmable Python library (see demos in
 the demo subdirectory) or via its graphical user interface (command 'geco').
 
+## Citing GECo
 
------------
-Citing GECo
------------
-
-If you use GECo in your work please cite the following paper: 
+If you use GECo in your work please cite the following paper:
 
 @article{GECo2016,
     author = {Ames, Ellery and Andr{\'e}asson, H{\aa}kan and Logg, Anders},
@@ -58,10 +46,7 @@ If you use GECo in your work please cite the following paper:
     doi = {10.1088/0264-9381/33/15/155008}
 }
 
-
--------
-License
--------
+## License
 
 Copyright 2019 Anders Logg, Ellery Ames, Håkan Andréasson
 
@@ -71,9 +56,7 @@ GECo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY
 
 You should have received a copy of the GNU General Public License along with GECo. If not, see <https://www.gnu.org/licenses/>.
 
--------
-Authors
--------
+## Authors
 
 GECo is written by
 
@@ -84,6 +67,6 @@ with valuable theoretical / modeling / algorithmic input from
 
    Håkan Andreasson <hand@chalmers.se>
 
-and contributions to postprocessing capabilities by 
+and contributions to postprocessing capabilities by
 
-    Eric Malekos. 
+    Eric Malekos.
