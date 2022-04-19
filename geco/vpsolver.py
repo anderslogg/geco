@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with GEC
 
 """
 
-from solverbase import *
+from geco.solverbase import *
 
 
 def _lhs(u, v, r):

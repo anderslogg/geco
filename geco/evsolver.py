@@ -15,9 +15,9 @@ GECo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY
 You should have received a copy of the GNU General Public License along with GECo. If not, see <https://www.gnu.org/licenses/>.
 """
 
-import physicalquantities as pq
-from solution import *
-from solverbase import *
+import geco.physicalquantities as pq
+from geco.solution import *
+from geco.solverbase import *
 
 
 def _lhs(nu, bb, mu, ww, v0, v1, v2, v3, r, P00, P11, P33, P03):

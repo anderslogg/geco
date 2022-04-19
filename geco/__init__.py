@@ -1,18 +1,18 @@
 from dolfin import *
 
 # Import model classes
-from models import MaterialModel
-from models import model_data
+from geco.models import MaterialModel
+from geco.models import model_data
 
 # Import solver classes
-from vpsolver import VlasovPoissonSolver
-from evsolver import EinsteinVlasovSolver
+from geco.vpsolver import VlasovPoissonSolver
+from geco.evsolver import EinsteinVlasovSolver
 
 # List of solvers (labels)
 solvers = ("Vlasov-Poisson", "Einstein-Vlasov")
 
 # Temporary import of temporary class until we make all solvers adaptive
-from avpsolver import AdaptiveVlasovPoissonSolver
+from geco.avpsolver import AdaptiveVlasovPoissonSolver
 
 # List of ansatzes (labels)
 ansatzes = model_data

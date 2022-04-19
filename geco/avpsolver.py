@@ -25,8 +25,7 @@ import numpy
 from dolfin import *
 from ufl.algorithms import extract_coefficients
 
-from models import *
-
+from geco.models import *
 
 class AdaptiveVlasovPoissonSolver:
     "Adaptive solver for the axisymmetric Vlasov-Poisson equations"
@@ -160,7 +159,7 @@ class AdaptiveVlasovPoissonSolver:
     def _refine_mesh(self, mesh, U, rho):
         "Refine mesh based on error indicator form"
 
-        print "Refining mesh..."
+        print("Refining mesh...")
 
         # Create error indicator form
         eT = self._create_error_indicators(U, rho)
@@ -344,7 +343,7 @@ class AdaptiveVlasovPoissonSolver:
         # File for storing adaptive meshes
         mfile = File("solutions/avp/mesh.pvd")
         ufile = File("solutions/avp/U.pvd")
-        rfile = File("solutions/avp/rho.pvd")        
+        rfile = File("solutions/avp/rho.pvd")
 
         # Main loop
         tic()
@@ -366,21 +365,21 @@ class AdaptiveVlasovPoissonSolver:
 
             RHO = Function(V)
             project(rho, mesh=mesh, function=RHO)
-            rfile << RHO            
+            rfile << RHO
 
             # Check for convergence
             if residual < tol and iter > 0:
                 break
 
         # Print elapsed time
-        print "Iterations finished in %g seconds." % toc()
+        print("Iterations finished in %g seconds." % toc())
 
         # Check whether iteration converged
         if iter == maxiter - 1:
             error("Iteration did not converge.")
-        print
-        print "Iterations converged to within a tolerance of %g." % tol
-        print "Number of iterations was %g." % iter
+        print()
+        print("Iterations converged to within a tolerance of %g." % tol)
+        print("Number of iterations was %g." % iter)
 
         # FIXME: Temporary post-processing
         plot(mesh, interactive=True)
@@ -430,7 +429,7 @@ class AdaptiveVlasovPoissonSolver:
 
         # Interpolate to create 3D representation of density
         if save_solution_3d:
-            print "Computing 3D representation of density"
+            print("Computing 3D representation of density")
             n = resolution_3d
             box = BoxMesh(Point(-R, -R, -R), Point(R, R, R), n, n, n)
             V3D = FunctionSpace(box, "Lagrange", 1)
@@ -439,7 +438,7 @@ class AdaptiveVlasovPoissonSolver:
 
         # Create point cloud representation of density
         if save_point_cloud:
-            print "Computing point cloud representation of density"
+            print("Computing point cloud representation of density")
             rho = PointCloud(RHO, R, m, 64, 50000)
             filename = os.path.join(solution_dir, "point_cloud_%d%s.xdmf" % (R, suffix))
             rho.save_data(filename)
@@ -463,15 +462,15 @@ class AdaptiveVlasovPoissonSolver:
     def print_ansatzes(self, ansatzes):
 
         for ansatz in ansatzes:
-            print
+            print()
             info(ansatz.parameters, True)
 
     def print_discretization(self):
 
-        print
-        print "Discretization parameters:"
+        print()
+        print("Discretization parameters:")
         info(self.parameters.discretization, True)
-        print
+        print()
 
 
     def print_data(self):
@@ -483,10 +482,10 @@ class AdaptiveVlasovPoissonSolver:
         _M = self.data["unscaled_mass"]
         Q  = 2*M / R0
 
-        print
-        print "  r0  = %.16g \t(Radius of support)"               % r0
-        print "  R0  = %.16g \t(Radius of support areal coords)"  % R0
-        print "  Q  = %.16g \t(2*M / R0)"                         % Q
-        print "  M  = %.16g \t(Total mass)"                       % M
-        print "  M' = %.16g \t(Unscaled mass)"                    % _M
-        print
+        print()
+        print("  r0  = %.16g \t(Radius of support)"               % r0)
+        print("  R0  = %.16g \t(Radius of support areal coords)"  % R0)
+        print("  Q  = %.16g \t(2*M / R0)"                         % Q)
+        print("  M  = %.16g \t(Total mass)"                       % M)
+        print("  M' = %.16g \t(Unscaled mass)"                    % _M)
+        print()

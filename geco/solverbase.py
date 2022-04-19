@@ -24,9 +24,8 @@ from dolfin import *
 from mshr import *
 from ufl.algorithms import extract_coefficients
 
-from anderson import *
-from models import *
-
+from geco.anderson import *
+from geco.models import *
 
 def _dict2table(dict, title):
     "Convert dictionary to table"
@@ -35,7 +34,6 @@ def _dict2table(dict, title):
     for key in keys:
         table.set(key, "value", dict[key])
     return table
-
 
 class SolverBase:
     def __init__(self, solver_prefix):
