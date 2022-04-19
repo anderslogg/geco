@@ -58,15 +58,8 @@ You should have received a copy of the GNU General Public License along with GEC
 
 ## Authors
 
-GECo is written by
+GECo is written by Ellery Ames <ellery.ames@humboldt.edu> and Anders Logg <logg@chalmers.se>.
 
-   Ellery Ames <ellery.ames@humboldt.edu>
-   Anders Logg <logg@chalmers.se>
+with valuable theoretical / modeling / algorithmic input from Håkan Andreasson <hand@chalmers.se>
 
-with valuable theoretical / modeling / algorithmic input from
-
-   Håkan Andreasson <hand@chalmers.se>
-
-and contributions to postprocessing capabilities by
-
-    Eric Malekos.
+and contributions to postprocessing capabilities by Eric Malekos.
