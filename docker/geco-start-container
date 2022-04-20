@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+docker start geco
+
+if [[ $OSTYPE == *"linux"* ]]; then
+    docker exec --user "$(id -u):$(id -g)" -it geco bash # breaks user permissions on Mac
+else
+    docker attach geco
+fi

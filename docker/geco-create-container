@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+docker create -ti --name geco -v$(pwd)/..:/home/geco/geco gecoimage
