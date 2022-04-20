@@ -10,14 +10,17 @@ ENV DIR geco
 RUN apt-get update
 RUN apt-get install -y locales sudo build-essential cmake pip
 
-# Clean up
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Install Sphinx
+RUN apt-get install python3-sphinx
 
 # Install FEniCS
 RUN apt-get install software-properties-common
 RUN add-apt-repository ppa:fenics-packages/fenics
 RUN apt-get update
 RUN apt-get install -y fenics
+
+# Clean up
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Add user
 RUN useradd -m $USER -G sudo && \
