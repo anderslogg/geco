@@ -2,8 +2,8 @@
 Equation: Vlasov-Poisson
 Ansatz:   VP-E-Polytropic-L-Gaussian
 
-This creates solution of the VP system with a oblate (disk) morphology. 
-The demo also demonstrates how different solutions can be saved in different files, and how to pass a prior solution as an initial guess for a subsequent ansatz. 
+This creates solution of the VP system with a oblate (disk) morphology.
+The demo also demonstrates how different solutions can be saved in different files, and how to pass a prior solution as an initial guess for a subsequent ansatz.
 """
 
 from geco import *
@@ -35,7 +35,7 @@ model.parameters.k = 2.4
 
 # Gradually decrease L0
 for L0 in list(linspace(1.4, 1.2, 3)) + list(linspace(1.2, 1.1, 3)):
-    print "L0 =", L0
+    print('L0 =', L0)
 
     # Change solution output directory
     solver.parameters.output.solution_directory = out_dir + 'L0_{}'.format(L0)

@@ -39,7 +39,7 @@ class SolverBase:
     def __init__(self, solver_prefix):
 
         # Make FEniCS info print only on one processor
-        parameters.std_out_all_processes = False
+        #parameters.std_out_all_processes = False
 
         # Set up directories
         library_dir = os.path.dirname(os.path.abspath(__file__))

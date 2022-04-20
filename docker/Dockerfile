@@ -10,7 +10,6 @@ ENV DIR geco
 RUN useradd -m $USER -G sudo && \
     echo "$USER:$USER" | chpasswd && \
     echo "$USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-USER $USER
 
 # Add shared volume
 VOLUME $HOME/$DIR
@@ -22,12 +21,13 @@ RUN echo "cat $HOME/.welcome" >> $HOME/.bashrc
 
 # Start bash login shell
 FROM base as dev
-USER $USER
 ENTRYPOINT ["/bin/bash", "-l", "-c"]
 CMD ["/bin/bash", "-i"]
 
-# Install essential packages
+# Change to root
 USER root
+
+# Install essential packages
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     apt-utils gcc g++ openssh-server cmake build-essential gdb gdbserver rsync vim pip
 
@@ -36,3 +36,6 @@ RUN apt-get install software-properties-common
 RUN add-apt-repository ppa:fenics-packages/fenics
 RUN apt-get update
 RUN apt-get install -y fenics
+
+# Change to user
+USER $USER
