@@ -1,6 +1,7 @@
-from setuptools import setup
-from os.path import join as pj
 from os import listdir
+from os.path import join as pj
+
+from setuptools import setup
 
 cppfiles = [pj('geco', 'cppcode', f) for f in listdir('geco/cppcode')]
 meshfiles = [pj('geco', 'meshes', f) for f in listdir('geco/meshes')]
