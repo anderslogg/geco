@@ -11,7 +11,7 @@ RUN apt-get update
 RUN apt-get install -y locales sudo build-essential cmake pip
 
 # Install Sphinx
-RUN apt-get install python3-sphinx
+RUN apt-get install python3-sphinx python3-sphinx-rtd-theme
 
 # Install FEniCS
 RUN apt-get install software-properties-common
