@@ -50,49 +50,49 @@ class SolverBase:
         solution_dir = os.path.join("solutions", solver_prefix)
 
         # Create parameter set
-        self.parameters = Parameters(
-            discretization=Parameters("discretization"), output=Parameters("output")
-        )
+        self.parameters = Parameters()
 
         # Discretization parameters
-        self.parameters.discretization.add("mass", 1.0)
-        self.parameters.discretization.add("domain_radius", 25)
-        self.parameters.discretization.add("maxiter", 1000)
-        self.parameters.discretization.add("theta", 1.0)
-        self.parameters.discretization.add("adaptive_theta", False)
-        self.parameters.discretization.add("anderson_depth", 3)
-        self.parameters.discretization.add("tolerance", 1e-3)
-        self.parameters.discretization.add("krylov_tolerance", 1e-9)
-        self.parameters.discretization.add("num_steps", 10)
-        self.parameters.discretization.add("degree", 1)
-        self.parameters.discretization.add("resolution", 32)
-        self.parameters.discretization.add("resolution_3d", 8)
-        self.parameters.discretization.add("mesh_prefix", "halfcircle")
+        self.parameters.add(Parameters("discretization"))
+        self.parameters["discretization"].add("mass", 1.0)
+        self.parameters["discretization"].add("domain_radius", 25)
+        self.parameters["discretization"].add("maxiter", 1000)
+        self.parameters["discretization"].add("theta", 1.0)
+        self.parameters["discretization"].add("adaptive_theta", False)
+        self.parameters["discretization"].add("anderson_depth", 3)
+        self.parameters["discretization"].add("tolerance", 1e-3)
+        self.parameters["discretization"].add("krylov_tolerance", 1e-9)
+        self.parameters["discretization"].add("num_steps", 10)
+        self.parameters["discretization"].add("degree", 1)
+        self.parameters["discretization"].add("resolution", 32)
+        self.parameters["discretization"].add("resolution_3d", 8)
+        self.parameters["discretization"].add("mesh_prefix", "halfcircle")
 
         # Output parameters
-        self.parameters.output.add("library_directory", library_dir)
-        self.parameters.output.add("geometry_directory", geometry_dir)
-        self.parameters.output.add("solution_directory", solution_dir)
-        self.parameters.output.add("suffix", "")
-        self.parameters.output.add("plot_iteration", True)
-        self.parameters.output.add("plot_solution", False)
-        self.parameters.output.add("save_solution", True)
-        self.parameters.output.add("save_solution_3d", False)
-        self.parameters.output.add("save_point_cloud", False)
-        self.parameters.output.add("save_iterations", False)
-        self.parameters.output.add("save_residuals", False)
+        self.parameters.add(Parameters("output"))
+        self.parameters["output"].add("library_directory", library_dir)
+        self.parameters["output"].add("geometry_directory", geometry_dir)
+        self.parameters["output"].add("solution_directory", solution_dir)
+        self.parameters["output"].add("suffix", "")
+        self.parameters["output"].add("plot_iteration", True)
+        self.parameters["output"].add("plot_solution", False)
+        self.parameters["output"].add("save_solution", True)
+        self.parameters["output"].add("save_solution_3d", False)
+        self.parameters["output"].add("save_point_cloud", False)
+        self.parameters["output"].add("save_iterations", False)
+        self.parameters["output"].add("save_residuals", False)
 
         # Override some parameters when --hires option is given
         if len(sys.argv) > 1 and sys.argv[1] == "--hires":
             info("Running simulation with high resolution")
-            self.parameters.discretization.num_steps = 100
-            self.parameters.discretization.num_steps = 50
-            self.parameters.discretization.resolution = 512
-            self.parameters.discretization.resolution_3d = 128
-            self.parameters.discretization.tolerance = 1e-4
+            self.parameters["discretization"].num_steps = 100
+            self.parameters["discretization"].num_steps = 50
+            self.parameters["discretization"].resolution = 512
+            self.parameters["discretization"].resolution_3d = 128
+            self.parameters["discretization"].tolerance = 1e-4
         if len(sys.argv) > 1:
             solution_dir = sys.argv[-1]
-            self.parameters.output.solution_directory = solution_dir
+            self.parameters["output"].solution_directory = solution_dir
 
         # Check whether plotting should be disabled
         self._dolfin_noplot = False
@@ -108,10 +108,10 @@ class SolverBase:
         "Initializations at the beginning of solve call"
 
         # Get parameters
-        solution_dir = self.parameters.output.solution_directory
+        solution_dir = self.parameters["output"].solution_directory
 
         # Create file for saving density during iterations
-        if self.parameters.output.save_iterations:
+        if self.parameters["output"].save_iterations:
             self._density_file = XDMFFile(
                 mpi_comm_world(), pj(solution_dir, "iterations.xdmf")
             )
@@ -129,8 +129,8 @@ class SolverBase:
         # resolution...
 
         # Get parameters
-        R = self.parameters.discretization.domain_radius
-        N = self.parameters.discretization.resolution
+        R = self.parameters["discretization"].domain_radius
+        N = self.parameters["discretization"].resolution
 
         # Define domain (unit half disk)
         circle = Circle(Point(0, 0), 1)
@@ -153,8 +153,8 @@ class SolverBase:
         # resolution...
 
         # Get parameters
-        R = self.parameters.discretization.domain_radius
-        N = self.parameters.discretization.resolution
+        R = self.parameters["discretization"].domain_radius
+        N = self.parameters["discretization"].resolution
 
         # Define domain
         big_circle = Circle(Point(0, 0), 2)
@@ -175,8 +175,8 @@ class SolverBase:
         "Try to find optimal theta"
 
         # If not adaptive theta, just return numerical value
-        if not self.parameters.discretization.adaptive_theta:
-            return self.parameters.discretization.theta
+        if not self.parameters["discretization"].adaptive_theta:
+            return self.parameters["discretization"].theta
 
         # Check whether it's time to get started
         if not self._theta_init:
@@ -251,7 +251,7 @@ class SolverBase:
             info(ansatz.parameters, True)
 
         # Append all parameters (except output parameters)
-        self.data.update(self.parameters.discretization.to_dict())
+        self.data.update(self.parameters["discretization"].to_dict())
         for ansatz in ansatzes:
             self.data.update(ansatz.parameters.to_dict())
 
@@ -269,7 +269,7 @@ class SolverBase:
             return
 
         # Get parameters
-        solution_dir = self.parameters.output.solution_directory
+        solution_dir = self.parameters["output"].solution_directory
 
         # Create directory if it does not yet exist
         if not os.path.exists(solution_dir):
@@ -306,13 +306,13 @@ class SolverBase:
         "Save solutions to file"
 
         # Check whether to save solution
-        if not self.parameters.output.save_solution:
+        if not self.parameters["output"].save_solution:
             return
 
         # Get parameters
-        R = self.parameters.discretization.domain_radius
-        suffix = self.parameters.output.suffix
-        solution_dir = self.parameters.output.solution_directory
+        R = self.parameters["discretization"].domain_radius
+        suffix = self.parameters["output"].suffix
+        solution_dir = self.parameters["output"].solution_directory
 
         # Save mesh to XML format
         f = File(pj(solution_dir, "mesh.xml.gz"))
@@ -334,12 +334,12 @@ class SolverBase:
         "Save residual functions to file"
 
         # Check whether to save residuals
-        if not self.parameters.output.save_residuals:
+        if not self.parameters["output"].save_residuals:
             return
 
         # Extract field names and solution directory
         field_names = [names[n] for n in xrange(4)]
-        solution_dir = self.parameters.output.solution_directory
+        solution_dir = self.parameters["output"].solution_directory
 
         # Save solutions to XDMF format
         for resf, fname in zip(residual_functions, field_names):
@@ -350,14 +350,14 @@ class SolverBase:
         "Save flat solutions on external annulus to file"
 
         # Check whether to save solution
-        if not self.parameters.output.save_solution:
+        if not self.parameters["output"].save_solution:
             return
 
         # Get parameters
-        R = self.parameters.discretization.domain_radius
-        N = self.parameters.discretization.resolution
-        suffix = self.parameters.output.suffix
-        solution_dir = self.parameters.output.solution_directory
+        R = self.parameters["discretization"].domain_radius
+        N = self.parameters["discretization"].resolution
+        suffix = self.parameters["output"].suffix
+        solution_dir = self.parameters["output"].solution_directory
 
         # Generate solutions
         annulus_mesh = self._generate_mesh_annulus(R, N)
@@ -375,14 +375,14 @@ class SolverBase:
         "Save 3D solution to file"
 
         # Check whether to save solution
-        if not self.parameters.output.save_solution_3d:
+        if not self.parameters["output"].save_solution_3d:
             return
 
         # Get parameters
-        R = self.parameters.discretization.domain_radius
-        suffix = self.parameters.output.suffix
-        solution_dir = self.parameters.output.solution_directory
-        resolution_3d = self.parameters.discretization.resolution_3d
+        R = self.parameters["discretization"].domain_radius
+        suffix = self.parameters["output"].suffix
+        solution_dir = self.parameters["output"].solution_directory
+        resolution_3d = self.parameters["discretization"].resolution_3d
 
         # Generate solution
         info("Computing 3D representation of density")
@@ -395,13 +395,13 @@ class SolverBase:
         "Save point cloud to file"
 
         # Check whether to save solution
-        if not self.parameters.output.save_point_cloud:
+        if not self.parameters["output"].save_point_cloud:
             return
 
         # Get parameters
-        R = self.parameters.discretization.domain_radius
-        suffix = self.parameters.output.suffix
-        solution_dir = self.parameters.output.solution_directory
+        R = self.parameters["discretization"].domain_radius
+        suffix = self.parameters["output"].suffix
+        solution_dir = self.parameters["output"].solution_directory
         m = self.data["mass"]
 
         # Generate solution
@@ -416,7 +416,7 @@ class SolverBase:
         "Save density during iterations"
 
         # Check whether to save density
-        if not self.parameters.output.save_iterations:
+        if not self.parameters["output"].save_iterations:
             return
 
         # Save density to file
@@ -429,7 +429,7 @@ class SolverBase:
         self._residuals.append(residual)
 
         # Get parameters
-        solution_dir = self.parameters.output.solution_directory
+        solution_dir = self.parameters["output"].solution_directory
 
         # Create directory if it does not yet exist
         if not os.path.exists(solution_dir):
@@ -444,7 +444,7 @@ class SolverBase:
         "Plot solution"
 
         # Check whether to plot solution
-        if self._dolfin_noplot or not self.parameters.output.plot_solution:
+        if self._dolfin_noplot or not self.parameters["output"].plot_solution:
             return
 
         # Plot solutions
@@ -456,7 +456,7 @@ class SolverBase:
         "Plot density during iterations"
 
         # Check whether to plot iteration
-        if self._dolfin_noplot or not self.parameters.output.plot_solution:
+        if self._dolfin_noplot or not self.parameters["output"].plot_solution:
             return
 
         # Plot density
