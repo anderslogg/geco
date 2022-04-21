@@ -19,7 +19,7 @@ This module defines models for the density.
 
 import os
 
-from dolfin import Expression, error
+from dolfin import CompiledExpression, compile_cpp_code, error
 
 # List of all available models (grab all files from directory)
 library_dir = os.path.dirname(os.path.abspath(__file__))
@@ -65,7 +65,10 @@ def MaterialModel(model):
     }
 
     # Create expression
-    rho = Expression(cppcode=cppcode, degree=1)
+    #rho = Expression(cppcode=cppcode, degree=1)
+
+    # FIXME: Experimenting with new FEniCS expression here
+    rho = CompiledExpression(compile_cpp_code(cppcode).VPAnsatz(), degree=1)
 
     # Set name of ansatz
     rho.parameters.rename(model)
