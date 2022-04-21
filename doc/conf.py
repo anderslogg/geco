@@ -13,13 +13,11 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../geco'))
 
-
 # -- Project information -----------------------------------------------------
 
 project = 'GECo'
 copyright = '2022, Ellery Ames, Anders Logg, and Håkan Andreasson'
 author = 'Ellery Ames, Anders Logg, and Håkan Andreasson'
-
 
 # -- General configuration ---------------------------------------------------
 

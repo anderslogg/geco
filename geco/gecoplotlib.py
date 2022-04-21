@@ -1,15 +1,27 @@
 #!/usr/bin/env python
+#
+# Copyright 2019 Anders Logg, Ellery Ames, Haakan Andreasson
+#
+# This file is part of GECo. GECo is free software: you can
+# redistribute it and/or modify it under the terms of the GNU General
+# Public License as published by the Free Software Foundation, either
+# version 3 of the License, or (at your option) any later version.
+#
+# GECo is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GECo. If not, see <https://www.gnu.org/licenses/>.
+
 
 """
-GECo Data Plot
-============================================================================
-
 A collection of tools for plotting data from GECo and adaptivesolver.py
-solutions or a sequence of such solutions. 
+solutions or a sequence of such solutions.
 
-
-Usage: 
------------
+Usage:
+------
 list_data(data_files)
  # print list of data that can be plotted
 
@@ -17,25 +29,11 @@ list_derived_data()
  # print list of derived quantities available to plot
 
 gecoplot(data_files, 'E0', 'frac_binding_energy', labels='ergo_region', legend=None, converged_only=True, verbose=False)
- # plots Eb vs E0 and labels the points by whether they contain an ergo_region. 
+ # plots Eb vs E0 and labels the points by whether they contain an ergo_region.
  # only plots converged solutions.
  # won't warn when data is missing from certain files. To change set verbose=True
-
-
-Last Modified:  June 5 2017
-
-
------------
-Copyright 2019 Anders Logg, Ellery Ames, Haakan Andreasson
-
-This file is part of GECo.
-GECo is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-
-GECo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with GECo. If not, see <https://www.gnu.org/licenses/>.
-
 """
+
 import glob
 import os
 import sys

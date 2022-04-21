@@ -1,20 +1,23 @@
+# Copyright 2019 Anders Logg, Ellery Ames, Haakan Andreasson
+#
+# This file is part of GECo. GECo is free software: you can
+# redistribute it and/or modify it under the terms of the GNU General
+# Public License as published by the Free Software Foundation, either
+# version 3 of the License, or (at your option) any later version.
+#
+# GECo is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GECo. If not, see <https://www.gnu.org/licenses/>.
+
 """
------------
-vpsolver.py
------------
 This module implements a solver for the Vlasov-Poisson
 equations in axial symmetry.
-
-Copyright 2019 Anders Logg, Ellery Ames, Haakan Andreasson
-
-This file is part of GECo.
-GECo is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-
-GECo is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with GECo. If not, see <https://www.gnu.org/licenses/>.
-
 """
+
 
 from geco.solverbase import *
 
@@ -258,7 +261,7 @@ class VlasovPoissonSolver(SolverBase):
         return U, RHO, self.data
 
     def _compute_solution_characteristics(self, C, _mass, ansatzes):
-        "Compute interestng properties of solution"
+        "Compute interesting properties of solution"
 
         # Compute final unscaled mass and scale ansatz coefficient
         m = self.parameters.discretization.mass
