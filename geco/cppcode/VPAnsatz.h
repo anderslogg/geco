@@ -23,7 +23,7 @@
 namespace py = pybind11;
 
 #include <dolfin/function/Expression.h>
-#include <dolfin/mesh/MeshFunction.h>
+#include <dolfin/function/Function.h>
 
 class VPAnsatz : public dolfin::Expression
 {
