@@ -18,7 +18,8 @@ solver.parameters["discretization"]["domain_radius"] = 50
 
 # Create ansatz for initial guess
 model = MaterialModel("VP-E-Polytropic-L-Polytropic")
-model.parameters.E0 = -0.06
+model.parameters["E0"] = -0.06
+#model.parameters.E0 = -0.06
 model.parameters.L0 = 0.0
 model.parameters.k = 1.0
 model.parameters.l = 1.0

@@ -24,6 +24,7 @@ namespace py = pybind11;
 
 #include <dolfin/function/Expression.h>
 #include <dolfin/function/Function.h>
+#include <dolfin/parameter/Parameters.h>
 
 class VPAnsatz : public dolfin::Expression
 {
@@ -115,12 +116,12 @@ public:
       // Integrate over s
       for (std::size_t j = 0; j < n; j++)
       {
-	// Compute integration variable
-	const double s = sa + static_cast<double>(j) * ds + 0.5 * ds;
+        // Compute integration variable
+        const double s = sa + static_cast<double>(j) * ds + 0.5 * ds;
 
-	// Evaluate ansatz and add to integral
-	const double L = rho * s;
-	I += ansatz(E, L) * ds * dE;
+        // Evaluate ansatz and add to integral
+        const double L = rho * s;
+        I += ansatz(E, L) * ds * dE;
       }
     }
 
@@ -165,7 +166,7 @@ public:
   // Member functions (to be defined by specific ansatz)
   %(member_functions)s
 
-     private :
+private :
 
   // Number of steps to use in numerical integration
   std::size_t _resolution;
@@ -184,5 +185,11 @@ PYBIND11_MODULE(SIGNATURE, m)
 {
   py::class_<VPAnsatz, std::shared_ptr<VPAnsatz>, dolfin::Expression>
     (m, "VPAnsatz")
-    .def(py::init<>());
+    .def(py::init<>())
+    .def("init_parameters", &VPAnsatz::init_parameters)
+    .def("read_parameters", &VPAnsatz::read_parameters)    
+    .def("set_fields", &VPAnsatz::set_fields)
+    .def("set_integration_parameters", &VPAnsatz::set_integration_parameters)
+    .def("reset", &VPAnsatz::reset)
+    .def("radius_of_support", &VPAnsatz::radius_of_support);
 }

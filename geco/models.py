@@ -53,9 +53,7 @@ def MaterialModel(model):
     model_code = open(os.path.join(cppcode_dir, model_filename)).read()
 
     # Extract relevant model code
-    member_functions = model_code.split("// Member functions")[1].split(
-        "// Member variables"
-    )[0]
+    member_functions = model_code.split("// Member functions")[1].split("// Member variables")[0]
     member_variables = model_code.split("// Member variables")[1]
 
     # Stick specialized code into template and return
@@ -71,7 +69,8 @@ def MaterialModel(model):
     rho = CompiledExpression(compile_cpp_code(cppcode).VPAnsatz(), degree=1)
 
     # Set name of ansatz
-    rho.parameters.rename(model)
+    # FIXME: Does this change how we call parameters from the demo file from parameters["E0"] to VP-E-Polytropic-L-Polytropic["E0"] ??
+    #rho.parameters.rename(model)
 
     return rho
 
