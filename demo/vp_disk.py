@@ -14,7 +14,7 @@ out_dir = "vp_oblate_solutions/"
 
 # Create solver
 solver = VlasovPoissonSolver()
-solver.parameters["discretization"]["domain_radius"] = 50
+solver.parameters.discretization.domain_radius = 50
 
 # Create ansatz for initial guess
 model = MaterialModel("VP-E-Polytropic-L-Polytropic")
