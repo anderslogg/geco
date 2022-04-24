@@ -18,11 +18,18 @@
 // is used instead of C++ inheritance since that is not supported by
 // the DOLFIN JIT compiler.
 
-class VPAnsatz : public Expression
+#include <pybind11/pybind11.h>
+#include <pybind11/eigen.h>
+namespace py = pybind11;
+
+#include <dolfin/function/Expression.h>
+#include <dolfin/mesh/MeshFunction.h>
+
+class VPAnsatz : public dolfin::Expression
 {
 public:
   // Constructor
-VPAnsatz() : Expression(), _resolution(0)
+  VPAnsatz() : Expression(), _resolution(0)
   {
     // Set default parameter values
     init_parameters();
@@ -36,8 +43,8 @@ VPAnsatz() : Expression(), _resolution(0)
   // tree.
 
   // Evaluate at given point in cell
-  void eval(Array<double> &values,
-	    const Array<double> &x,
+  void eval(Eigen::Ref<Eigen::VectorXd> values,
+	    Eigen::Ref<const Eigen::VectorXd> x,
 	    const ufc::cell &cell) const
   {
     // Evaluate potential at point in cell
@@ -50,8 +57,8 @@ VPAnsatz() : Expression(), _resolution(0)
   }
 
   // Evaluate at given point
-  void eval(Array<double> &values,
-	    const Array<double> &x) const
+  void eval(Eigen::Ref<Eigen::VectorXd> values,
+	    Eigen::Ref<const Eigen::VectorXd> x) const
   {
     // Evaluate potential at point
     dolfin_assert(_U);
@@ -64,7 +71,7 @@ VPAnsatz() : Expression(), _resolution(0)
 
   // Evaluation of ansatz
   double eval(double U,
-	      const Array<double> &x) const
+	      Eigen::Ref<const Eigen::VectorXd> x) const
   {
     // Get coordinates
     const double rho = x[0];
@@ -85,7 +92,7 @@ VPAnsatz() : Expression(), _resolution(0)
     const double Ea = U;
     const double Eb = E0;
     const double dE = (Eb - Ea) / static_cast<double>(n);
-    if (dE <= 0.0) error("Strange stuff: dE <= 0.0");
+    if (dE <= 0.0) dolfin::error("Strange stuff: dE <= 0.0");
 
     // Integrate over E
     for (std::size_t i = 0; i < n; i++)
@@ -94,7 +101,7 @@ VPAnsatz() : Expression(), _resolution(0)
       const double E = Ea + static_cast<double>(i) * dE + 0.5 * dE;
 
       // Check expression for integration limit
-      if (E < U) error("Strange stuff: E < U");
+      if (E < U) dolfin::error("Strange stuff: E < U");
 
       // Compute integration limits for s-integral
       const double sm = std::sqrt(2.0 * (E - U));
@@ -103,7 +110,7 @@ VPAnsatz() : Expression(), _resolution(0)
 
       // Compute step size for s-integral
       const double ds = (sb - sa) / static_cast<double>(n);
-      if (ds < 0.0) error("Strange stuff: ds < 0.0");
+      if (ds < 0.0) dolfin::error("Strange stuff: ds < 0.0");
 
       // Integrate over s
       for (std::size_t j = 0; j < n; j++)
@@ -129,7 +136,7 @@ VPAnsatz() : Expression(), _resolution(0)
   }
 
   // Set potential
-  void set_fields(std::shared_ptr<const Function> U)
+  void set_fields(std::shared_ptr<const dolfin::Function> U)
   {
     _U = U;
   }
@@ -153,7 +160,7 @@ VPAnsatz() : Expression(), _resolution(0)
   }
 
   // The parameters
-  Parameters parameters;
+  dolfin::Parameters parameters;
 
   // Member functions (to be defined by specific ansatz)
   %(member_functions)s
@@ -167,7 +174,7 @@ VPAnsatz() : Expression(), _resolution(0)
   mutable double _R;
 
   // The potential
-  std::shared_ptr<const Function> _U;
+  std::shared_ptr<const dolfin::Function> _U;
 
   // Member variables (to be defined by specific ansatz)
   %(member_variables)s
