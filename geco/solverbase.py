@@ -24,8 +24,8 @@ from os.path import join as pj
 
 import numpy
 #from dolfin import *
-from dolfin import (CompiledExpression, Constant, Parameters, compile_cpp_code,
-                    error)
+from dolfin import (CompiledExpression, Constant, FunctionSpace, Parameters,
+                    Point, compile_cpp_code, error)
 from mshr import *
 from ufl.algorithms import extract_coefficients
 

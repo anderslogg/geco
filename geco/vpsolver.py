@@ -19,6 +19,8 @@ equations in axial symmetry.
 """
 
 
+from dolfin import project
+
 from geco.solverbase import *
 
 
@@ -75,7 +77,7 @@ class VlasovPoissonSolver(SolverBase):
         # FIXME: Who do these parameters belong to? Dolfin? 
         # Returns error: NameError: name 'parameters' is not defined
         # Workaround for geometric round-off errors
-        parameters["allow_extrapolation"] = True
+        #parameters["allow_extrapolation"] = True
 
         # Generate mesh and create function space
         mesh = self._generate_mesh()
