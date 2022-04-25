@@ -37,7 +37,7 @@ def _flat(m):
 def _init(e0, m, V):
     parameters = {"E": e0, "r0": -m / e0}
     u = "2.0*E / (1.0 + sqrt(x[0]*x[0] + x[1]*x[1]) / r0)"
-    return project(Expression(u, degree=1, **parameters), V)
+    return project(CompiledExpression(compile_cpp_code(u), degree=1, **parameters), V)
 
 
 class VlasovPoissonSolver(SolverBase):
@@ -58,22 +58,24 @@ class VlasovPoissonSolver(SolverBase):
         ]
 
         # Get common model parameters (use first)
-        e0 = ansatzes[0].parameters.E0
+        e0 = ansatzes[0].parameters["E0"]
 
         # Get discretization parameters
-        m = self.parameters.discretization.mass
-        R = self.parameters.discretization.domain_radius
-        maxiter = self.parameters.discretization.maxiter
-        tol = self.parameters.discretization.tolerance
-        num_steps = self.parameters.discretization.num_steps
-        degree = self.parameters.discretization.degree
-        depth = self.parameters.discretization.anderson_depth
+        m = self.parameters["discretization"]["mass"]
+        R = self.parameters["discretization"]["domain_radius"]
+        maxiter = self.parameters["discretization"]["maxiter"]
+        tol = self.parameters["discretization"]["tolerance"]
+        num_steps = self.parameters["discretization"]["num_steps"]
+        degree = self.parameters["discretization"]["degree"]
+        depth = self.parameters["discretization"]["anderson_depth"]
 
         # Get output parameters
-        plot_iteration = self.parameters.output.plot_iteration
+        plot_iteration = self.parameters["output"]["plot_iteration"]
 
+        # FIXME: Who do these parameters belong to? Dolfin? 
+        # Returns error: NameError: name 'parameters' is not defined
         # Workaround for geometric round-off errors
-        parameters.allow_extrapolation = True
+        parameters["allow_extrapolation"] = True
 
         # Generate mesh and create function space
         mesh = self._generate_mesh()
@@ -156,9 +158,9 @@ class VlasovPoissonSolver(SolverBase):
             solver = LinearSolver(mpi_comm_world(), "gmres")
 
         # Set linear solver parameters
-        solver.parameters[
-            "relative_tolerance"
-        ] = self.parameters.discretization.krylov_tolerance
+        solver.parameters["relative_tolerance"] = (
+            self.parameters["discretization"]["krylov_tolerance"]
+        )
 
         # Initialize Anderson acceleration
         anderson = Anderson(depth, U.vector())
@@ -264,7 +266,7 @@ class VlasovPoissonSolver(SolverBase):
         "Compute interesting properties of solution"
 
         # Compute final unscaled mass and scale ansatz coefficient
-        m = self.parameters.discretization.mass
+        m = self.parameters["discretization"]["mass"]
         _m = assemble(_mass)
         C.assign(m / _m)
 

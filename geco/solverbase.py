@@ -23,12 +23,15 @@ import sys
 from os.path import join as pj
 
 import numpy
-from dolfin import *
+#from dolfin import *
+from dolfin import (CompiledExpression, Constant, Parameters, compile_cpp_code,
+                    error)
 from mshr import *
 from ufl.algorithms import extract_coefficients
 
 from geco.anderson import *
 from geco.models import *
+
 
 def _dict2table(dict, title):
     "Convert dictionary to table"
@@ -108,10 +111,10 @@ class SolverBase:
         "Initializations at the beginning of solve call"
 
         # Get parameters
-        solution_dir = self.parameters["output"].solution_directory
+        solution_dir = self.parameters["output"]["solution_directory"]
 
         # Create file for saving density during iterations
-        if self.parameters["output"].save_iterations:
+        if self.parameters["output"]["save_iterations"]:
             self._density_file = XDMFFile(
                 mpi_comm_world(), pj(solution_dir, "iterations.xdmf")
             )
@@ -129,8 +132,8 @@ class SolverBase:
         # resolution...
 
         # Get parameters
-        R = self.parameters["discretization"].domain_radius
-        N = self.parameters["discretization"].resolution
+        R = self.parameters["discretization"]["domain_radius"]
+        N = self.parameters["discretization"]["resolution"]
 
         # Define domain (unit half disk)
         circle = Circle(Point(0, 0), 1)
@@ -153,8 +156,8 @@ class SolverBase:
         # resolution...
 
         # Get parameters
-        R = self.parameters["discretization"].domain_radius
-        N = self.parameters["discretization"].resolution
+        R = self.parameters["discretization"]["domain_radius"]
+        N = self.parameters["discretization"]["resolution"]
 
         # Define domain
         big_circle = Circle(Point(0, 0), 2)
