@@ -161,7 +161,7 @@ public:
   }
 
   // The parameters
-  dolfin::Parameters parameters;
+  dolfin::Parameters vp_parameters;
 
   // Member functions (to be defined by specific ansatz)
   %(member_functions)s
