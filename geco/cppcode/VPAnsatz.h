@@ -188,8 +188,8 @@ PYBIND11_MODULE(SIGNATURE, m)
     .def(py::init<>())
     .def("init_parameters", &VPAnsatz::init_parameters)
     .def("read_parameters", &VPAnsatz::read_parameters)    
-    .def("set_fields", &VPAnsatz::set_fields)
-    .def("set_integration_parameters", &VPAnsatz::set_integration_parameters)
+    .def("set_fields", (void (VPAnsatz::*)(std::shared_ptr<const dolfin::Function>)) &VPAnsatz::set_fields)
+    .def("set_integration_parameters", (void (VPAnsatz::*)(std::size_t)) &VPAnsatz::set_integration_parameters)
     .def("reset", &VPAnsatz::reset)
-    .def("radius_of_support", &VPAnsatz::radius_of_support);
+    .def("radius_of_support", (double (VPAnsatz::*)()) &VPAnsatz::radius_of_support);
 }
