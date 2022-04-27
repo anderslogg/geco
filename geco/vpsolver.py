@@ -19,7 +19,8 @@ equations in axial symmetry.
 """
 
 
-from dolfin import project
+from dolfin import (CompiledSubDomain, Constant, DirichletBC, DomainBoundary,
+                    Expression, Function, SpatialCoordinate, info, project)
 
 from geco.solverbase import *
 
@@ -39,7 +40,8 @@ def _flat(m):
 def _init(e0, m, V):
     parameters = {"E": e0, "r0": -m / e0}
     u = "2.0*E / (1.0 + sqrt(x[0]*x[0] + x[1]*x[1]) / r0)"
-    return project(CompiledExpression(compile_cpp_code(u), degree=1, **parameters), V)
+    #return project(Expression(compile_cpp_code(u), degree=1, **parameters), V)
+    return project(Expression(u, degree=1, **parameters), V)
 
 
 class VlasovPoissonSolver(SolverBase):
