@@ -23,8 +23,8 @@ import sys
 from os.path import join as pj
 
 import numpy
-#from dolfin import *
-from dolfin import FunctionSpace, Parameters, Point
+from dolfin import *
+#from dolfin import FunctionSpace, Parameters, Point
 from mshr import *
 from ufl.algorithms import extract_coefficients
 
@@ -87,14 +87,14 @@ class SolverBase:
         # Override some parameters when --hires option is given
         if len(sys.argv) > 1 and sys.argv[1] == "--hires":
             info("Running simulation with high resolution")
-            self.parameters["discretization"].num_steps = 100
-            self.parameters["discretization"].num_steps = 50
-            self.parameters["discretization"].resolution = 512
-            self.parameters["discretization"].resolution_3d = 128
-            self.parameters["discretization"].tolerance = 1e-4
+            self.parameters["discretization"]["num_steps"] = 100
+            self.parameters["discretization"]["num_steps"] = 50
+            self.parameters["discretization"]["resolution"] = 512
+            self.parameters["discretization"]["resolution_3d"] = 128
+            self.parameters["discretization"]["tolerance"] = 1e-4
         if len(sys.argv) > 1:
             solution_dir = sys.argv[-1]
-            self.parameters["output"].solution_directory = solution_dir
+            self.parameters["output"]["solution_directory"] = solution_dir
 
         # Check whether plotting should be disabled
         self._dolfin_noplot = False
@@ -271,7 +271,7 @@ class SolverBase:
             return
 
         # Get parameters
-        solution_dir = self.parameters["output"].solution_directory
+        solution_dir = self.parameters["output"]["solution_directory"]
 
         # Create directory if it does not yet exist
         if not os.path.exists(solution_dir):
@@ -308,13 +308,13 @@ class SolverBase:
         "Save solutions to file"
 
         # Check whether to save solution
-        if not self.parameters["output"].save_solution:
+        if not self.parameters["output"]["save_solution"]:
             return
 
         # Get parameters
-        R = self.parameters["discretization"].domain_radius
-        suffix = self.parameters["output"].suffix
-        solution_dir = self.parameters["output"].solution_directory
+        R = self.parameters["discretization"]["domain_radius"]
+        suffix = self.parameters["output"]["suffix"]
+        solution_dir = self.parameters["output"]["solution_directory"]
 
         # Save mesh to XML format
         f = File(pj(solution_dir, "mesh.xml.gz"))
@@ -341,7 +341,7 @@ class SolverBase:
 
         # Extract field names and solution directory
         field_names = [names[n] for n in xrange(4)]
-        solution_dir = self.parameters["output"].solution_directory
+        solution_dir = self.parameters["output"]["solution_directory"]
 
         # Save solutions to XDMF format
         for resf, fname in zip(residual_functions, field_names):
@@ -356,10 +356,10 @@ class SolverBase:
             return
 
         # Get parameters
-        R = self.parameters["discretization"].domain_radius
-        N = self.parameters["discretization"].resolution
-        suffix = self.parameters["output"].suffix
-        solution_dir = self.parameters["output"].solution_directory
+        R = self.parameters["discretization"]["domain_radius"]
+        N = self.parameters["discretization"]["resolution"]
+        suffix = self.parameters["output"]["suffix"]
+        solution_dir = self.parameters["output"]["solution_directory"]
 
         # Generate solutions
         annulus_mesh = self._generate_mesh_annulus(R, N)
@@ -381,9 +381,9 @@ class SolverBase:
             return
 
         # Get parameters
-        R = self.parameters["discretization"].domain_radius
-        suffix = self.parameters["output"].suffix
-        solution_dir = self.parameters["output"].solution_directory
+        R = self.parameters["discretization"]["domain_radius"]
+        suffix = self.parameters["output"]["suffix"]
+        solution_dir = self.parameters["output"]["solution_directory"]
         resolution_3d = self.parameters["discretization"].resolution_3d
 
         # Generate solution
@@ -401,9 +401,9 @@ class SolverBase:
             return
 
         # Get parameters
-        R = self.parameters["discretization"].domain_radius
-        suffix = self.parameters["output"].suffix
-        solution_dir = self.parameters["output"].solution_directory
+        R = self.parameters["discretization"]["domain_radius"]
+        suffix = self.parameters["output"]["suffix"]
+        solution_dir = self.parameters["output"]["solution_directory"]
         m = self.data["mass"]
 
         # Generate solution
@@ -418,7 +418,7 @@ class SolverBase:
         "Save density during iterations"
 
         # Check whether to save density
-        if not self.parameters["output"].save_iterations:
+        if not self.parameters["output"]["save_iterations"]:
             return
 
         # Save density to file
@@ -431,7 +431,7 @@ class SolverBase:
         self._residuals.append(residual)
 
         # Get parameters
-        solution_dir = self.parameters["output"].solution_directory
+        solution_dir = self.parameters["output"]["solution_directory"]
 
         # Create directory if it does not yet exist
         if not os.path.exists(solution_dir):
@@ -446,7 +446,7 @@ class SolverBase:
         "Plot solution"
 
         # Check whether to plot solution
-        if self._dolfin_noplot or not self.parameters["output"].plot_solution:
+        if self._dolfin_noplot or not self.parameters["output"]["plot_solution"]:
             return
 
         # Plot solutions
@@ -458,7 +458,7 @@ class SolverBase:
         "Plot density during iterations"
 
         # Check whether to plot iteration
-        if self._dolfin_noplot or not self.parameters["output"].plot_solution:
+        if self._dolfin_noplot or not self.parameters["output"]["plot_solution"]:
             return
 
         # Plot density

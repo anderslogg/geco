@@ -18,9 +18,9 @@ This module implements a solver for the Vlasov-Poisson
 equations in axial symmetry.
 """
 
+import time
 
-from dolfin import (CompiledSubDomain, Constant, DirichletBC, DomainBoundary,
-                    Expression, Function, SpatialCoordinate, info, project)
+from dolfin import *
 
 from geco.solverbase import *
 
@@ -76,7 +76,7 @@ class VlasovPoissonSolver(SolverBase):
         # Get output parameters
         plot_iteration = self.parameters["output"]["plot_iteration"]
 
-        # FIXME: Who do these parameters belong to? Dolfin? 
+        # FIXME: Who do these parameters belong to? Dolfin?
         # Returns error: NameError: name 'parameters' is not defined
         # Workaround for geometric round-off errors
         #parameters["allow_extrapolation"] = True
@@ -115,7 +115,7 @@ class VlasovPoissonSolver(SolverBase):
 
         # Initialize all ansatzes
         for ansatz in ansatzes:
-            ansatz.set_fields(U)
+            ansatz.set_fields(U.cpp_object())
             ansatz.set_integration_parameters(num_steps)
             ansatz.read_parameters()
 
@@ -156,10 +156,12 @@ class VlasovPoissonSolver(SolverBase):
         # Create linear solver
         preconditioners = [pc for pc in krylov_solver_preconditioners()]
         if "amg" in preconditioners:
-            solver = LinearSolver(mpi_comm_world(), "gmres", "amg")
+            # FIXME: Missing mpi_comm here?
+            solver = KrylovSolver("gmres", "amg")
         else:
             warning("Missing AMG preconditioner, using ILU.")
-            solver = LinearSolver(mpi_comm_world(), "gmres")
+            # FIXME: Missing mpi_comm here?
+            solver = KrylovSolver("gmres")
 
         # Set linear solver parameters
         solver.parameters["relative_tolerance"] = (
@@ -170,8 +172,8 @@ class VlasovPoissonSolver(SolverBase):
         anderson = Anderson(depth, U.vector())
 
         # Main loop
-        tic()
-        for iter in xrange(maxiter):
+        tic = time.time()
+        for iter in range(maxiter):
 
             begin("Iteration %d" % iter)
 
@@ -222,7 +224,8 @@ class VlasovPoissonSolver(SolverBase):
                 break
 
         # Print elapsed time
-        info("Iterations finished in %g seconds." % toc())
+        toc = time.time() - tic
+        info("Iterations finished in %g seconds." % toc)
 
         # Check whether iteration converged
         if iter == maxiter - 1:
@@ -276,7 +279,7 @@ class VlasovPoissonSolver(SolverBase):
 
         # Get radius of support and compute areal radius of support
         r0 = max([ansatz.radius_of_support() for ansatz in ansatzes])
-        r0 = MPI.max(mpi_comm_world(), r0)
+        r0 = MPI.max(MPI.comm_world, r0)
         R0 = r0 * (1.0 + m / (2.0 * r0)) ** 2
 
         # Compute Buchdahl quantity
