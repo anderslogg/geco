@@ -30,6 +30,8 @@ model_data = [
     if m.endswith(".h") and (m.startswith("VP-") or m.startswith("EV-"))
 ]
 
+# Cache for generated Ansatz classes
+class_cache = {}
 
 def MaterialModel(model):
     "Create given material model"
@@ -65,8 +67,19 @@ def MaterialModel(model):
     # Create expression
     #rho = Expression(cppcode=cppcode, degree=1)
 
-    # FIXME: Experimenting with new FEniCS expression here
-    rho = CompiledExpression(compile_cpp_code(cppcode).VPAnsatz(), degree=1)
+    # Get compiled Anzatz class
+    class_name = cppcode.split('py::class_<')[1].split(',')[0].strip()
+    if class_name in class_cache:
+        print('Reusing class %s from cache' % class_name)
+        compiled_class = class_cache[class_name]
+    else:
+        print('Compiling new class %s' % class_name)
+        compiled_module = compile_cpp_code(cppcode)
+        compiled_class = eval('compiled_module.%s' % class_name)
+        class_cache[class_name] = compiled_class
+
+    # Create compiled expression
+    rho = CompiledExpression(compiled_class(), degree=1)
 
     # Set name of ansatz
     # FIXME: Does this change how we call parameters from the demo file from parameters["E0"] to VP-E-Polytropic-L-Polytropic["E0"] ??
