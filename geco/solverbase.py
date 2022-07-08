@@ -233,14 +233,14 @@ class SolverBase:
 
         try:
             self._print_data(ansatzes)
-            self._save_solutions(solutions, names)
-            self._save_solutions(matter_components, matter_names)
-            self._save_residual_functions(residual_functions, names)
-            self._save_flat(flat_solutions, names)
-            self._save_solution_3d(solutions[-1])
-            self._save_point_cloud(solutions[-1])
-            self._plot_solutions(solutions[:-1], names[:-1])
-            self._save_data()  # do this last as it may break
+            # self._save_solutions(solutions, names)
+            # self._save_solutions(matter_components, matter_names)
+            # self._save_residual_functions(residual_functions, names)
+            # self._save_flat(flat_solutions, names)
+            # self._save_solution_3d(solutions[-1])
+            # self._save_point_cloud(solutions[-1])
+            # self._plot_solutions(solutions[:-1], names[:-1])
+            # self._save_data()  # do this last as it may break
         except:
             warning("Postprocessing failed: %s" % str(sys.exc_info()[0]))
 
@@ -257,8 +257,9 @@ class SolverBase:
         for ansatz in ansatzes:
             self.data.update(ansatz.parameters.to_dict())
 
-        # Print data
-        if MPI.rank(mpi_comm_world()) == 0:
+        # # Print data
+        # if MPI.rank(MPI.comm_world) == 0:
+        if MPI.comm_world.rank == 0:
             info("")
             info(_dict2table(self.data, "data"), True)
             info("")
@@ -267,7 +268,7 @@ class SolverBase:
         "Save data to file"
 
         # Do this only on processor 0
-        if MPI.rank(mpi_comm_world()) > 0:
+        if MPI.rank(MPI.comm_world) > 0:
             return
 
         # Get parameters
@@ -340,7 +341,7 @@ class SolverBase:
             return
 
         # Extract field names and solution directory
-        field_names = [names[n] for n in xrange(4)]
+        field_names = [names[n] for n in range(4)]
         solution_dir = self.parameters["output"]["solution_directory"]
 
         # Save solutions to XDMF format
