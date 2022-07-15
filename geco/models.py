@@ -55,11 +55,13 @@ def MaterialModel(model):
     model_code = open(os.path.join(cppcode_dir, model_filename)).read()
 
     # Extract relevant model code
+    ansatz_class_name = model_code.split("// Ansatz class name")[1].split("// Member functions")[0]
     member_functions = model_code.split("// Member functions")[1].split("// Member variables")[0]
     member_variables = model_code.split("// Member variables")[1]
 
     # Stick specialized code into template and return
     cppcode = template_code % {
+        "ansatz_class_name": ansatz_class_name,
         "member_functions": member_functions,
         "member_variables": member_variables
     }
@@ -75,7 +77,7 @@ def MaterialModel(model):
     else:
         print('Compiling new class %s' % model)
         compiled_module = compile_cpp_code(cppcode)
-        compiled_model = eval('compiled_module.%s' % class_name)
+        compiled_model = eval('compiled_module.VPAnsatz')
         model_cache[model] = compiled_model
 
     # Create compiled expression

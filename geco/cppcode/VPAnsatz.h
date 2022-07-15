@@ -26,11 +26,14 @@ namespace py = pybind11;
 #include <dolfin/function/Function.h>
 #include <dolfin/parameter/Parameters.h>
 
-class VPAnsatz : public dolfin::Expression
+// Define ansatz class name CLASSNAME
+%(ansatz_class_name)s
+
+class CLASSNAME : public dolfin::Expression
 {
 public:
   // Constructor
-  VPAnsatz() : Expression(), _resolution(0)
+  CLASSNAME() : Expression(), _resolution(0)
   {
     // Set default parameter values
     init_parameters();
@@ -183,13 +186,13 @@ private :
 
 PYBIND11_MODULE(SIGNATURE, m)
 {
-  py::class_<VPAnsatz, std::shared_ptr<VPAnsatz>, dolfin::Expression>
+  py::class_<CLASSNAME, std::shared_ptr<CLASSNAME>, dolfin::Expression>
     (m, "VPAnsatz")
     .def(py::init<>())
-    .def("init_parameters", &VPAnsatz::init_parameters)
-    .def("read_parameters", &VPAnsatz::read_parameters)    
-    .def("set_fields", (void (VPAnsatz::*)(std::shared_ptr<const dolfin::Function>)) &VPAnsatz::set_fields)
-    .def("set_integration_parameters", (void (VPAnsatz::*)(std::size_t)) &VPAnsatz::set_integration_parameters)
-    .def("reset", &VPAnsatz::reset)
-    .def("radius_of_support", (double (VPAnsatz::*)()) &VPAnsatz::radius_of_support);
+    .def("init_parameters", &CLASSNAME::init_parameters)
+    .def("read_parameters", &CLASSNAME::read_parameters)    
+    .def("set_fields", (void (CLASSNAME::*)(std::shared_ptr<const dolfin::Function>)) &CLASSNAME::set_fields)
+    .def("set_integration_parameters", (void (CLASSNAME::*)(std::size_t)) &CLASSNAME::set_integration_parameters)
+    .def("reset", &CLASSNAME::reset)
+    .def("radius_of_support", (double (CLASSNAME::*)()) &CLASSNAME::radius_of_support);
 }

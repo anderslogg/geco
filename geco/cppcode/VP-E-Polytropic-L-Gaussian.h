@@ -1,5 +1,8 @@
 // Ansatz for Vlasov-Poisson with Gaussian distribution in L and polytropic in E.
 
+// Ansatz class name
+#define CLASSNAME VPEPLG
+
 // Member functions
 
 double ansatz(double E, double L) const

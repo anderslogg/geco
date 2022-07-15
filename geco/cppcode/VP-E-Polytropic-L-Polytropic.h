@@ -1,5 +1,8 @@
 // Polytropic ansatz for Vlasov-Poisson
 
+// Ansatz class name
+#define CLASSNAME VPEPLP
+
 // Member functions
 
 double ansatz(double E, double L) const
