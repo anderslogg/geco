@@ -160,9 +160,7 @@ public:
   // The parameters
   dolfin::Parameters vp_parameters;
 
-  // Member functions (to be defined by specific ansatz)
-  // %(member_functions)s
-
+  // Ansatz function to be defined by each derived class.
   virtual double ansatz(double E, double L) const = 0;
 
 protected:
@@ -178,19 +176,6 @@ protected:
 
   // The potential
   std::shared_ptr<const dolfin::Function> _U;
-
-  // Member variables (to be defined by specific ansatz)
-  // %(member_variables)s
 };
 
 #endif
-
-// PYBIND11_MODULE(SIGNATURE, m)
-// {
-//   py::class_<VPAnsatz, std::shared_ptr<VPAnsatz>, dolfin::Expression>
-//     (m, "VPAnsatz")
-//     .def("set_fields", (void (VPAnsatz::*)(std::shared_ptr<const dolfin::Function>)) &VPAnsatz::set_fields)
-//     .def("set_integration_parameters", (void (VPAnsatz::*)(std::size_t)) &VPAnsatz::set_integration_parameters)
-//     .def("reset", &VPAnsatz::reset)
-//     .def("radius_of_support", (double (VPAnsatz::*)()) &VPAnsatz::radius_of_support);
-// }

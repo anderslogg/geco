@@ -5,8 +5,7 @@
 class VPEPolyLGauss : public VPAnsatz
 {
 public:
-  // Member functions
-
+  // Constructor calls base class constructor
   VPEPolyLGauss() : VPAnsatz() 
   {
       // Set default parameter values

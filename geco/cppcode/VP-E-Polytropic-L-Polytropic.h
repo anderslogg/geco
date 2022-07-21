@@ -5,14 +5,15 @@
 class VPEPolyLPoly : public VPAnsatz
 {
 public:
-  // Member functions
-
+  // Constructor calls base class constructor
   VPEPolyLPoly() : VPAnsatz() 
   {
       // Set default parameter values
       init_parameters();
   };
 
+  // Member functions 
+  
   double ansatz(double E, double L) const override
   {
     if (E0 <= E)
