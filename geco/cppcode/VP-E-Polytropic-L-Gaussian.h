@@ -1,9 +1,5 @@
 // Ansatz for Vlasov-Poisson with Gaussian distribution in L and polytropic in E.
 
-#include <pybind11/pybind11.h>
-#include <pybind11/eigen.h>
-namespace py = pybind11;
-
 #include "VPAnsatz.h"
 
 class VPEPolyLGauss : public VPAnsatz
@@ -52,20 +48,3 @@ private:
   double pm;
 
 }; // end class VPEPolyLGauss
-
-
-PYBIND11_MODULE(SIGNATURE, m)
-{
-  py::class_<VPAnsatz, std::shared_ptr<VPAnsatz>, dolfin::Expression>
-    (m, "VPAnsatzTemplate")
-    .def("set_fields", (void (VPAnsatz::*)(std::shared_ptr<const dolfin::Function>)) &VPAnsatz::set_fields)
-    .def("set_integration_parameters", (void (VPAnsatz::*)(std::size_t)) &VPAnsatz::set_integration_parameters)
-    .def("reset", &VPAnsatz::reset)
-    .def("radius_of_support", (double (VPAnsatz::*)()) &VPAnsatz::radius_of_support);
-
-  py::class_<VPEPolyLGauss, VPAnsatz, std::shared_ptr<VPEPolyLGauss>>
-    (m, "VPAnsatz")
-    .def(py::init<>())
-    .def("init_parameters", &VPEPolyLGauss::init_parameters)
-    .def("read_parameters", &VPEPolyLGauss::read_parameters);
-}

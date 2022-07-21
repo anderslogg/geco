@@ -18,9 +18,8 @@
 // is used instead of C++ inheritance since that is not supported by
 // the DOLFIN JIT compiler.
 
-// #include <pybind11/pybind11.h>
-// #include <pybind11/eigen.h>
-// namespace py = pybind11;
+#ifndef VPANSATZ_H
+#define VPANSATZ_H
 
 #include <dolfin/function/Expression.h>
 #include <dolfin/function/Function.h>
@@ -183,6 +182,8 @@ protected:
   // Member variables (to be defined by specific ansatz)
   // %(member_variables)s
 };
+
+#endif
 
 // PYBIND11_MODULE(SIGNATURE, m)
 // {

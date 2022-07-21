@@ -43,14 +43,18 @@ def MaterialModel(model):
     # Get model data
     if not model in model_data:
         error('Unknown material model: "%s".' % str(model))
-    model_filename = model + ".h"
+    
+    # Select appropriate bindings file and module name
+    bindings_filename = model.split('-')[0] + "Bindings.h"
+    model_short_name = "".join(model.split('-'))
+    module_name = "compiled_module." + model_short_name
 
     # Get library directory
     library_dir = os.path.dirname(os.path.abspath(__file__))
     cppcode_dir = os.path.join(library_dir, "cppcode")
 
     # Read code
-    cppcode = open(os.path.join(cppcode_dir, model_filename)).read()
+    cppcode = open(os.path.join(cppcode_dir, bindings_filename)).read()
 
     # Get compiled Anzatz class
     if model in model_cache:
@@ -59,7 +63,7 @@ def MaterialModel(model):
     else:
         print('Compiling new class %s' % model)
         compiled_module = compile_cpp_code(cppcode, include_dirs=[cppcode_dir])
-        compiled_model = eval('compiled_module.VPAnsatz')
+        compiled_model = eval(module_name)
         model_cache[model] = compiled_model
 
     # Create compiled expression
