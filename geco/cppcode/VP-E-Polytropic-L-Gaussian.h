@@ -14,7 +14,7 @@ public:
 
   // Member functions
 
-  double ansatz(double E, double L) const
+  double ansatz(double E, double L) const override
   {
     if (E0 <= E)
       return 0.0;
