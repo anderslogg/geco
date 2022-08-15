@@ -43,49 +43,31 @@ def MaterialModel(model):
     # Get model data
     if not model in model_data:
         error('Unknown material model: "%s".' % str(model))
-    model_filename = model + ".h"
-    template_filename = model.split("-")[0] + "Ansatz.h"
+    
+    # Select appropriate bindings file and module name
+    bindings_filename = model.split('-')[0] + "Bindings.h"
+    model_short_name = "".join(model.split('-'))
+    module_name = "compiled_module." + model_short_name
 
     # Get library directory
     library_dir = os.path.dirname(os.path.abspath(__file__))
     cppcode_dir = os.path.join(library_dir, "cppcode")
 
     # Read code
-    template_code = open(os.path.join(cppcode_dir, template_filename)).read()
-    model_code = open(os.path.join(cppcode_dir, model_filename)).read()
-
-    # Extract relevant model code
-    ansatz_class_name = model_code.split("// Ansatz class name")[1].split("// Member functions")[0]
-    member_functions = model_code.split("// Member functions")[1].split("// Member variables")[0]
-    member_variables = model_code.split("// Member variables")[1]
-
-    # Stick specialized code into template and return
-    cppcode = template_code % {
-        "ansatz_class_name": ansatz_class_name,
-        "member_functions": member_functions,
-        "member_variables": member_variables
-    }
-
-    # Create expression
-    #rho = Expression(cppcode=cppcode, degree=1)
+    cppcode = open(os.path.join(cppcode_dir, bindings_filename)).read()
 
     # Get compiled Anzatz class
-    class_name = cppcode.split('py::class_<')[1].split(',')[0].strip()
     if model in model_cache:
         print('Reusing class %s from cache' % model)
         compiled_model = model_cache[model]
     else:
         print('Compiling new class %s' % model)
-        compiled_module = compile_cpp_code(cppcode)
-        compiled_model = eval('compiled_module.VPAnsatz')
+        compiled_module = compile_cpp_code(cppcode, include_dirs=[cppcode_dir])
+        compiled_model = eval(module_name)
         model_cache[model] = compiled_model
 
     # Create compiled expression
     rho = CompiledExpression(compiled_model(), degree=1)
-
-    # Set name of ansatz
-    # FIXME: Does this change how we call parameters from the demo file from parameters["E0"] to VP-E-Polytropic-L-Polytropic["E0"] ??
-    #rho.parameters.rename(model)
 
     return rho
 

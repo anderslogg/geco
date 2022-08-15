@@ -18,26 +18,20 @@
 // is used instead of C++ inheritance since that is not supported by
 // the DOLFIN JIT compiler.
 
-#include <pybind11/pybind11.h>
-#include <pybind11/eigen.h>
-namespace py = pybind11;
+#ifndef VPANSATZ_H
+#define VPANSATZ_H
 
 #include <dolfin/function/Expression.h>
 #include <dolfin/function/Function.h>
 #include <dolfin/parameter/Parameters.h>
 
-// Define ansatz class name CLASSNAME
-%(ansatz_class_name)s
-
-class CLASSNAME : public dolfin::Expression
+class VPAnsatz : public dolfin::Expression
 {
 public:
   // Constructor
-  CLASSNAME() : Expression(), _resolution(0)
-  {
-    // Set default parameter values
-    init_parameters();
-  }
+  VPAnsatz() : Expression(), _resolution(0) {};
+
+  virtual ~VPAnsatz() {};
 
   // Note: We need to implement both eval functions (with and
   // without the cell argument). The first one is used during
@@ -79,7 +73,7 @@ public:
   {
     // Get coordinates
     const double rho = x[0];
-    const double z = x[1];
+    //const double z = x[1];
 
     // Check cut-off
     if (U >= E0)
@@ -166,10 +160,13 @@ public:
   // The parameters
   dolfin::Parameters vp_parameters;
 
-  // Member functions (to be defined by specific ansatz)
-  %(member_functions)s
+  // Ansatz function to be defined by each derived class.
+  virtual double ansatz(double E, double L) const = 0;
 
-private :
+protected:
+
+  // Energy cutoff 
+  double E0;
 
   // Number of steps to use in numerical integration
   std::size_t _resolution;
@@ -179,20 +176,6 @@ private :
 
   // The potential
   std::shared_ptr<const dolfin::Function> _U;
-
-  // Member variables (to be defined by specific ansatz)
-  %(member_variables)s
 };
 
-PYBIND11_MODULE(SIGNATURE, m)
-{
-  py::class_<CLASSNAME, std::shared_ptr<CLASSNAME>, dolfin::Expression>
-    (m, "VPAnsatz")
-    .def(py::init<>())
-    .def("init_parameters", &CLASSNAME::init_parameters)
-    .def("read_parameters", &CLASSNAME::read_parameters)    
-    .def("set_fields", (void (CLASSNAME::*)(std::shared_ptr<const dolfin::Function>)) &CLASSNAME::set_fields)
-    .def("set_integration_parameters", (void (CLASSNAME::*)(std::size_t)) &CLASSNAME::set_integration_parameters)
-    .def("reset", &CLASSNAME::reset)
-    .def("radius_of_support", (double (CLASSNAME::*)()) &CLASSNAME::radius_of_support);
-}
+#endif

@@ -1,40 +1,51 @@
 // Polytropic ansatz for Vlasov-Poisson
 
-// Ansatz class name
-#define CLASSNAME VPEPLP
+#include "VPAnsatz.h"
 
-// Member functions
-
-double ansatz(double E, double L) const
+class VPEPolyLPoly : public VPAnsatz
 {
-  if (E0 <= E)
-    return 0.0;
+public:
+  // Constructor calls base class constructor
+  VPEPolyLPoly() : VPAnsatz() 
+  {
+      // Set default parameter values
+      init_parameters();
+  };
 
-  if (std::abs(L) < L0)
-    return 0.0;
+  // Member functions 
+  
+  double ansatz(double E, double L) const override
+  {
+    if (E0 <= E)
+      return 0.0;
 
-  return std::pow(E0 - E, k)*std::pow(std::abs(L) - L0, l);
-}
+    if (std::abs(L) < L0)
+      return 0.0;
 
-void init_parameters()
-{
-  parameters.add("E0", -0.1);
-  parameters.add("L0",  0.0);
-  parameters.add("k",   0.0);
-  parameters.add("l",   0.0);
-}
+    return std::pow(E0 - E, k)*std::pow(std::abs(L) - L0, l);
+  }
 
-void read_parameters()
-{
-  E0 = parameters["E0"];
-  L0 = parameters["L0"];
-  k  = parameters["k"];
-  l  = parameters["l"];
-}
+  void init_parameters()
+  {
+    parameters.add("E0", -0.1);
+    parameters.add("L0",  0.0);
+    parameters.add("k",   0.0);
+    parameters.add("l",   0.0);
+  }
 
-// Member variables
+  void read_parameters()
+  {
+    E0 = parameters["E0"];
+    L0 = parameters["L0"];
+    k  = parameters["k"];
+    l  = parameters["l"];
+  }
 
-double E0;
-double L0;
-double k;
-double l;
+private:
+  // Member variables
+  // Note that the energy cutoff E0 is declared within VPAnsatz.
+
+  double L0;
+  double k;
+  double l;
+}; // end class VPEPolyLPoly
