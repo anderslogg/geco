@@ -31,15 +31,6 @@ from ufl.algorithms import extract_coefficients
 from geco.anderson import *
 from geco.models import *
 
-
-def _dict2table(dict, title):
-    "Convert dictionary to table"
-    table = Table(title)
-    keys = sorted(dict.keys())
-    for key in keys:
-        table.set(key, "value", dict[key])
-    return table
-
 class SolverBase:
     def __init__(self, solver_prefix):
 
@@ -241,7 +232,8 @@ class SolverBase:
             # self._save_point_cloud(solutions[-1])
             # self._plot_solutions(solutions[:-1], names[:-1])
             # self._save_data()  # do this last as it may break
-        except:
+        except Exception as e:
+            print(e)
             warning("Postprocessing failed: %s" % str(sys.exc_info()[0]))
 
     def _print_data(self, ansatzes):
@@ -261,7 +253,11 @@ class SolverBase:
         # if MPI.rank(MPI.comm_world) == 0:
         if MPI.comm_world.rank == 0:
             info("")
-            info(_dict2table(self.data, "data"), True)
+            keys = list(self.data.keys())
+            maxcolsize = max(len(key) for key in keys)
+            for key in keys:
+                value = str(self.data[key])
+                print(key + ':' + ' '*(maxcolsize - len(key) + 1) + value)
             info("")
 
     def _save_data(self):
