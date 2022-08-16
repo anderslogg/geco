@@ -105,8 +105,7 @@ class SolverBase:
 
         # Create file for saving density during iterations
         if self.parameters["output"]["save_iterations"]:
-            self._density_file = XDMFFile(
-                mpi_comm_world(), pj(solution_dir, "iterations.xdmf")
+            self._density_file = XDMFFile(MPI.comm_world, pj(solution_dir, "iterations.xdmf")
             )
             self._density_file.parameters.flush_output = True
         else:
@@ -221,17 +220,16 @@ class SolverBase:
         # File access sometimes fails in parallel and crashes the
         # solution, in particular the call to os.makedirs, so wrap
         # this in a try/except.
-
         try:
             self._print_data(ansatzes)
-            # self._save_solutions(solutions, names)
-            # self._save_solutions(matter_components, matter_names)
-            # self._save_residual_functions(residual_functions, names)
-            # self._save_flat(flat_solutions, names)
-            # self._save_solution_3d(solutions[-1])
-            # self._save_point_cloud(solutions[-1])
-            # self._plot_solutions(solutions[:-1], names[:-1])
-            # self._save_data()  # do this last as it may break
+            self._save_solutions(solutions, names)
+            self._save_solutions(matter_components, matter_names)
+            self._save_residual_functions(residual_functions, names)
+            self._save_flat(flat_solutions, names)
+            self._save_solution_3d(solutions[-1])
+            self._save_point_cloud(solutions[-1])
+            self._plot_solutions(solutions[:-1], names[:-1])
+            self._save_data()  # do this last as it may break
         except Exception as e:
             print(e)
             warning("Postprocessing failed: %s" % str(sys.exc_info()[0]))
@@ -250,7 +248,6 @@ class SolverBase:
             self.data.update(ansatz.parameters.to_dict())
 
         # # Print data
-        # if MPI.rank(MPI.comm_world) == 0:
         if MPI.comm_world.rank == 0:
             info("")
             keys = list(self.data.keys())
@@ -324,8 +321,7 @@ class SolverBase:
 
         # Save solutions to XDMF format
         for solution, name in zip(solutions, names):
-            f = XDMFFile(
-                mpi_comm_world(), pj(solution_dir, "%s_%d%s.xdmf" % (name, R, suffix))
+            f = XDMFFile(MPI.comm_world, pj(solution_dir, "%s_%d%s.xdmf" % (name, R, suffix))
             )
             f.write(solution)
 
@@ -333,7 +329,7 @@ class SolverBase:
         "Save residual functions to file"
 
         # Check whether to save residuals
-        if not self.parameters["output"].save_residuals:
+        if not self.parameters["output"]["save_residuals"]:
             return
 
         # Extract field names and solution directory
@@ -342,14 +338,14 @@ class SolverBase:
 
         # Save solutions to XDMF format
         for resf, fname in zip(residual_functions, field_names):
-            f = XDMFFile(mpi_comm_world(), pj(solution_dir, "%s_residual.xdmf" % fname))
+            f = XDMFFile(MPI.comm_world, pj(solution_dir, "%s_residual.xdmf" % fname))
             f.write(resf)
 
     def _save_flat(self, solutions, names):
         "Save flat solutions on external annulus to file"
 
         # Check whether to save solution
-        if not self.parameters["output"].save_solution:
+        if not self.parameters["output"]["save_solution"]:
             return
 
         # Get parameters
@@ -365,8 +361,7 @@ class SolverBase:
 
         # Save solutions to XDMF format
         for _solution, name in zip(_solutions, names):
-            f = XDMFFile(
-                mpi_comm_world(), pj(solution_dir, "%s_R_%d%s.xdmf" % (name, R, suffix))
+            f = XDMFFile(MPI.comm_world, pj(solution_dir, "%s_R_%d%s.xdmf" % (name, R, suffix))
             )
             f.write(_solution)
 
@@ -374,14 +369,14 @@ class SolverBase:
         "Save 3D solution to file"
 
         # Check whether to save solution
-        if not self.parameters["output"].save_solution_3d:
+        if not self.parameters["output"]["save_solution_3d"]:
             return
 
         # Get parameters
         R = self.parameters["discretization"]["domain_radius"]
         suffix = self.parameters["output"]["suffix"]
         solution_dir = self.parameters["output"]["solution_directory"]
-        resolution_3d = self.parameters["discretization"].resolution_3d
+        resolution_3d = self.parameters["discretization"]["resolution_3d"]
 
         # Generate solution
         info("Computing 3D representation of density")
@@ -394,7 +389,7 @@ class SolverBase:
         "Save point cloud to file"
 
         # Check whether to save solution
-        if not self.parameters["output"].save_point_cloud:
+        if not self.parameters["output"]["save_point_cloud"]:
             return
 
         # Get parameters
