@@ -7,6 +7,7 @@ namespace py = pybind11;
 #include "VPAnsatz.h"
 #include "VP-E-Polytropic-L-Polytropic.h"
 #include "VP-E-Polytropic-L-Gaussian.h"
+#include "VP-E-Polytropic-L-Andreasson.h"
 
 PYBIND11_MODULE(SIGNATURE, m)
 {
@@ -30,5 +31,23 @@ PYBIND11_MODULE(SIGNATURE, m)
     (m, "VPEPolytropicLGaussian")
     .def(py::init<>())
     .def("init_parameters", &VPEPolyLGauss::init_parameters)
-    .def("read_parameters", &VPEPolyLGauss::read_parameters);    
+    .def("read_parameters", &VPEPolyLGauss::read_parameters);  
+
+  // VP-E-Polytropic-L-Andreasson
+  py::class_<VPEPolyLAndreasson, VPAnsatz, std::shared_ptr<VPEPolyLAndreasson>>
+    (m, "VPEPolytropicLAndreasson")
+    .def(py::init<>())
+    .def("read_parameters", &VPEPolyLAndreasson::read_parameters);        
+
+  // VP-Evans-L-Polytropic
+  py::class_<VPEvansLPoly, VPAnsatz, std::shared_ptr<VPEvansLPoly>>
+    (m, "VPEvansLPolytropic")
+    .def(py::init<>())
+    .def("read_parameters", &VPEvansLPoly::read_parameters);        
+
+  // VP-Rowley
+  py::class_<VPRowley, VPAnsatz, std::shared_ptr<VPRowley>>
+    (m, "VPRowley")
+    .def(py::init<>())
+    .def("read_parameters", &VPRowley::read_parameters);        
 }
