@@ -2,10 +2,10 @@
 
 #include "VPAnsatz.h"
 
-class VPRowley
+class VPRowley : public VPAnsatz
 {
 public:
-  VPRowley(/* args */) : VPAnsatz()
+  VPRowley() : VPAnsatz()
   {
     // Set default parameter values
     init_parameters();

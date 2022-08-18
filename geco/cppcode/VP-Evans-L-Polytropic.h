@@ -1,4 +1,10 @@
 // Ansatz for Vlasov-Poisson with Evans type ansatz in E and L.
+// 
+// Returns: 
+//         c * exp(E / s0^2) * |L|^2 + exp(E / v0^2),    E >= E0
+//         0   otherwise
+
+
 
 #include "VPAnsatz.h"
 

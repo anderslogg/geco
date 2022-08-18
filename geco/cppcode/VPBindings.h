@@ -8,6 +8,8 @@ namespace py = pybind11;
 #include "VP-E-Polytropic-L-Polytropic.h"
 #include "VP-E-Polytropic-L-Gaussian.h"
 #include "VP-E-Polytropic-L-Andreasson.h"
+#include "VP-Evans-L-Polytropic.h"
+#include "VP-Rowley.h"
 
 PYBIND11_MODULE(SIGNATURE, m)
 {
