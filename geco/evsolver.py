@@ -113,7 +113,7 @@ class EinsteinVlasovSolver(SolverBase):
         ]
 
         # Get common model parameters (use first)
-        e0 = ansatzes[0].parameters.E0
+        e0 = ansatzes[0].parameters["E0"]
 
         # Get discretization parameters
         m = self.parameters["discretization"]["mass"]
