@@ -33,6 +33,7 @@ model_data = [
 # Cache for generated Ansatz classes
 model_cache = {}
 
+
 def MaterialModel(model):
     "Create given material model"
 
@@ -41,7 +42,7 @@ def MaterialModel(model):
     model = str(model)
 
     # Get model data
-    if not model in model_data:
+    if model not in model_data:
         error('Unknown material model: "%s".' % str(model))
     
     # Select appropriate bindings file and module name

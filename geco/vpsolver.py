@@ -159,8 +159,8 @@ class VlasovPoissonSolver(SolverBase):
             # FIXME: Missing mpi_comm here?
             solver = KrylovSolver("gmres", "amg")
         else:
-            warning("Missing AMG preconditioner, using ILU.")
             # FIXME: Missing mpi_comm here?
+            warning("Missing AMG preconditioner, using ILU.")
             solver = KrylovSolver("gmres")
 
         # Set linear solver parameters
