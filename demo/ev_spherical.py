@@ -13,10 +13,8 @@ solver.parameters["output"]["plot_solution"] = False
 
 # Create ansatz for initial guess
 model = MaterialModel("EV-E-Polytropic-L-Polytropic")
-info(model.parameters, True)
-
 model.parameters["E0"] = 0.925
 model.parameters["rotation"] = False
 
-# Compute solution 
+# Compute solution
 solution = solver.solve(model)

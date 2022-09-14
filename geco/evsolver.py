@@ -18,6 +18,8 @@ This module implements a solver for the Einsten-Vlasov equations in
 axial symmetry with or without net angular momentum.
 """
 
+import time
+
 import geco.physicalquantities as pq
 from geco.solution import *
 from geco.solverbase import *
@@ -184,6 +186,8 @@ class EinsteinVlasovSolver(SolverBase):
                 self.BB.eval_cell(BB_values, x, cell)
                 self.NU.eval_cell(NU_values, x, cell)
                 values[0] = math.log(BB_values[0]) - NU_values[0]
+            def value_shape(self):
+                return ()
 
         MU_a = AxisValueMU(degree=1)
         MU_a.BB = BB
@@ -251,8 +255,8 @@ class EinsteinVlasovSolver(SolverBase):
         Fs = [(F - L) for F, L in zip(Fs, Ls)]
 
         # Create matrices and vectors
-        As = [u.vector().factory().create_matrix(mpi_comm_world()) for u in U]
-        bs = [u.vector().factory().create_vector(mpi_comm_world()) for u in U]
+        As = [Matrix() for u in U]
+        bs = [Vector() for u in U]
         Ys = [u.vector().copy() for u in U]
 
         # Assemble matrices and apply boundary conditions
@@ -262,10 +266,12 @@ class EinsteinVlasovSolver(SolverBase):
         # Create linear solver
         preconditioners = [pc for pc in krylov_solver_preconditioners()]
         if "amg" in preconditioners:
-            solver = LinearSolver(mpi_comm_world(), "bicgstab", "hypre_amg")
+            # FIXME: Missing mpi_comm here?
+            solver = KrylovSolver("bicgstab", "hypre_amg")
         else:
+            # FIXME: Missing mpi_comm here?
             warning("Missing AMG preconditioner, using ILU.")
-            solver = LinearSolver(mpi_comm_world(), "bicgstab")
+            solver = KrylovSolver("bicgstab")
 
         # Set linear solver parameters
         solver.parameters[
@@ -276,8 +282,8 @@ class EinsteinVlasovSolver(SolverBase):
         anderson = Anderson(depth, [Ui.vector() for Ui in U])
 
         # Main loop
-        tic()
-        for iter in xrange(maxiter):
+        tic = time.time()
+        for iter in range(maxiter):
 
             begin("Iteration %d" % iter)
 
@@ -346,7 +352,8 @@ class EinsteinVlasovSolver(SolverBase):
                 break
 
         # Print elapsed time
-        info("Iterations finished in %g seconds." % toc())
+        toc = time.time() - tic
+        info("Iterations finished in %g seconds." % toc)
 
         # Check whether iteration converged
         solution_converged = False
@@ -373,7 +380,7 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Get radius of support and compute areal radius of support
         r0 = max([ansatz.radius_of_support() for ansatz in ansatzes])
-        r0 = MPI.max(mpi_comm_world(), r0)
+        r0 = MPI.max(MPI.comm_world, r0)
 
         # Initialize data dict
         self.data = {}
