@@ -18,6 +18,8 @@ This module implements a solver for the Einsten-Vlasov equations in
 axial symmetry with or without net angular momentum.
 """
 
+import time
+
 import geco.physicalquantities as pq
 from geco.solution import *
 from geco.solverbase import *
@@ -99,7 +101,7 @@ class EinsteinVlasovSolver(SolverBase):
         SolverBase.__init__(self, "ev")
 
         # Add special parameter
-        self.parameters.discretization.add("ang_mom", 0.0)
+        self.parameters["discretization"].add("ang_mom", 0.0)
 
     def solve(self, model, solution=None):
         "Compute solution"
@@ -113,24 +115,24 @@ class EinsteinVlasovSolver(SolverBase):
         ]
 
         # Get common model parameters (use first)
-        e0 = ansatzes[0].parameters.E0
+        e0 = ansatzes[0].parameters["E0"]
 
         # Get discretization parameters
-        m = self.parameters.discretization.mass
-        J = self.parameters.discretization.ang_mom
-        maxiter = self.parameters.discretization.maxiter
-        theta = self.parameters.discretization.theta
-        tol = self.parameters.discretization.tolerance
-        num_steps = self.parameters.discretization.num_steps
-        R = self.parameters.discretization.domain_radius
-        degree = self.parameters.discretization.degree
-        depth = self.parameters.discretization.anderson_depth
+        m = self.parameters["discretization"]["mass"]
+        J = self.parameters["discretization"]["ang_mom"]
+        maxiter   = self.parameters["discretization"]["maxiter"]
+        theta     = self.parameters["discretization"]["theta"]
+        tol       = self.parameters["discretization"]["tolerance"]
+        num_steps = self.parameters["discretization"]["num_steps"]
+        R         = self.parameters["discretization"]["domain_radius"]
+        degree    = self.parameters["discretization"]["degree"]
+        depth     = self.parameters["discretization"]["anderson_depth"]
 
         # Get output parameters
-        plot_iteration = self.parameters.output.plot_iteration
+        plot_iteration = self.parameters["output"]["plot_iteration"]
 
         # Workaround for geometric round-off errors
-        parameters.allow_extrapolation = True
+        parameters["allow_extrapolation"] = True
 
         # Initialiaze solution
         if solution is None:
@@ -155,8 +157,8 @@ class EinsteinVlasovSolver(SolverBase):
             NU = solution.NU
             BB = solution.BB
             MU = solution.MU
-            WW = solution.WW
             RHO = Function(V)
+            WW = solution.WW
 
         # Create vector of fields
         U = [NU, BB, MU, WW]
@@ -171,19 +173,21 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Create subdomains for boundaries
         eps = 1e-5
-        axis_test = "x[0] < eps"
+        axis_test  = "x[0] < eps"
         infty_test = "x[0]*x[0] + x[1]*x[1] > (R - eps)*(R - eps)"
-        axis = CompiledSubDomain(axis_test, eps=eps)
+        axis  = CompiledSubDomain(axis_test, eps=eps)
         infty = CompiledSubDomain(infty_test, eps=eps, R=R)
 
         # Create boundary condition on axis for MU
-        class AxisValueMU(Expression):
+        class AxisValueMU(UserExpression):
             def eval_cell(self, values, x, cell):
                 BB_values = values.copy()
                 NU_values = values.copy()
                 self.BB.eval_cell(BB_values, x, cell)
                 self.NU.eval_cell(NU_values, x, cell)
                 values[0] = math.log(BB_values[0]) - NU_values[0]
+            def value_shape(self):
+                return ()
 
         MU_a = AxisValueMU(degree=1)
         MU_a.BB = BB
@@ -194,7 +198,7 @@ class EinsteinVlasovSolver(SolverBase):
         bci_BB = (1, DirichletBC(V, BB_R, infty, method="pointwise"))
         bci_MU = (2, DirichletBC(V, MU_R, infty, method="pointwise"))
         bci_WW = (3, DirichletBC(V, WW_R, infty, method="pointwise"))
-        bca_MU = (2, DirichletBC(V, MU_a, axis, method="pointwise"))
+        bca_MU = (2, DirichletBC(V, MU_a, axis,  method="pointwise"))
         bc0 = DirichletBC(V, 0.0, DomainBoundary())
 
         # Collect boundary conditions
@@ -202,7 +206,7 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Initialize all ansatzes
         for ansatz in ansatzes:
-            ansatz.set_fields(NU, BB, MU, WW)
+            ansatz.set_fields(NU.cpp_object(), BB.cpp_object(), MU.cpp_object(), WW.cpp_object())
             ansatz.set_integration_parameters(num_steps)
             ansatz.read_parameters()
 
@@ -251,8 +255,8 @@ class EinsteinVlasovSolver(SolverBase):
         Fs = [(F - L) for F, L in zip(Fs, Ls)]
 
         # Create matrices and vectors
-        As = [u.vector().factory().create_matrix(mpi_comm_world()) for u in U]
-        bs = [u.vector().factory().create_vector(mpi_comm_world()) for u in U]
+        As = [Matrix() for u in U]
+        bs = [Vector() for u in U]
         Ys = [u.vector().copy() for u in U]
 
         # Assemble matrices and apply boundary conditions
@@ -262,22 +266,24 @@ class EinsteinVlasovSolver(SolverBase):
         # Create linear solver
         preconditioners = [pc for pc in krylov_solver_preconditioners()]
         if "amg" in preconditioners:
-            solver = LinearSolver(mpi_comm_world(), "bicgstab", "hypre_amg")
+            # FIXME: Missing mpi_comm here?
+            solver = KrylovSolver("bicgstab", "hypre_amg")
         else:
+            # FIXME: Missing mpi_comm here?
             warning("Missing AMG preconditioner, using ILU.")
-            solver = LinearSolver(mpi_comm_world(), "bicgstab")
+            solver = KrylovSolver("bicgstab")
 
         # Set linear solver parameters
         solver.parameters[
             "relative_tolerance"
-        ] = self.parameters.discretization.krylov_tolerance
+        ] = self.parameters["discretization"]["krylov_tolerance"]
 
         # Initialize Anderson acceleration
         anderson = Anderson(depth, [Ui.vector() for Ui in U])
 
         # Main loop
-        tic()
-        for iter in xrange(maxiter):
+        tic = time.time()
+        for iter in range(maxiter):
 
             begin("Iteration %d" % iter)
 
@@ -346,7 +352,8 @@ class EinsteinVlasovSolver(SolverBase):
                 break
 
         # Print elapsed time
-        info("Iterations finished in %g seconds." % toc())
+        toc = time.time() - tic
+        info("Iterations finished in %g seconds." % toc)
 
         # Check whether iteration converged
         solution_converged = False
@@ -366,14 +373,14 @@ class EinsteinVlasovSolver(SolverBase):
         project(rest_density, mesh=mesh, function=RMD)
 
         # Compute final unscaled mass and scale ansatz coefficient
-        prescribed_mass = self.parameters.discretization.mass
+        prescribed_mass = self.parameters["discretization"]["mass"]
         _m = assemble(_mass)
         C.assign(prescribed_mass / _m)
         project(density, mesh=mesh, function=RHO)
 
         # Get radius of support and compute areal radius of support
         r0 = max([ansatz.radius_of_support() for ansatz in ansatzes])
-        r0 = MPI.max(mpi_comm_world(), r0)
+        r0 = MPI.max(MPI.comm_world, r0)
 
         # Initialize data dict
         self.data = {}
