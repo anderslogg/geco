@@ -177,7 +177,7 @@ class EinsteinVlasovSolver(SolverBase):
         infty = CompiledSubDomain(infty_test, eps=eps, R=R)
 
         # Create boundary condition on axis for MU
-        class AxisValueMU(Expression):
+        class AxisValueMU(UserExpression):
             def eval_cell(self, values, x, cell):
                 BB_values = values.copy()
                 NU_values = values.copy()
@@ -202,7 +202,7 @@ class EinsteinVlasovSolver(SolverBase):
 
         # Initialize all ansatzes
         for ansatz in ansatzes:
-            ansatz.set_fields(NU, BB, MU, WW)
+            ansatz.set_fields(NU.cpp_object(), BB.cpp_object(), MU.cpp_object(), WW.cpp_object())
             ansatz.set_integration_parameters(num_steps)
             ansatz.read_parameters()
 
