@@ -364,7 +364,7 @@ class EinsteinVlasovSolver(SolverBase):
             solution_converged = True
         info("")
         info("Iterations converged to within a tolerance of %g." % tol)
-        info("Number of iterations was %g." % iter)
+        info(f"Number of iterations was {iter + 1}")
         info("")
 
         # Define rest mass density
