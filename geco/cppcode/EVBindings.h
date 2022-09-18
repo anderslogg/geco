@@ -7,6 +7,9 @@ namespace py = pybind11;
 #include "EVAnsatz.h"
 #include "EV-E-Polytropic-L-Polytropic.h"
 #include "EV-E-Polytropic-L-Gaussian.h"
+#include "EV-E-Polytropic-L-Andreasson.h"
+#include "EV-E-Polytropic-L-Delta.h"
+#include "EV-E-Delta-L-Delta.h"
 
 PYBIND11_MODULE(SIGNATURE, m)
 {
@@ -31,4 +34,25 @@ PYBIND11_MODULE(SIGNATURE, m)
     .def(py::init<>())
     .def("init_parameters", &EVEPolyLGauss::init_parameters)
     .def("read_parameters", &EVEPolyLGauss::read_parameters);
+
+  // EV-E-Polytropic-L-Andreasson
+  py::class_<EVEPolyLAndreasson, EVAnsatz, std::shared_ptr<EVEPolyLAndreasson>>
+    (m, "EVEPolytropicLAndreasson")
+    .def(py::init<>())
+    .def("init_parameters", &EVEPolyLAndreasson::init_parameters)
+    .def("read_parameters", &EVEPolyLAndreasson::read_parameters);
+
+  // EV-E-Polytropic-L-Delta
+  py::class_<EVEPolyLDelta, EVAnsatz, std::shared_ptr<EVEPolyLDelta>>
+    (m, "EVEPolytropicLDelta")
+    .def(py::init<>())
+    .def("init_parameters", &EVEPolyLDelta::init_parameters)
+    .def("read_parameters", &EVEPolyLDelta::read_parameters);
+
+  // EV-E-Delta-L-Delta
+  py::class_<EVEDeltaLDelta, EVAnsatz, std::shared_ptr<EVEDeltaLDelta>>
+    (m, "EVEDeltaLDelta")
+    .def(py::init<>())
+    .def("init_parameters", &EVEDeltaLDelta::init_parameters)
+    .def("read_parameters", &EVEDeltaLDelta::read_parameters);
 }
