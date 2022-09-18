@@ -6,6 +6,7 @@ namespace py = pybind11;
 
 #include "EVAnsatz.h"
 #include "EV-E-Polytropic-L-Polytropic.h"
+#include "EV-E-Polytropic-L-Gaussian.h"
 
 PYBIND11_MODULE(SIGNATURE, m)
 {
@@ -23,4 +24,11 @@ PYBIND11_MODULE(SIGNATURE, m)
     .def(py::init<>())
     .def("init_parameters", &EVEPolyLPoly::init_parameters)
     .def("read_parameters", &EVEPolyLPoly::read_parameters);
+ 
+  // EV-E-Polytropic-L-Gaussian
+  py::class_<EVEPolyLGauss, EVAnsatz, std::shared_ptr<EVEPolyLGauss>>
+    (m, "EVEPolytropicLGaussian")
+    .def(py::init<>())
+    .def("init_parameters", &EVEPolyLGauss::init_parameters)
+    .def("read_parameters", &EVEPolyLGauss::read_parameters);
 }
