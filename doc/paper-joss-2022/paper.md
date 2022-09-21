@@ -40,7 +40,7 @@ FIXME
 
 # Documentation
 
-The documentation for GECo Builder is published on the
+The documentation for GECo is published on the
 [GECo GitLab pages](https://gitlab.com/alogg/geco).
 
 # Limitations and future work
