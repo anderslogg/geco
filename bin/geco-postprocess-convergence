@@ -10,7 +10,7 @@ import pylab as pl
 
 # Get filename
 if not len(sys.argv) >= 2:
-    print "Usage: geco-postprocess-convergence residuals.csv"
+    print("Usage: geco-postprocess-convergence residuals.csv")
     sys.exit(1)
 filename = sys.argv[1]
 
@@ -27,7 +27,8 @@ with open(filename, 'r') as f:
 # Estimate convergence rate
 n = len(r)
 k = range(n)
-p = pl.polyfit(k[n/2:], pl.log(r[n/2:]), 1)
+h = int(n/2)
+p = pl.polyfit(k[h:], pl.log(r[h:]), 1)
 L = pl.exp(p[0]) # Lipschitz-constant
 K = range(int(1.1*n))
 R = pl.exp(p[1])*L**K

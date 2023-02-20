@@ -40,6 +40,6 @@ print("  Saving exponentiated functions")
 solutions = [expNU, expmMU]
 names = ['expNU', 'expmMU']
 for solution, name in zip(solutions, names):
-    f = XDMFFile(mpi_comm_world(),
+    f = XDMFFile(MPI.comm_world,
                      pj(cwd, "%s_%s.xdmf" % (name, R)))
     f.write(solution)

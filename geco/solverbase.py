@@ -280,7 +280,7 @@ class SolverBase:
 
         # Write header if not written before
         if not os.path.isfile(filename):
-            f = open(filename, "w")
+            f = open(filename, "w", encoding='utf-8')
             f.write(",".join(str(k) for k in keys) + "\n")
             f.close()
 
@@ -294,7 +294,7 @@ class SolverBase:
                 data_line += str(val) + ","
         data_line = data_line.strip(",")
 
-        f = open(filename, "a")
+        f = open(filename, "a", encoding='utf-8')
         f.write(data_line + "\n")
         f.close()
 

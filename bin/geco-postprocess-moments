@@ -13,11 +13,11 @@ from fenics import *
 from geco import *
 
 # Choose which data to evaluate
-data = raw_input("Select data. For example type 'RHO' or 'RHO0_50': ")
-print "%s data selected" % data
+data = input("Select data. For example type 'RHO' or 'RHO0_50': ")
+print("%s data selected" % data)
 
 # Identify 2D RHO0 file
-files = [f for f in os.listdir('.') if data in f and f.endswith('xml')]
+files = [f for f in os.listdir('.') if data in f and (f.endswith('xml') or f.endswith('xml.gz'))]
 
 # Check that we got exactly one file
 if len(files) > 1:
@@ -30,7 +30,7 @@ data_filename = files[0]
 
 # Set mesh filename
 R = int(data_filename.split("_")[1].split(".")[0])
-mesh_filename = "mesh_%d.xml" % R
+mesh_filename = "mesh.xml.gz"
 
 # Read mesh and reconstruct 2D function space
 info("Reading mesh from file %s." % mesh_filename)
@@ -65,7 +65,7 @@ else:
     
 
 # Print result
-print "Spatial moment Ixx = %g" % Ixx
-print "Spatial moment Izz = %g" % Izz
-print "The distribution is %s"  % orientation
-print "Eccentricity e = %g"     % ecc
+print("Spatial moment Ixx = %g" % Ixx)
+print("Spatial moment Izz = %g" % Izz)
+print("The distribution is %s"  % orientation)
+print("Eccentricity e = %g"     % ecc)

@@ -7,15 +7,15 @@ Postprocessing script for pretty-printing the data stored in ppdata.csv.
 from fenics import Table, info
 
 # Read from file
-text = open("ppdata.csv").read()
+text = open("ppdata.csv", encoding='utf-8').read()
 keys = text.split("\n")[0].split(",")
 vals = text.split("\n")[1].split(",")
 
 # Pretty-print table
-t = Table("Parameter")
+t = Table("Parameter").parameters
 d = {}
 for k, v in zip(keys, vals):
-    t.set(k, "value", v)
+    t.add(k, v)
     d[k] = v
 info(t, True)
 
@@ -27,9 +27,9 @@ except:
     r0 = 0.0
 r1 = float(d["r_outer"])
 r = max(abs(R - r0), abs(R - r1))
-print ""
-print "Recommended values for torus geometry"
-print "-------------------------------------"
-print ""
-print "R = %.3g" % R
-print "r = %.3g" % r
+print("")
+print("Recommended values for torus geometry")
+print("-------------------------------------")
+print("")
+print("R = %.3g" % R)
+print("r = %.3g" % r)
