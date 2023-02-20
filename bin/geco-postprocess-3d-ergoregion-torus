@@ -23,7 +23,7 @@ if len(sys.argv) == 3:
 else:
 
     # Automatically determine the geometry
-    with open("ppdata.csv") as f:
+    with open("ppdata.csv", encoding='utf-8') as f:
 
         # Read CSV data into a dictionary
         rows = [r for r in csv.reader(f)]
@@ -77,7 +77,7 @@ x = SpatialCoordinate(mesh2)
 s = x[0]
 _gtt = - exp(2.0*NU)*(1.0 - (WW*s*BB)**2.0*exp(-4.0*NU))
 gtt  = project(_gtt, V2)
-GTT = interpolate(Density3D(gtt), V3)
+GTT = interpolate(Density3D(gtt.cpp_object()), V3)
 
 # Save to file
 GTT.rename("GTT", "Ergoregion indicator")

@@ -4,17 +4,19 @@
 Postprocessing script to generate 3D density data sampled in a box.
 """
 
-import sys, os
+import os
+import sys
+
 from fenics import *
 from geco import *
 from geco.models import Density3D
 
 # Program input
 if len(sys.argv) != 3:
-    print "Usage: geco-postprocess-3d-density-box D N"
-    print ""
-    print "D = box size / 2 (float)"
-    print "N = box resolution (integer)"
+    print("Usage: geco-postprocess-3d-density-box D N")
+    print("")
+    print("D = box size / 2 (float)")
+    print("N = box resolution (integer)")
     exit(1)
 
 # Get input parameters
@@ -53,7 +55,7 @@ RHO2D.set_allow_extrapolation(True)
 info("Generating 3D data with box size %g and resolution %d" % (D, N))
 mesh3d = BoxMesh(Point(-D, -D, -D), Point(D, D, D), N, N, N)
 V3D = FunctionSpace(mesh3d, "Lagrange", 1)
-RHO3D = interpolate(Density3D(RHO2D), V3D)
+RHO3D = interpolate(Density3D(RHO2D.cpp_object()), V3D)
 
 # Save 3D density
 filename = "postprocess-3d-density-box.pvd"

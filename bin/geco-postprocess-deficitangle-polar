@@ -18,7 +18,7 @@ from the solution directory.
 '''
 
 import numpy as np
-import csv, os
+import os
 from dolfin import *
 from matplotlib import pyplot as plt
 from PIL import Image
@@ -28,10 +28,10 @@ from PIL import Image
 
 # Read Data dictionary
 try:
-    header = np.genfromtxt('ppdata.csv', max_rows=1, delimiter=',', dtype=str)
-    data_lines = np.genfromtxt('ppdata.csv', delimiter=',', dtype=None)
+    header = np.genfromtxt('ppdata.csv', max_rows=1, delimiter=',', dtype=str, encoding='utf-8')
+    data_lines = np.genfromtxt('ppdata.csv', delimiter=',', dtype=None, encoding='utf-8')
     data_lines = data_lines[-1]
-    ppdata = dict( zip(header, data_lines) )
+    ppdata = dict(zip(header, data_lines))
 except:
     print('ppdata.csv not found. Run geco-postprocess-data.')
 
@@ -57,7 +57,7 @@ step = ppdata['step']
 cwd = os.getcwd()
 vis_dir = os.path.abspath(os.path.join(cwd, os.pardir, os.pardir, 'visualization'))
 deficitangle_plots_dir = os.path.join(vis_dir, 'deficit-angle-plots-polar')
-save_file = os.path.join(deficitangle_plots_dir, 'deficitangle_polar_{:}.jpg'.format(step))
+save_file = os.path.join(deficitangle_plots_dir, 'deficitangle_polar_{:}.png'.format(step))
 
 if not os.path.exists(deficitangle_plots_dir):
     os.makedirs(deficitangle_plots_dir)
@@ -91,7 +91,7 @@ def integrals_function(s0, t0):
     dt = pi/intres
 
     # s-integral
-    for i in xrange(intres):
+    for i in range(intres):
         si = 0.5*ds + i*ds
         rp = peak_radius + si*np.cos(t0) #local polar coord about peak
         zp = si*np.sin(t0) #local polar coord about peak
@@ -100,7 +100,7 @@ def integrals_function(s0, t0):
     s_integral *= ds        
 
     # t-integral
-    for i in xrange(intres):
+    for i in range(intres):
         ti = 0.5*dt + i*dt
         rp = peak_radius + s0*np.cos(ti) #local polar coord about peak
         zp = s0*np.sin(ti) #local polar coord about peak
@@ -121,7 +121,7 @@ def integrals_function(sigma0, psi0):
     dpsi = pi/intres
     
     # sigma integral: proper toroidal radius
-    for i in xrange(intres):
+    for i in range(intres):
         si = sigma0 + 0.5*ds + i*ds
         rp = peak_radius*np.sinh(si)/(np.cosh(si)-np.cos(psi0)) 
         zp = peak_radius*np.sin(psi0)/(np.cosh(si)-np.cos(psi0))
@@ -130,7 +130,7 @@ def integrals_function(sigma0, psi0):
     sigma_integral *= ds
 
     # psi integral: proper toroidal circumference
-    for k in xrange(intres):
+    for k in range(intres):
         psik = 0.5*dpsi + k*dpsi
         rp = peak_radius*np.sinh(sigma0)/(np.cosh(sigma0)-np.cos(psik)) 
         zp = peak_radius*np.sin(psik)/(np.cosh(sigma0)-np.cos(psik))
@@ -156,7 +156,7 @@ markers = ['o', 'v', 'D','s']
 #plt.rcParams['figure.figsize'] = (2.0, 1.0)
 #plt.rcParams["font.family"] = "Times New Roman"
 
-for j in xrange(numlines):
+for j in range(numlines):
     deficits = [2*pi - integrals_function(s, angles[j]) for s in slist]
     marker = markers[j]
     plt.plot(slist, deficits, marker, markersize=6)

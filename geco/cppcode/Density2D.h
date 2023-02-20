@@ -10,16 +10,22 @@
 
 // You should have received a copy of the GNU General Public License along with GECo. If not, see <https://www.gnu.org/licenses/>.
 
-#include <iostream>
+#ifndef DENSITY2D_H
+#define DENSITY2D_H
 
-class Density2D : public Expression
+#include <iostream>
+#include <dolfin/function/Expression.h>
+#include <dolfin/function/Function.h>
+
+class Density2D : public dolfin::Expression
 {
 public:
   // Constructor
   Density2D() : Expression() {}
 
   // Evaluation
-  void eval(Array<double> &values, const Array<double> &x,
+  void eval(Eigen::Ref<Eigen::VectorXd> values, 
+            Eigen::Ref<const Eigen::VectorXd> x,
             const ufc::cell &cell) const
   {
     dolfin_assert(_rho);
@@ -39,12 +45,14 @@ public:
   }
 
   // Set density
-  void set_density(std::shared_ptr<const Function> rho)
+  void set_density(std::shared_ptr<const dolfin::Function> rho)
   {
     _rho = rho;
   }
 
 private:
   // Axially symmetric density (2D)
-  std::shared_ptr<const Function> _rho;
+  std::shared_ptr<const dolfin::Function> _rho;
 };
+
+#endif
