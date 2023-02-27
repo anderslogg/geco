@@ -1,18 +1,26 @@
-============
-Installation
-============
+# Installation
 
-GECo is installed like any other Python module:
+Run the command
 
-    [sudo -H] pip install [--upgrade] .
+    pip install .
 
-Alternatively, if you want to run a code against GECo without
-installing it, enter the GECo directory (this directory) and
-run the following command:
+from inside the package directory.
+
+Alternatively, you can issue the command
 
     export PYTHONPATH=`pwd`:$PYTHONPATH
 
-Dependencies
-------------
+This will allow you to run the demos inside the `demos` directory without
+actually installing `GECo`.
 
-GECo depends on FEniCS version 2017.2.0.
+## Dependencies
+
+GECo depends on FEniCS version 2019.2.0.
+
+The easiest way to get the dependendencies is to use the provided Docker image.
+The Docker image can be easily built by entering the `docker` directory and then
+running the following commands:
+
+    ./docker-build-image
+    ./docker-build-container
+    ./docker-start-container

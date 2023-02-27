@@ -28,6 +28,6 @@ setup(name='GECo',
                pj('bin', 'run-geco-postprocess.sh')],
       data_files=[(pj('geco','cppcode'), cppfiles),
                   (pj('geco','meshes'), meshfiles)],
-      license='To be decided...',
+      license='GPL v3',
       long_description=open('README.md').read(),
       include_package_data=True)
