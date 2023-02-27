@@ -11,7 +11,7 @@ Alternatively, you can issue the command
     export PYTHONPATH=`pwd`:$PYTHONPATH
 
 This will allow you to run the demos inside the `demos` directory without
-actually installing `GECo`.
+actually installing GECo.
 
 ## Dependencies
 
