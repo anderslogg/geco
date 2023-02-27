@@ -5,17 +5,19 @@ Ansatz:   EV-E-Polytropic-L-Polytropic
 This creates a rotating solution of the EV system with toroidal morphology.
 
 To converge, this demo should be run at higher resolution. 
+
+Final solution converges in 3 iterations.
 """
 
 from geco import *
 
 # Create solver
 solver = EinsteinVlasovSolver()
-solver.parameters.output.plot_solution = False
+solver.parameters["output"]["plot_solution"] = False
 
 # If not in hires, increase resolution
-solver.parameters.discretization.num_steps = 32
-solver.parameters.discretization.resolution = 64
+solver.parameters["discretization"]["num_steps"] = 32
+solver.parameters["discretization"]["resolution"] = 64
 
 # Create ansatz for initial guess
 model = MaterialModel("EV-E-Polytropic-L-Polytropic")
@@ -24,7 +26,7 @@ model = MaterialModel("EV-E-Polytropic-L-Polytropic")
 solution = solver.solve(model)
 
 # Create main ansatz (adjust L0 from 0 to 1)
-model.parameters.L0 = 1.0
+model.parameters["L0"] = 1.0
 
 # Compute solution
 solution = solver.solve(model, solution)

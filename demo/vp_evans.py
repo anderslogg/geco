@@ -1,10 +1,8 @@
 """
 Equation: Vlasov-Poisson
-Ansatz:   VP-E-Polytropic-L-Polytropic
+Ansatz:   VP-Evans-L-Polytropic
 
-This creates a spherical solution of the VP system. 
-
-This demo converges in four iterations. 
+This demo converges in seven iterations. 
 """
 
 from geco import *
@@ -16,11 +14,11 @@ solver.parameters["discretization"]["resolution"]    = 64
 solver.parameters["discretization"]["tolerance"]     = 1e-6
 
 # Create ansatz
-model = MaterialModel("VP-E-Polytropic-L-Polytropic")
+model = MaterialModel("VP-Evans-L-Polytropic")
 model.parameters["E0"] = -0.1
-model.parameters["k"]  = 0.0
-model.parameters["L0"] = 0.0
-model.parameters["l"]  = 0.0
+model.parameters["v0"]  = 0.0
+model.parameters["s0"] = 1.0
+model.parameters["c"]  = 0.1
 
 # Solve
 U, RHO, data = solver.solve(model)

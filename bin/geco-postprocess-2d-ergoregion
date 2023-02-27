@@ -2,13 +2,15 @@
 
 """"
 Postprocessing script to generate 2D ergoregion data sampled in a rectangle.
+
+If an ergoregion is present, it can be viewed by plotting the zero contour from the generated data file. 
 """
 
 import sys, os, csv
+import numpy as np
 from fenics import *
 from geco import *
 from geco.models import Density2D
-from mshr import *
 
 # Parameters
 nZ = 128
@@ -19,15 +21,7 @@ with open("ppdata.csv") as f:
     # Read CSV data into a dictionary
     rows = [r for r in csv.reader(f)]
     d = dict(zip(rows[0], rows[1]))
-
-    # Get geometry
-    try:
-        r0 = float(d["r_inner"])
-    except:
-        r0 = 0.0
-    rp = float(d["r_peak"])
     r1 = float(d["r_outer"])
-    r = max(abs(rp - r0), abs(rp - r1))
     R = 2.0*r1
     Z = 1.0*r1
 
@@ -63,10 +57,14 @@ x = SpatialCoordinate(mesh2)
 s = x[0]
 _gtt = - exp(2.0*NU)*(1.0 - (WW*s*BB)**2.0*exp(-4.0*NU))
 gtt  = project(_gtt, V2)
-GTT = interpolate(Density2D(gtt), V3)
+GTT = interpolate(Density2D(gtt.cpp_object()), V3)
+if np.any(GTT.compute_vertex_values() >= 0.0):
+    info("Ergoregion detected. Saving file.")
+    # Save to file
+    GTT.rename("GTT", "Ergoregion indicator")
+    filename = "postprocess-2d-ergoregion.pvd"
+    File(filename) << GTT
+    info("Postprocessing data save to file %s" % filename)
+else:
+    info("No ergoregion detected.")
 
-# Save to file
-GTT.rename("GTT", "Ergoregion indicator")
-filename = "postprocess-2d-ergoregion.pvd"
-File(filename) << GTT
-info("Postprocessing data save to file %s" % filename)

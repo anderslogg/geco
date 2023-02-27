@@ -1,7 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """"
 Postprocessing script to generate 2D density data sampled in a rectangle.
+
+Useful for extracting a region of interest from the entire computational domain. 
 """
 
 import sys, os, csv
@@ -14,7 +16,7 @@ from mshr import *
 nZ = 128
 
 # Automatically determine the geometry
-with open("ppdata.csv") as f:
+with open("ppdata.csv", encoding='utf-8') as f:
 
     # Read CSV data into a dictionary
     rows = [r for r in csv.reader(f)]
@@ -54,7 +56,7 @@ info(mesh3)
 V3 = FunctionSpace(mesh3, "Lagrange", 1)
 
 # Compute new 2D density
-RHO3 = interpolate(Density2D(RHO2), V3)
+RHO3 = interpolate(Density2D(RHO2.cpp_object()), V3)
 
 # Save to file
 RHO3.rename("RHO", "Density")

@@ -18,6 +18,9 @@ This module implements a solver for the Vlasov-Poisson
 equations in axial symmetry.
 """
 
+import time
+
+from dolfin import *
 
 from geco.solverbase import *
 
@@ -37,6 +40,7 @@ def _flat(m):
 def _init(e0, m, V):
     parameters = {"E": e0, "r0": -m / e0}
     u = "2.0*E / (1.0 + sqrt(x[0]*x[0] + x[1]*x[1]) / r0)"
+    #return project(Expression(compile_cpp_code(u), degree=1, **parameters), V)
     return project(Expression(u, degree=1, **parameters), V)
 
 
@@ -58,22 +62,24 @@ class VlasovPoissonSolver(SolverBase):
         ]
 
         # Get common model parameters (use first)
-        e0 = ansatzes[0].parameters.E0
+        e0 = ansatzes[0].parameters["E0"]
 
         # Get discretization parameters
-        m = self.parameters.discretization.mass
-        R = self.parameters.discretization.domain_radius
-        maxiter = self.parameters.discretization.maxiter
-        tol = self.parameters.discretization.tolerance
-        num_steps = self.parameters.discretization.num_steps
-        degree = self.parameters.discretization.degree
-        depth = self.parameters.discretization.anderson_depth
+        m = self.parameters["discretization"]["mass"]
+        R = self.parameters["discretization"]["domain_radius"]
+        maxiter = self.parameters["discretization"]["maxiter"]
+        tol = self.parameters["discretization"]["tolerance"]
+        num_steps = self.parameters["discretization"]["num_steps"]
+        degree = self.parameters["discretization"]["degree"]
+        depth = self.parameters["discretization"]["anderson_depth"]
 
         # Get output parameters
-        plot_iteration = self.parameters.output.plot_iteration
+        plot_iteration = self.parameters["output"]["plot_iteration"]
 
+        # FIXME: Who do these parameters belong to? Dolfin?
+        # Returns error: NameError: name 'parameters' is not defined
         # Workaround for geometric round-off errors
-        parameters.allow_extrapolation = True
+        #parameters["allow_extrapolation"] = True
 
         # Generate mesh and create function space
         mesh = self._generate_mesh()
@@ -109,7 +115,7 @@ class VlasovPoissonSolver(SolverBase):
 
         # Initialize all ansatzes
         for ansatz in ansatzes:
-            ansatz.set_fields(U)
+            ansatz.set_fields(U.cpp_object())
             ansatz.set_integration_parameters(num_steps)
             ansatz.read_parameters()
 
@@ -150,22 +156,24 @@ class VlasovPoissonSolver(SolverBase):
         # Create linear solver
         preconditioners = [pc for pc in krylov_solver_preconditioners()]
         if "amg" in preconditioners:
-            solver = LinearSolver(mpi_comm_world(), "gmres", "amg")
+            # FIXME: Missing mpi_comm here?
+            solver = KrylovSolver("gmres", "amg")
         else:
+            # FIXME: Missing mpi_comm here?
             warning("Missing AMG preconditioner, using ILU.")
-            solver = LinearSolver(mpi_comm_world(), "gmres")
+            solver = KrylovSolver("gmres")
 
         # Set linear solver parameters
-        solver.parameters[
-            "relative_tolerance"
-        ] = self.parameters.discretization.krylov_tolerance
+        solver.parameters["relative_tolerance"] = (
+            self.parameters["discretization"]["krylov_tolerance"]
+        )
 
         # Initialize Anderson acceleration
         anderson = Anderson(depth, U.vector())
 
         # Main loop
-        tic()
-        for iter in xrange(maxiter):
+        tic = time.time()
+        for iter in range(maxiter):
 
             begin("Iteration %d" % iter)
 
@@ -216,7 +224,8 @@ class VlasovPoissonSolver(SolverBase):
                 break
 
         # Print elapsed time
-        info("Iterations finished in %g seconds." % toc())
+        toc = time.time() - tic
+        info("Iterations finished in %g seconds." % toc)
 
         # Check whether iteration converged
         if iter == maxiter - 1:
@@ -264,13 +273,13 @@ class VlasovPoissonSolver(SolverBase):
         "Compute interesting properties of solution"
 
         # Compute final unscaled mass and scale ansatz coefficient
-        m = self.parameters.discretization.mass
+        m = self.parameters["discretization"]["mass"]
         _m = assemble(_mass)
         C.assign(m / _m)
 
         # Get radius of support and compute areal radius of support
         r0 = max([ansatz.radius_of_support() for ansatz in ansatzes])
-        r0 = MPI.max(mpi_comm_world(), r0)
+        r0 = MPI.max(MPI.comm_world, r0)
         R0 = r0 * (1.0 + m / (2.0 * r0)) ** 2
 
         # Compute Buchdahl quantity

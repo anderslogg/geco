@@ -1,38 +1,59 @@
 // Ansatz for Vlasov-Poisson with Evans type ansatz in E and L.
+// 
+// Returns: 
+//         c * exp(E / s0^2) * |L|^2 + exp(E / v0^2),    E >= E0
+//         0   otherwise
 
-// Member functions
 
-double ansatz(double E, double L) const
+
+#include "VPAnsatz.h"
+
+
+class VPEvansLPoly : public VPAnsatz
 {
-  if (E >= E0)
-    return 0.0;
+ public:
+  VPEvansLPoly() : VPAnsatz()
+  {
+    // Set default parameter values
+    init_parameters();
+  }
 
-  //  if (std::abs(L) <= L0)
-    //    return 0.0;
+  // Member functions
 
-  return c*std::exp(E*std::pow(s0, -2.0))*std::pow(abs(L), 2.0) + std::exp(E*std::pow(v0, -2.0));
-}
+  double ansatz(double E, double L) const
+  {
+    if (E >= E0)
+      return 0.0;
 
-void init_parameters()
-{
-  parameters.add("E0", -0.1);
-  parameters.add("v0",  0.0);
-  parameters.add("s0",  1.0);
-  parameters.add("c",   0.1);
+    //  if (std::abs(L) <= L0)
+      //    return 0.0;
 
-}
+    return c*std::exp(E*std::pow(s0, -2.0))*std::pow(abs(L), 2.0) + std::exp(E*std::pow(v0, -2.0));
+  }
 
-void read_parameters()
-{
-  E0 = parameters["E0"];
-  v0 = parameters["v0"];
-  s0 = parameters["s0"];
-  c  = parameters["c"];
-}
+  void init_parameters()
+  {
+    parameters.add("E0", -0.1);
+    parameters.add("v0",  0.0);
+    parameters.add("s0",  1.0);
+    parameters.add("c",   0.1);
 
-// Member variables
+  }
 
-double E0;
-double v0;
-double s0;
-double c;
+  void read_parameters()
+  {
+    E0 = parameters["E0"];
+    v0 = parameters["v0"];
+    s0 = parameters["s0"];
+    c  = parameters["c"];
+  }
+
+private:
+  // Member variables
+  // Note that the energy cutoff E0 is declared within VPAnsatz.
+
+  double v0;
+  double s0;
+  double c;
+
+}; // end class VPEvansLPoly

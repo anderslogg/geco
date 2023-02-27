@@ -1,8 +1,6 @@
 """
 Equation: Vlasov-Poisson
-Ansatz:   VP-E-Polytropic-L-Polytropic
-
-This creates a spherical solution of the VP system. 
+Ansatz:   VP-Rowley
 
 This demo converges in four iterations. 
 """
@@ -16,11 +14,12 @@ solver.parameters["discretization"]["resolution"]    = 64
 solver.parameters["discretization"]["tolerance"]     = 1e-6
 
 # Create ansatz
-model = MaterialModel("VP-E-Polytropic-L-Polytropic")
+model = MaterialModel("VP-Rowley")
 model.parameters["E0"] = -0.1
-model.parameters["k"]  = 0.0
-model.parameters["L0"] = 0.0
-model.parameters["l"]  = 0.0
+model.parameters["r0"] = 1.0
+model.parameters["W"]  = 1.0
+model.parameters["c0"] = -0.1
+model.parameters["b"]  = 0.1
 
 # Solve
 U, RHO, data = solver.solve(model)
