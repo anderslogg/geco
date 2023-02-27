@@ -1,5 +1,3 @@
-=====
-Demos
-=====
+# Demos
 
 FIXME
