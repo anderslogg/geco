@@ -90,7 +90,7 @@ def print_data_dict(data_dict):
 ##############################
 # Read Data dictionary
 header = np.genfromtxt(data_file, max_rows=1, delimiter=',', dtype=str)
-data_lines = np.genfromtxt(data_file, delimiter=',', dtype=None)
+data_lines = np.genfromtxt(data_file, delimiter=',', dtype=None, encoding='utf-8')
 data_lines = data_lines[-1]
 ppdata = dict( zip(header, data_lines))
 

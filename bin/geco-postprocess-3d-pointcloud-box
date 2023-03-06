@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # This is a utility script for generating point cloud data from an
@@ -13,19 +13,19 @@ from geco.models import PointCloud
 
 # Parameters
 num_points = 1000000
-resolution = 512
+resolution = 64
 mass = 1.0
-size = 5
+size = 12.
 
 # Find RHO datafile
-files = [f for f in os.listdir(".") if "RHO_" in f and f.endswith(".xml")]
+files = [f for f in os.listdir(".") if "RHO_" in f and (f.endswith(".xml") or f.endswith("xml.gz"))]
 if not len(files) == 1:
     error("Unable to find XML data for RHO.")
 data_filename = files[0]
 
 # Find mesh datafile
 R = int(data_filename.split("RHO_")[1].split(".")[0])
-mesh_filename = "mesh.xml"
+mesh_filename = "mesh.xml.gz"
 
 # Read mesh and create function space
 info("Reading mesh from file %s." % mesh_filename)
@@ -39,7 +39,7 @@ File(data_filename) >> RHO
 
 # Create point cloud representation
 info("Computing point cloud representation.")
-cloud = PointCloud(RHO, size, mass, resolution, num_points)
+cloud = PointCloud(RHO.cpp_object(), size, mass, resolution, num_points)
 
 # Save to file
 filename = "postprocess-3d-pointcloud-box.xdmf"

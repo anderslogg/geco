@@ -19,7 +19,7 @@ This module defines models for the density.
 
 import os
 
-from dolfin import Expression, error
+from dolfin import CompiledExpression, compile_cpp_code, error
 
 # List of all available models (grab all files from directory)
 library_dir = os.path.dirname(os.path.abspath(__file__))
@@ -30,6 +30,9 @@ model_data = [
     if m.endswith(".h") and (m.startswith("VP-") or m.startswith("EV-"))
 ]
 
+# Cache for generated Ansatz classes
+model_cache = {}
+
 
 def MaterialModel(model):
     "Create given material model"
@@ -39,36 +42,33 @@ def MaterialModel(model):
     model = str(model)
 
     # Get model data
-    if not model in model_data:
+    if model not in model_data:
         error('Unknown material model: "%s".' % str(model))
-    model_filename = model + ".h"
-    template_filename = model.split("-")[0] + "Ansatz.h"
+    
+    # Select appropriate bindings file and module name
+    bindings_filename = model.split('-')[0] + "Bindings.h"
+    model_short_name = "".join(model.split('-'))
+    module_name = "compiled_module." + model_short_name
 
     # Get library directory
     library_dir = os.path.dirname(os.path.abspath(__file__))
     cppcode_dir = os.path.join(library_dir, "cppcode")
 
     # Read code
-    template_code = open(os.path.join(cppcode_dir, template_filename)).read()
-    model_code = open(os.path.join(cppcode_dir, model_filename)).read()
+    cppcode = open(os.path.join(cppcode_dir, bindings_filename)).read()
 
-    # Extract relevant model code
-    member_functions = model_code.split("// Member functions")[1].split(
-        "// Member variables"
-    )[0]
-    member_variables = model_code.split("// Member variables")[1]
+    # Get compiled Anzatz class
+    if model in model_cache:
+        print('Reusing class %s from cache' % model)
+        compiled_model = model_cache[model]
+    else:
+        print('Compiling new class %s' % model)
+        compiled_module = compile_cpp_code(cppcode, include_dirs=[cppcode_dir])
+        compiled_model = eval(module_name)
+        model_cache[model] = compiled_model
 
-    # Stick specialized code into template and return
-    cppcode = template_code % {
-        "member_functions": member_functions,
-        "member_variables": member_variables
-    }
-
-    # Create expression
-    rho = Expression(cppcode=cppcode, degree=1)
-
-    # Set name of ansatz
-    rho.parameters.rename(model)
+    # Create compiled expression
+    rho = CompiledExpression(compiled_model(), degree=1)
 
     return rho
 
@@ -79,12 +79,16 @@ def Density2D(rho):
     # Get library directory
     library_dir = os.path.dirname(os.path.abspath(__file__))
     cppcode_dir = os.path.join(library_dir, "cppcode")
+    module_name = "compiled_module." + "Density2D"
 
     # Read code from file
-    cppcode = open(os.path.join(cppcode_dir, "Density2D.h")).read()
+    cppcode = open(os.path.join(cppcode_dir, "PPBindings.h")).read()
 
     # Build extension module
-    rho2d = Expression(cppcode=cppcode, degree=1)
+    compiled_module = compile_cpp_code(cppcode, include_dirs=[cppcode_dir])
+    compiled_class = eval(module_name)
+    
+    rho2d = CompiledExpression(compiled_class(), degree=1)
 
     # Set density
     rho2d.set_density(rho)
@@ -98,36 +102,20 @@ def Density3D(rho):
     # Get library directory
     library_dir = os.path.dirname(os.path.abspath(__file__))
     cppcode_dir = os.path.join(library_dir, "cppcode")
+    module_name = "compiled_module." + "Density3D"
 
     # Read code from file
-    cppcode = open(os.path.join(cppcode_dir, "Density3D.h")).read()
+    cppcode = open(os.path.join(cppcode_dir, "PPBindings.h")).read()
 
     # Build extension module
-    rho3d = Expression(cppcode=cppcode, degree=1)
+    compiled_module = compile_cpp_code(cppcode, include_dirs=[cppcode_dir])
+    compiled_class = eval(module_name)
+    rho3d = CompiledExpression(compiled_class(), degree=1)
 
     # Set density
     rho3d.set_density(rho)
 
     return rho3d
-
-
-# Function for creating indicator function on matter support
-def SupportBump(rho):
-
-    # Get library directory
-    library_dir = os.path.dirname(os.path.abspath(__file__))
-    cppcode_dir = os.path.join(library_dir, "cppcode")
-
-    # Read code from file
-    cppcode = open(os.path.join(cppcode_dir, "SupportBump.h")).read()
-
-    # Build extension module
-    rho_support = Expression(cppcode=cppcode, degree=1)
-
-    # Set density
-    rho_support.set_density(rho)
-
-    return rho_support
 
 
 # Function for creating point cloud representation of density
@@ -136,12 +124,15 @@ def PointCloud(rho, R, M, resolution, num_points):
     # Get library directory
     library_dir = os.path.dirname(os.path.abspath(__file__))
     cppcode_dir = os.path.join(library_dir, "cppcode")
+    module_name = "compiled_module." + "PointCloud"
 
     # Read code from file
-    cppcode = open(os.path.join(cppcode_dir, "PointCloud.h")).read()
+    cppcode = open(os.path.join(cppcode_dir, "PPBindings.h")).read()
 
     # Build extension module
-    point_cloud = Expression(cppcode=cppcode, degree=1)
+    compiled_module = compile_cpp_code(cppcode, include_dirs=[cppcode_dir])
+    compiled_class = eval(module_name)
+    point_cloud = CompiledExpression(compiled_class(), degree=1)
 
     # Set density
     point_cloud.set_parameters(rho, R, M, resolution, num_points)
