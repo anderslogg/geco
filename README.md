@@ -25,7 +25,7 @@ If you use GECo in your work please cite the following paper:
 
     @article{GECo2016,
         author = {Ames, Ellery and Andr{\'e}asson, H{\aa}kan and Logg, Anders},
-        title = {{On axisymmetric and stationary solutions of the self-gravitating  Vlasov system}},
+        title = {{On axisymmetric and stationary solutions of the self-gravitating Vlasov system}},
         journal = {Class. Quantum Grav.},
         year = {2016},
         volume = {33},
