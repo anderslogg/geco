@@ -10,11 +10,8 @@ ENV DIR geco
 RUN apt-get update
 RUN apt-get install -y locales sudo build-essential cmake pip
 
-# Install Sphinx
-RUN apt-get install -y python3-sphinx python3-sphinx-rtd-theme
-
 # Install FEniCS
-RUN apt-get install software-properties-common
+RUN apt-get install -y software-properties-common
 RUN add-apt-repository ppa:fenics-packages/fenics
 RUN apt-get update
 RUN apt-get install -y fenics
