@@ -1,6 +1,7 @@
 # Introduction
 
-Write intro here...
+GECO is a collection of solvers for the stationary self-gravitating Vlasov matter system in axisymmetry. 
+The gravitational interaction may be modeled by Newtonian gravity or general relativity.  
 
 For more details, refer to the following articles:
 
