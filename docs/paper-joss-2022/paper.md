@@ -22,21 +22,29 @@ bibliography: paper.bib
 
 # Summary
 
-GECo (Gothenburgh Einstein solver Collection) is a collection of solvers for...
+Gothenburgh Einstein solver Collection (GECo) is a collection of solvers for stationary self-gravitating collisionless kinetic matter. The gravitational interaction may be either Newtonian or general relativistic. The code makes use a reduction method, finite elements, and adaptive mesh refinement.  
+
+- High level answer to "what is GECO?"
+- 
 
 # Statement of need
 
 FIXME
+- unlike spherical symmetry, in axisymmetry the solution outside of the matter distribution is not canonical, and far-field boundary conditions must be applied.
 
 We can cite stuff like this: [@amesAxisymmetricStationarySolutions2016] and [@amesCosmicStringBlack2019].
 
 # Functionality
 
-FIXME
+FIXME (examples of where and for what GECO has been used.)
 
 # Method and implementation
 
 FIXME
+- reduction based on method of [NAME] by which the distribution is a function of the conserved quantities. This results in a semilinear system of equations for the gravitational field.
+- FEM (say something about implementation and limitations of the scheme (eg which FE are used, and does the code provide hte user with any flexibility.))
+- Mass-preserving fixed point scheme to solve the nonlinear system of equations with Anderson acceleration. 
+- Mesh refinement 
 
 # Documentation
 
