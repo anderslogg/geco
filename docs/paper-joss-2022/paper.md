@@ -54,6 +54,9 @@ The documentation for GECo is published on the
 # Limitations and future work
 
 FIXME
+- extension to spherical symmetry for completeness
+- allow different particle species to have different properties such as mass
+- extension to the Einstein-Vlasov-Maxwell system. 
 
 # Acknowledgements
 
