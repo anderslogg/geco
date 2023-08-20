@@ -12,7 +12,7 @@ authors:
     equal-contrib: true
     affiliation: "2"
 affiliations:
- - name: FIXME
+ - name: Flax and Teal
    index: 1
  - name: Chalmers University of Technology
    index: 2
@@ -31,7 +31,7 @@ In solving these equations GECo makes use of a reduction method, finite elements
 # Statement of need
 
 In understanding a physical model one usually starts with a simplified setting obtained by making certain assumptions, such as spherical symmetry, time-independence, collisionless particles etc. 
-In the case of self-gravitating kinetic matter stationary solutions in the spherically symmetric setting are fairly well understood [@binneyTremaineBook2008, @andreassonLivingReview2011].
+In the case of self-gravitating kinetic matter stationary solutions in the spherically symmetric setting are fairly well understood [@BinneyTremaine:2008, @Andreasson:2011].
 However, many of the physical systems of interest require models beyond spherical symmetry. 
 When going beyond spherical symmetry the coupled and nonlinear PDE systems in high dimensions such as the self-gravitating Vlasov equations are difficult to investigate analytically, and numerical approaches are essential to understand behavior of solutions and to answer questions of physical and mathematical interest.
 The GECo code started with the desire to understand properties of stationary and axisymmetric solutions of the Einstein-Vlasov system. 
@@ -48,8 +48,8 @@ To construct stationary solutions the code relies on a reduction method in which
 With this ansatz the Einstein--Vlasov or Vlasov--Poisson system (depending on the gravitational model used) forms a semi-linear integro-differential system of equations. 
 In GECo, the form of the ansatz is called a `MaterialModel` and several different choices are implemented as subclasses of the dolfin Expression class within `geco/cppcode/`.
 The semi-linear integro-differential system is solved via a mass-preserving fixed point scheme using Anderson acceleration. 
-At each step of the fixed point method the linear system of equations is solved using finite elements implemented with the FEniCS toolkit [@fenicsBook2012]. 
-Details of the mathematical formulation and implementation can be found in [@amesEtAl2016]
+At each step of the fixed point method the linear system of equations is solved using finite elements implemented with the FEniCS toolkit [@Logg:2012]. 
+Details of the mathematical formulation and implementation can be found in [@Ames:2016]
 
 <!-- FIXME
 - reduction based on method of [NAME] by which the distribution is a function of the conserved quantities. This results in a semilinear system of equations for the gravitational field.
