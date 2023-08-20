@@ -73,7 +73,10 @@ GECo includes several postprocessing routines to:
 
 Scripts for these postprocessing are found in `geco/bin/`
 
-TODO: Insert a few figures here demonstrating solution, and postprocessing. 
+![Torus spatial density on quarter plane computational domain](./figures/density_computational_domain.png){ width=20% }
+![2D Density](./figures/density_2d_density.png){ width=20% }
+![3D Density](./figures/density_3d_density.png){ width=20% }
+![Pointcloud](./figures/density_3d_pointcloud.png){ width=20% }
 
 <!-- FIXME (examples of where and for what GECO has been used.)
 - Stationary solutions based on EL-ansatz
