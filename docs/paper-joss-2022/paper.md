@@ -65,18 +65,19 @@ Gravitational fields and matter quantities are saved in XMDF and XML format that
 Solutions may be constructed from multiple `MaterialModel`s by combining models in a weighted sum -- an example is given in `demos/ev_multi_component.py`. 
 
 GECo includes several postprocessing routines to:
-- Generate additional scalar data not computed during the fixed point iteration. 
-- Extend the gravitational and matter fields as well as an ergoregion (if present) from the quarter plane computational domain to all of $\mathbb{R}^2$. 
-- Extend the gravitational and matter fields as well as an ergoregion (if present) from the quarter plane computational domain to a volumetric representation in $\mathbb{R}^3$. 
-- Represent the density as a three-dimensional point cloud. 
-- Compute the Kretschmann curvature scalar.
+
+* Generate additional scalar data not computed during the fixed point iteration. 
+* Extend the gravitational and matter fields as well as an ergoregion (if present) from the quarter plane computational domain to all of $\mathbb{R}^2$. 
+* Extend the gravitational and matter fields as well as an ergoregion (if present) from the quarter plane computational domain to a volumetric representation in $\mathbb{R}^3$. 
+* Represent the density as a three-dimensional point cloud. 
+* Compute the Kretschmann curvature scalar.
 
 Scripts for these postprocessing are found in `geco/bin/`
 
-![Torus spatial density on quarter plane computational domain](./figures/density_computational_domain.png){ width=20% }
-![2D Density](./figures/density_2d_density.png){ width=20% }
-![3D Density](./figures/density_3d_density.png){ width=20% }
-![Pointcloud](./figures/density_3d_pointcloud.png){ width=20% }
+![Torus spatial density on quarter plane computational domain](./figures/density_computational_domain.png){ width=25% }
+![2D Density](./figures/density_2d_density.png){ width=25% }
+![3D Density](./figures/density_3d_density.png){ width=25% }
+![Pointcloud](./figures/density_3d_pointcloud.png){ width=25% }
 
 <!-- FIXME (examples of where and for what GECO has been used.)
 - Stationary solutions based on EL-ansatz
