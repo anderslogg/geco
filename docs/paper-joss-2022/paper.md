@@ -22,7 +22,7 @@ bibliography: paper.bib
 
 # Summary
 
-Gothenburgh Einstein solver Collection (GECo) is a collection of solvers for stationary self-gravitating collisionless kinetic (so-called Vlasov) matter. 
+Gothenburgh Einstein solver Collection (GECo) is a collection of solvers for stationary self-gravitating collisionless kinetic (Vlasov) matter. 
 Self-gravitating kinetic matter is used in modeling astrophysical systems such as galaxies, accretion disks and cosmologies, and is thus also of interest to work in fundamental relativity. 
 Mathematically, the stationary equations form an integro-differential system of equations which may be solved for the gravitational field and the energy and momentum of the matter.
 The gravitational interaction may be taken to be either Newtonian or general relativistic.
@@ -46,9 +46,10 @@ We can cite stuff like this: [@amesAxisymmetricStationarySolutions2016] and [@am
 
 To construct stationary solutions the code relies on a reduction method in which the distribution function for the matter is assumed to depend on the position and momentum phase-space coordinates solely through conserved quantities, such as the particle energy and angular momentum about the axis of symmetry. 
 With this ansatz the Einstein--Vlasov or Vlasov--Poisson system (depending on the gravitational model used) forms a semi-linear integro-differential system of equations. 
-In GECo, the form of the ansatz is called a `MaterialModel` and several different choices are implemented as subclasses of the dolfin Expression class within `geco/cppcode/`.
-The semi-linear integro-differential system is solved via a mass-preserving fixed point scheme using Anderson acceleration. 
+In GECo, the form of the ansatz is called a `MaterialModel` and several different choices are implemented as subclasses of the dolfin Expression class.
+The semi-linear integro-differential system is solved via a mass-preserving fixed point scheme using Anderson acceleration [Walker:2011]. 
 At each step of the fixed point method the linear system of equations is solved using finite elements implemented with the FEniCS toolkit [@Logg:2012]. 
+The computational domain is taken to be the half-meridional plane $\{(r,z): r>0, z>0 \}$ with a semi-circular outer boundary.
 Details of the mathematical formulation and implementation can be found in [@Ames:2016]
 
 <!-- FIXME
@@ -59,16 +60,16 @@ Details of the mathematical formulation and implementation can be found in [@Ame
 
 # Functionality
 The entrypoint for GECo is a run script written in python. 
-In this file the user selects the solver class (`EinsteinVlasovSolver` or `VlasovPoisson`) that specifies the model for the gravitational interaction, a `MaterialModel` to specify the particular form of the reduction ansatz, and in addition specifies several parameters related to the model and discretization. 
-Running the script constructs a stationary solution via the fixed point scheme mentioned above, which has converged to the indicated tolerance.
+In this file the user selects the solver class (`EinsteinVlasovSolver` or `VlasovPoisson`) that specifies the model for the gravitational interaction, a `MaterialModel` to specify the particular form of the reduction ansatz, and several parameters related to the model and discretization. 
+Calling the `solve` method within the script invokes the solver to construct a stationary solution via the fixed point scheme mentioned above, which has converged to the specified tolerance.
 Gravitational fields and matter quantities are saved in XMDF and XML format that can be consumed by Paraview as well as postprocessing scripts. 
 Solutions may be constructed from multiple `MaterialModel`s by combining models in a weighted sum -- an example is given in `demos/ev_multi_component.py`. 
 
-GECo includes several postprocessing routines to:
+GECo includes several postprocessing routines that:
 
 * Generate additional scalar data not computed during the fixed point iteration. 
-* Extend the gravitational and matter fields as well as an ergoregion (if present) from the quarter plane computational domain to all of $\mathbb{R}^2$. 
-* Extend the gravitational and matter fields as well as an ergoregion (if present) from the quarter plane computational domain to a volumetric representation in $\mathbb{R}^3$. 
+* Represent the matter density as well as an ergoregion (if present) in $\mathbb{R}^2$ (i.e. reflected about the reflection plane and symmetry axis).
+* Represent the matter density as well as an ergoregion (if present) as a volume in $\mathbb{R}^3$, facilitating visualization of contours. 
 * Represent the density as a three-dimensional point cloud. 
 * Compute the Kretschmann curvature scalar.
 
