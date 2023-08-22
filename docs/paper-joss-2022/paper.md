@@ -1,10 +1,10 @@
 ---
-title: 'GECo: A collection of solvers for the Einstein-Vlasov equations'
+title: 'GECo: A collection of solvers for the self-gravitating Vlasov equations'
 tags:
   - Einstein-Vlasov
 authors:
   - name: Ellery Ames
-	orcid: FIXME
+	orcid: 0000-0001-9444-585X
     equal-contrib: true
     affiliation: "1"
   - name: Anders Logg
@@ -12,7 +12,7 @@ authors:
     equal-contrib: true
     affiliation: "2"
 affiliations:
- - name: Flax and Teal
+ - name: California Polytechnic University, Humboldt
    index: 1
  - name: Chalmers University of Technology
    index: 2
