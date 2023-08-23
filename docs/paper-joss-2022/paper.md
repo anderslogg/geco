@@ -23,12 +23,16 @@ bibliography: paper.bib
 # Summary
 
 Gothenburgh Einstein solver Collection (GECo) is a collection of solvers for stationary self-gravitating collisionless kinetic (Vlasov) matter. 
-Self-gravitating kinetic matter is used in modeling astrophysical systems such as galaxies, accretion disks and cosmologies, and is thus also of interest to studies in fundamental relativity. 
-Mathematically, the stationary equations form an integro-differential system of equations which may be solved for the gravitational field and the energy and momentum of the matter.
 The gravitational interaction may be taken to be either Newtonian or general relativistic.
+Under symmetry assumptions stationary solutions may be generated with the choice of a particular ansatz function for the Vlasov distribution function.
+GECo provides a tool with which one can easily introduce new ansatz functions and explore the properties of the resulting stationary solutions.
+
+Mathematically, the stationary equations form an integro-differential system of equations which may be solved for the gravitational field and the energy and momentum of the matter.
 In solving these equations GECo makes use of a reduction method, a fixed-point method and finite elements.
 
 # Statement of need
+
+Self-gravitating kinetic matter is used in modeling astrophysical systems such as galaxies, accretion disks and cosmologies, and is thus also of interest to studies in fundamental relativity. 
 
 In understanding a physical model one usually starts with a simplified setting obtained by making certain assumptions, such as spherical symmetry, time-independence, collisionless particles etc. 
 In the case of self-gravitating kinetic matter stationary solutions in the spherically symmetric setting are fairly well understood [@BinneyTremaine:2008, @Andreasson:2011].
