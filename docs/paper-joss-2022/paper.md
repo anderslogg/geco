@@ -23,10 +23,10 @@ bibliography: paper.bib
 # Summary
 
 Gothenburgh Einstein solver Collection (GECo) is a collection of solvers for stationary self-gravitating collisionless kinetic (Vlasov) matter. 
-Self-gravitating kinetic matter is used in modeling astrophysical systems such as galaxies, accretion disks and cosmologies, and is thus also of interest to work in fundamental relativity. 
+Self-gravitating kinetic matter is used in modeling astrophysical systems such as galaxies, accretion disks and cosmologies, and is thus also of interest to studies in fundamental relativity. 
 Mathematically, the stationary equations form an integro-differential system of equations which may be solved for the gravitational field and the energy and momentum of the matter.
 The gravitational interaction may be taken to be either Newtonian or general relativistic.
-In solving these equations GECo makes use of a reduction method, finite elements, and adaptive mesh refinement.
+In solving these equations GECo makes use of a reduction method, a fixed-point method and finite elements.
 
 # Statement of need
 
@@ -35,6 +35,9 @@ In the case of self-gravitating kinetic matter stationary solutions in the spher
 However, many of the physical systems of interest require models beyond spherical symmetry. 
 When going beyond spherical symmetry the coupled and nonlinear PDE systems in high dimensions such as the self-gravitating Vlasov equations are difficult to investigate analytically, and numerical approaches are essential to understand behavior of solutions and to answer questions of physical and mathematical interest.
 The GECo code started with the desire to understand properties of stationary and axisymmetric solutions of the Einstein-Vlasov system. 
+
+In this setting a large number of ansatz functions are possible and properties of the solutions depend strongly on the specific functional form and parameter values. 
+GECo provides a tool with which one can easily introduce new ansatz functions and explore the properties of the resulting solutions.
 
 <!-- - unlike spherical symmetry, in axisymmetry the solution outside of the matter distribution is not canonical, and far-field boundary conditions must be applied.
 - kinetic matter is of fundamental interest in gravitating systems and has played an important role in galactic models [@BinneyTremaine2008] and cosmology [@Ringstrom2017].
@@ -75,10 +78,10 @@ GECo includes several postprocessing routines that:
 
 Scripts for these postprocessing are found in `geco/bin/`
 
-![Torus spatial density on quarter plane computational domain](./figures/density_computational_domain.png){ width=25% }
-![2D Density](./figures/density_2d_density.png){ width=25% }
-![3D Density](./figures/density_3d_density.png){ width=25% }
-![Pointcloud](./figures/density_3d_pointcloud.png){ width=25% }
+![Torus spatial density on quarter plane computational domain](./figures/density_computational_domain.png){ width=50% }
+![2D Density](./figures/density_2d_density.png){ width=50% }
+![3D Density](./figures/density_3d_density.png){ width=50% }
+![Pointcloud](./figures/density_3d_pointcloud.png){ width=50% }
 
 <!-- FIXME (examples of where and for what GECO has been used.)
 - Stationary solutions based on EL-ansatz
