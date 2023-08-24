@@ -24,24 +24,20 @@ bibliography: paper.bib
 
 Gothenburgh Einstein solver Collection (GECo) is a collection of solvers for stationary self-gravitating collisionless kinetic (Vlasov) matter. 
 The gravitational interaction may be taken to be either Newtonian or general relativistic.
-Under symmetry assumptions stationary solutions may be generated with the choice of a particular ansatz function for the Vlasov distribution function.
-GECo provides a tool with which one can easily introduce new ansatz functions and explore the properties of the resulting stationary solutions.
-
-Mathematically, the stationary equations form an integro-differential system of equations which may be solved for the gravitational field and the energy and momentum of the matter.
-In solving these equations GECo makes use of a reduction method, a fixed-point method and finite elements.
+GECo is focused on the solutions which are axisymmetric, meaning that the gravitational and matter fields have a rotational symmetry.
+In this setting stationary solutions may be generated with the choice of a particular ansatz function for the Vlasov distribution function.
+GECo allows users to easily introduce new ansatz functions and explore the properties of the resulting stationary solutions.
 
 # Statement of need
 
-Self-gravitating kinetic matter is used in modeling astrophysical systems such as galaxies, accretion disks and cosmologies, and is thus also of interest to studies in fundamental relativity. 
-
-In understanding a physical model one usually starts with a simplified setting obtained by making certain assumptions, such as spherical symmetry, time-independence, collisionless particles etc. 
-In the case of self-gravitating kinetic matter stationary solutions in the spherically symmetric setting are fairly well understood [@BinneyTremaine:2008, @Andreasson:2011].
-However, many of the physical systems of interest require models beyond spherical symmetry. 
+In understanding a physical model one usually starts with a simplified setting, such as by imposing symmetry assumptions. 
+In the case of self-gravitating kinetic matter, stationary solutions in the spherically symmetric setting are well understood [@BinneyTremaine:2008, @Andreasson:2011].
+However, many of the physical systems of interest such as accretion disks, galaxies, galaxy clusters, and so on require models beyond spherical symmetry. 
 When going beyond spherical symmetry the coupled and nonlinear PDE systems in high dimensions such as the self-gravitating Vlasov equations are difficult to investigate analytically, and numerical approaches are essential to understand behavior of solutions and to answer questions of physical and mathematical interest.
 The GECo code started with the desire to understand properties of stationary and axisymmetric solutions of the Einstein-Vlasov system. 
 
-In this setting a large number of ansatz functions are possible and properties of the solutions depend strongly on the specific functional form and parameter values. 
-GECo provides a tool with which one can easily introduce new ansatz functions and explore the properties of the resulting solutions.
+<!-- In this setting a large number of ansatz functions are possible and properties of the solutions depend strongly on the specific functional form and parameter values. 
+GECo provides a tool with which one can easily introduce new ansatz functions and explore the properties of the resulting solutions. -->
 
 <!-- - unlike spherical symmetry, in axisymmetry the solution outside of the matter distribution is not canonical, and far-field boundary conditions must be applied.
 - kinetic matter is of fundamental interest in gravitating systems and has played an important role in galactic models [@BinneyTremaine2008] and cosmology [@Ringstrom2017].
@@ -54,46 +50,30 @@ We can cite stuff like this: [@amesAxisymmetricStationarySolutions2016] and [@am
 To construct stationary solutions the code relies on a reduction method in which the distribution function for the matter is assumed to depend on the position and momentum phase-space coordinates solely through conserved quantities, such as the particle energy and angular momentum about the axis of symmetry. 
 With this ansatz the Einstein--Vlasov or Vlasov--Poisson system (depending on the gravitational model used) forms a semi-linear integro-differential system of equations. 
 In GECo, the form of the ansatz is called a `MaterialModel` and several different choices are implemented as subclasses of the dolfin Expression class.
-The semi-linear integro-differential system is solved via a mass-preserving fixed point scheme using Anderson acceleration [Walker:2011]. 
+The semi-linear integro-differential system is solved via a mass-preserving fixed point scheme using Anderson acceleration [@Walker:2011]. 
 At each step of the fixed point method the linear system of equations is solved using finite elements implemented with the FEniCS toolkit [@Logg:2012]. 
-The computational domain is taken to be the half-meridional plane $\{(r,z): r>0, z>0 \}$ with a semi-circular outer boundary.
+The computational domain is taken to be the half-meridional plane $\{(r,z): r>0, z>0 \}$ in cylindrical coordinates, with a semi-circular outer boundary \autoref{fig:Solution}.
 Details of the mathematical formulation and implementation can be found in [@Ames:2016]
-
-<!-- FIXME
-- reduction based on method of [NAME] by which the distribution is a function of the conserved quantities. This results in a semilinear system of equations for the gravitational field.
-- FEM (say something about implementation and limitations of the scheme (eg which FE are used, and does the code provide hte user with any flexibility.))
-- Mass-preserving fixed point scheme to solve the nonlinear system of equations with Anderson acceleration. 
-- Mesh refinement  -->
 
 # Functionality
 The entrypoint for GECo is a run script written in python. 
 In this file the user selects the solver class (`EinsteinVlasovSolver` or `VlasovPoisson`) that specifies the model for the gravitational interaction, a `MaterialModel` to specify the particular form of the reduction ansatz, and several parameters related to the model and discretization. 
 Calling the `solve` method within the script invokes the solver to construct a stationary solution via the fixed point scheme mentioned above, which has converged to the specified tolerance.
 Gravitational fields and matter quantities are saved in XMDF and XML format that can be consumed by Paraview as well as postprocessing scripts. 
-Solutions may be constructed from multiple `MaterialModel`s by combining models in a weighted sum -- an example is given in `demos/ev_multi_component.py`. 
+Multi-component solutions may be constructed from multiple `MaterialModel`s by combining models in a weighted sum.
 
 GECo includes several postprocessing routines that:
 
 * Generate additional scalar data not computed during the fixed point iteration. 
-* Represent the matter density as well as an ergoregion (if present) in $\mathbb{R}^2$ (i.e. reflected about the reflection plane and symmetry axis).
-* Represent the matter density as well as an ergoregion (if present) as a volume in $\mathbb{R}^3$, facilitating visualization of contours. 
-* Represent the density as a three-dimensional point cloud. 
+* Represent the matter density as well as an ergoregion (if present) in $\mathbb{R}^2$ (i.e. reflected about the reflection plane and symmetry axis), as shown in \autoref{fig:2Ddensity}.
+* Represent the matter density as well as an ergoregion (if present) as a volume in $\mathbb{R}^3$, facilitating visualization of contours, as shown in \autoref{fig:3Ddensity}. 
+* Represent the density as a three-dimensional point cloud,as shown in \autoref{fig:PointCloud}. 
 * Compute the Kretschmann curvature scalar.
 
-Scripts for these postprocessing are found in `geco/bin/`
-
-![Torus spatial density on quarter plane computational domain](./figures/density_computational_domain.png){ width=50% }
-![2D Density](./figures/density_2d_density.png){ width=50% }
-![3D Density](./figures/density_3d_density.png){ width=50% }
-![Pointcloud](./figures/density_3d_pointcloud.png){ width=50% }
-
-<!-- FIXME (examples of where and for what GECO has been used.)
-- Stationary solutions based on EL-ansatz
-- Multi-species solutions 
-- Postprocessing routines and info, regarding ergoregions
-- Newtonian gravity or general relativity. 
-- point cloud representation
-- Files saved to xmdf format, which can be viewed in Paraview -->
+![Torus spatial density on quarter plane computational domain \label{fig:Solution}](./figures/density_computational_domain.png){ width=25% }
+![2D Density\label{fig:2Ddensity}](./figures/density_2d_density.png){ width=25% }
+![3D Density\label{fig:3Ddensity}](./figures/density_3d_density.png){ width=25% }
+![Pointcloud\label{fig:PointCloud}](./figures/density_3d_pointcloud.png){ width=25% }
 
 # Documentation
 
@@ -101,11 +81,17 @@ The documentation for GECo is published on the
 [GECo GitLab pages](https://gitlab.com/alogg/geco).
 
 # Limitations and future work
+We briefly list a few directions of interest for future work. 
 
-FIXME
-- extension to spherical symmetry for completeness
-- allow different particle species to have different properties such as mass
-- extension to the Einstein-Vlasov-Maxwell system. 
+- GECo currently uses a uniform mesh. However, in axisymmetry (unlike spherical symmetry) the solution is not uniquely defined outside the support of the matter and asymptotically flat boundary conditions must be applied sufficiently far from the matter.
+An adaptive mesh refinement algorithm was developed and used in [@Ames:2019] to investigate properties of extreme rotating toroidal solutions. 
+It remains however to integrate such an adaptive mesh refinement scheme into the core of GECo. 
+- Currently the particles only interact via the gravitational field generated by the particle distribution. 
+An exciting area at the frontier of astrophysics currently is the study of accretion disks, where both central black holes and electromagnetic fields play important roles. 
+To lay groundwork for this area in fundamental relativity, it is thus highly desirable to extend GECo to the Einstein-Vlasov-Maxwell system and allow the inclusion of central black holes.
+- While multi-species solutions can be generated in which the different species follow different distribution ansatzes, the particle properties are otherwise taken to be the same. 
+Astrophysical systems however often consist of particle-like entities with very different properties (such as stars and dust). 
+We thus propose to allow different particle species to have different particle properties such as mass and charge.
 
 <!-- # Acknowledgements
 
