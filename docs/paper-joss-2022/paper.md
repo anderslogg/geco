@@ -31,7 +31,7 @@ GECo allows users to easily introduce new ansatz functions and explore the prope
 # Statement of need
 
 In understanding a physical model one usually starts with a simplified setting, such as by imposing symmetry assumptions. 
-In the case of self-gravitating kinetic matter, stationary solutions in the spherically symmetric setting are well understood [@BinneyTremaine:2008, @Andreasson:2011].
+In the case of self-gravitating kinetic matter, stationary solutions in the spherically symmetric setting are well understood [@BinneyTremaine:2008; @Andreasson:2011].
 However, many of the physical systems of interest such as accretion disks, galaxies, galaxy clusters, and so on require models beyond spherical symmetry. 
 When going beyond spherical symmetry the coupled and nonlinear PDE systems in high dimensions such as the self-gravitating Vlasov equations are difficult to investigate analytically, and numerical approaches are essential to understand behavior of solutions and to answer questions of physical and mathematical interest.
 The GECo code started with the desire to understand properties of stationary and axisymmetric solutions of the Einstein-Vlasov system. 
