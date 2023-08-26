@@ -39,4 +39,14 @@ Several of the postprocessing scripts rely on this data, so it is a good idea to
 Other postprocessing scripts can be used similarly. 
 Documentation on the various postrpocessing routines can be found in [Postprocessing](./postprocessing.md).
 
-
+## New Ansatz functions
+GECo is a convenient tool for exploring solutions and their properties corresponding to new distribution ansatz functions. 
+To write and use a new ansatz, the following steps should be taken: 
+- Define your ansatz as a subclass of the `EVAnsatz` or `VPAnsatz` classes, as in `geco/cppcode/EV-E-Polytropic-L-Polytropic.h`. 
+  The ansatz should contain member functions `ansatz`, `init_parameters`, and `read_parameters`.
+  The model must be defined in a file with the pattern `cppcode/EV-[MY-MODEL-NAME].h` or `cppcode/VP-MY-MODEL-NAME].h` as appropriate.
+- Add your ansatz to the list of `PYBIND11_MODULES` in either `geco/cppcod/EVBindings.h` or `geco/cppcod/VPBindings.h`, following the examples already present. 
+  Make sure to `#include` the header file corresponding to your new ansatz class.
+  This provides Python bindings.
+- Finally use your model in a `run_my_model.py` file as in `model = MaterialModel("MY_MODEL-NAME")`. 
+  Reference existing demos for more complete information.
