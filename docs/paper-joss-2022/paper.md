@@ -22,19 +22,30 @@ bibliography: paper.bib
 
 # Summary
 
-Gothenburgh Einstein solver Collection (GECo) is a collection of solvers for stationary self-gravitating collisionless kinetic (Vlasov) matter. 
-The gravitational interaction may be taken to be either Newtonian or general relativistic.
-GECo is focused on the solutions which are axisymmetric, meaning that the gravitational and matter fields have a rotational symmetry.
-In this setting stationary solutions may be generated with the choice of a particular ansatz function for the Vlasov distribution function.
-GECo allows users to easily introduce new ansatz functions and explore the properties of the resulting stationary solutions.
+Gothenburgh Einstein solver Collection (GECo) is a collection of solvers for
+stationary self-gravitating collisionless kinetic (Vlasov) matter. The
+gravitational interaction may be taken to be either Newtonian or general
+relativistic. GECo is focused on the solutions which are axisymmetric, meaning
+that the gravitational and matter fields have a rotational symmetry. In this
+setting stationary solutions may be generated with the choice of a particular
+ansatz function for the Vlasov distribution function. GECo allows users to
+easily introduce new ansatz functions and explore the properties of the
+resulting stationary solutions.
 
 # Statement of need
 
-In understanding a physical model one usually starts with a simplified setting, such as by imposing symmetry assumptions. 
-In the case of self-gravitating kinetic matter, stationary solutions in the spherically symmetric setting are well understood [@BinneyTremaine:2008; @Andreasson:2011].
-However, many of the physical systems of interest such as accretion disks, galaxies, galaxy clusters, and so on require models beyond spherical symmetry. 
-When going beyond spherical symmetry the coupled and nonlinear PDE systems in high dimensions such as the self-gravitating Vlasov equations are difficult to investigate analytically, and numerical approaches are essential to understand behavior of solutions and to answer questions of physical and mathematical interest.
-The GECo code started with the desire to understand properties of stationary and axisymmetric solutions of the Einstein-Vlasov system. 
+In understanding a physical model one usually starts with a simplified setting,
+such as by imposing symmetry assumptions. In the case of self-gravitating
+kinetic matter, stationary solutions in the spherically symmetric setting are
+well understood [@BinneyTremaine:2008; @Andreasson:2011]. However, many of the
+physical systems of interest such as accretion disks, galaxies, galaxy clusters,
+and so on require models beyond spherical symmetry. When going beyond spherical
+symmetry, the coupled and nonlinear PDE systems in high dimensions such as the
+self-gravitating Vlasov equations are difficult to investigate analytically, and
+numerical approaches are essential to understand behavior of solutions and to
+answer questions of physical and mathematical interest. The GECo code started
+with the desire to understand properties of stationary and axisymmetric
+solutions of the Einstein-Vlasov system. 
 
 <!-- In this setting a large number of ansatz functions are possible and properties of the solutions depend strongly on the specific functional form and parameter values. 
 GECo provides a tool with which one can easily introduce new ansatz functions and explore the properties of the resulting solutions. -->
