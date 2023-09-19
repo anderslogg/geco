@@ -87,7 +87,7 @@ GECo includes several postprocessing routines that:
   $\mathbb{R}^2$ (i.e. reflected about the reflection plane and symmetry axis),
   as shown in \autoref{fig:2Ddensity};
 * represent the matter density as well as an ergoregion (if present) as a volume in $\mathbb{R}^3$, facilitating visualization of contours, as shown in \autoref{fig:3Ddensity};
-* represent the density as a three-dimensional point cloud,as shown in \autoref{fig:PointCloud};
+* represent the density as a three-dimensional point cloud, as shown in \autoref{fig:PointCloud};
 * compute the Kretschmann curvature scalar.
 
 ![Torus spatial density on quarter plane computational domain \label{fig:Solution}](./figures/density_computational_domain.png){ width=25% }
