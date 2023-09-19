@@ -38,3 +38,8 @@ If you use GECo in your work please cite the following paper:
 
 GECo is licensed under the
 [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html).
+
+## Community guidelines
+
+Comments, contributions, and questions are welcome. Please engage with us
+through Issues, Pull Requests, and Discussions on our GitHub page.
