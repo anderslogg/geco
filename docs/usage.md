@@ -16,7 +16,8 @@ The solution files are stored in `geco/demos/solutions/ev/` by default, and this
 For additional parameters see the `SolverBase` class. 
 
 The generated output files depend on whether the gravitational interaction is Newtonian or general relativistic. 
-For the relativistic demo `ev_torus` and similar GECo generates: 
+For the relativistic demo `ev_torus` and similar, GECo generates the following
+output files:
 - Gravitational fields NU, MU, BB, WW each in `.xdmf` and `.xml.gz` format
 - Spatial density RHO in `.xdmf` and `.xml.gz` format
 - Energy-momentum components P00, P03, P33, P11 in `.xdmf` and `.xml.gz` format.
