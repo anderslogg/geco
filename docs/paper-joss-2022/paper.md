@@ -68,27 +68,27 @@ of the mathematical formulation and implementation can be found in [@Ames:2016]
 
 # Functionality
 
-The entrypoint for GECo is a run script written in python. In this file the user
-selects the solver class (`EinsteinVlasovSolver` or `VlasovPoisson`) that
+The entrypoint for GECo is a run script written in Python. In this file, the
+user selects the solver class (`EinsteinVlasovSolver` or `VlasovPoisson`) that
 specifies the model for the gravitational interaction, a `MaterialModel` to
 specify the particular form of the reduction ansatz, and several parameters
 related to the model and discretization. Calling the `solve` method within the
 script invokes the solver to construct a stationary solution via the fixed point
-scheme mentioned above, which has converged to the specified tolerance.
-Gravitational fields and matter quantities are saved in XMDF and XML format that
-can be consumed by Paraview as well as postprocessing scripts. Multi-component
-solutions may be constructed from multiple `MaterialModel`s by combining models
-in a weighted sum.
+scheme mentioned above, which runs until convergence within a specified
+tolerance. Gravitational fields and matter quantities are saved in XMDF and XML
+format that can be consumed by Paraview as well as postprocessing scripts.
+Multi-component solutions may be constructed from multiple `MaterialModel`s by
+combining models in a weighted sum.
 
 GECo includes several postprocessing routines that:
 
-* Generate additional scalar data not computed during the fixed point iteration. 
-* Represent the matter density as well as an ergoregion (if present) in
+* generate additional scalar data not computed during the fixed point iteration;
+* represent the matter density as well as an ergoregion (if present) in
   $\mathbb{R}^2$ (i.e. reflected about the reflection plane and symmetry axis),
-  as shown in \autoref{fig:2Ddensity}.
-* Represent the matter density as well as an ergoregion (if present) as a volume in $\mathbb{R}^3$, facilitating visualization of contours, as shown in \autoref{fig:3Ddensity}. 
-* Represent the density as a three-dimensional point cloud,as shown in \autoref{fig:PointCloud}. 
-* Compute the Kretschmann curvature scalar.
+  as shown in \autoref{fig:2Ddensity};
+* represent the matter density as well as an ergoregion (if present) as a volume in $\mathbb{R}^3$, facilitating visualization of contours, as shown in \autoref{fig:3Ddensity};
+* represent the density as a three-dimensional point cloud,as shown in \autoref{fig:PointCloud};
+* compute the Kretschmann curvature scalar.
 
 ![Torus spatial density on quarter plane computational domain \label{fig:Solution}](./figures/density_computational_domain.png){ width=25% }
 ![2D Density\label{fig:2Ddensity}](./figures/density_2d_density.png){ width=25% }
