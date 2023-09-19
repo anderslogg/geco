@@ -4,7 +4,7 @@ tags:
   - Einstein-Vlasov
 authors:
   - name: Ellery Ames
-	orcid: 0000-0001-9444-585X
+    orcid: 0000-0001-9444-585X
     equal-contrib: true
     affiliation: "1"
   - name: Anders Logg
