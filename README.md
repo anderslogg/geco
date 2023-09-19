@@ -9,7 +9,6 @@ Gothenburg.
 * [Introduction](./docs/introduction.md)
 * [Installation](./docs/installation.md)
 * [Usage](./docs/usage.md)
-* [Demos](./docs/demos.md)
 
 ## Authors
 
