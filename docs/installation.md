@@ -1,15 +1,14 @@
 # Installation
 
 ## Downloading the code
-Clone this repository using either the https 
+Clone this repository using either https:
 
     git clone https://github.com/anderslogg/geco.git
 
-or ssh 
+or ssh:
 
     git clone git@github.com:anderslogg/geco.git
 
-protocols. 
 ## Dependencies
 
 GECo depends on FEniCS version 2019.2.0.
@@ -25,16 +24,17 @@ running the following commands:
 The build may take a few minutes. 
 
 ## Getting started
-To run the demos for GECo, install `geco` using `pip` by running
+
+To run the demos for GECo, install `geco` using `pip` by running the following
+command from inside the package directory:
 
     pip install .
-
-from inside the package directory.
 
 Alternatively, you can issue the command
 
     export PYTHONPATH=`pwd`:$PYTHONPATH
 
 This will allow you to run the demos inside the `demos` directory without
-actually installing GECo.
-
+actually installing GECo. Note that these commands should be run from inside the
+Docker container (unless you have the dependencies installed on your host
+system).
