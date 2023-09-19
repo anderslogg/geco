@@ -98,7 +98,7 @@ GECo includes several postprocessing routines that:
 # Documentation
 
 The documentation for GECo is published on the
-[GECo GitLab pages](https://gitlab.com/alogg/geco).
+[GECo GitHub pages](https://github.com/anderslogg/geco).
 
 # Limitations and future work
 
