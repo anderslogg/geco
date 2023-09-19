@@ -49,22 +49,22 @@ solutions of the Einstein-Vlasov system.
 
 # Method and implementation
 
-To construct stationary solutions the code relies on a reduction method in which
-the distribution function for the matter is assumed to depend on the position
-and momentum phase-space coordinates solely through conserved quantities, such
-as the particle energy and angular momentum about the axis of symmetry. With
-this ansatz the Einstein--Vlasov or Vlasov--Poisson system (depending on the
-gravitational model used) forms a semi-linear integro-differential system of
-equations. In GECo, the form of the ansatz is called a `MaterialModel` and
-several different choices are implemented as subclasses of the dolfin Expression
-class. The semi-linear integro-differential system is solved via a
-mass-preserving fixed point scheme using Anderson acceleration [@Walker:2011].
-At each step of the fixed point method the linear system of equations is solved
-using finite elements implemented with the FEniCS toolkit [@Logg:2012]. The
-computational domain is taken to be the half-meridional plane $\{(r,z): r>0, z>0
-\}$ in cylindrical coordinates, with a semi-circular outer boundary
-\autoref{fig:Solution}. Details of the mathematical formulation and
-implementation can be found in [@Ames:2016]
+To construct stationary solutions, the code relies on a reduction method in
+which the distribution function for the matter is assumed to depend on the
+position and momentum phase-space coordinates solely through conserved
+quantities, such as the particle energy and angular momentum about the axis of
+symmetry. With this ansatz the Einstein--Vlasov or Vlasov--Poisson system
+(depending on the gravitational model used) forms a semi-linear
+integro-differential system of equations. In GECo, the form of the ansatz is
+called a `MaterialModel` and several different choices are implemented as
+subclasses of the FEniCS/DOLFIN Expression class. The semi-linear
+integro-differential system is solved via a mass-preserving fixed point scheme
+using Anderson acceleration [@Walker:2011]. At each step of the fixed point
+method, the linear system of equations is solved using finite elements
+implemented with the FEniCS toolkit [@Logg:2012]. The computational domain is
+taken to be the half-meridional plane $\{(r,z): r>0, z>0 \}$ in cylindrical
+coordinates, with a semi-circular outer boundary \autoref{fig:Solution}. Details
+of the mathematical formulation and implementation can be found in [@Ames:2016]
 
 # Functionality
 
