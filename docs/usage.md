@@ -34,11 +34,10 @@ if GECo is installed, or
 ```bash
 python3 ~/geco/bin/geco-postprocessing-data
 ```
-otherwise. 
-This will run the postprocessing script to generate additional scalar data from the computed solution. 
-Several of the postprocessing scripts rely on this data, so it is a good idea to run this script first. 
-Other postprocessing scripts can be used similarly. 
-Documentation on the various postrpocessing routines can be found in [Postprocessing](./postprocessing.md).
+otherwise. This will run the postprocessing script to generate additional scalar
+data from the computed solution. Several of the postprocessing scripts rely on
+this data, so it is a good idea to run this script first. Other postprocessing
+scripts can be used similarly. 
 
 ## New Ansatz functions
 GECo is a convenient tool for exploring solutions and their properties corresponding to new distribution ansatz functions. 
