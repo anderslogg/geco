@@ -91,9 +91,12 @@ GECo includes several postprocessing routines that:
 * compute the Kretschmann curvature scalar.
 
 ![Torus spatial density on quarter plane computational domain \label{fig:Solution}](./figures/density_computational_domain.png)
-![2D Density\label{fig:2Ddensity}](./figures/density_2d_density.png)
-![3D Density\label{fig:3Ddensity}](./figures/density_3d_density.png)
-![Pointcloud\label{fig:PointCloud}](./figures/density_3d_pointcloud.png)
+
+![2D Density \label{fig:2Ddensity}](./figures/density_2d_density.png)
+
+![3D Density \label{fig:3Ddensity}](./figures/density_3d_density.png)
+
+![Pointcloud \label{fig:PointCloud}](./figures/density_3d_pointcloud.png)
 
 # Documentation
 
