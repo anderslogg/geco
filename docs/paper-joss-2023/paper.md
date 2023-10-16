@@ -90,13 +90,13 @@ GECo includes several postprocessing routines that:
 * represent the density as a three-dimensional point cloud, as shown in \autoref{fig:PointCloud};
 * compute the Kretschmann curvature scalar.
 
-![Torus spatial density on quarter plane computational domain \label{fig:Solution}](./figures/density_computational_domain.png)
+![Computed spatial density of torus solution on the quarter plane computational domain. \label{fig:Solution}](./figures/density_computational_domain.png)
 
-![2D Density \label{fig:2Ddensity}](./figures/density_2d_density.png)
+![Computed spatial density of torus solution extended to $xy$-plane. \label{fig:2Ddensity}](./figures/density_2d_density.png)
 
-![3D Density \label{fig:3Ddensity}](./figures/density_3d_density.png)
+![Computed spatial density of torus solution visualized as iso surfaces in 3D. \label{fig:3Ddensity}](./figures/density_3d_density.png)
 
-![Pointcloud \label{fig:PointCloud}](./figures/density_3d_pointcloud.png)
+![Computed spatial density of torus solution visualized as a point cloud. \label{fig:PointCloud}](./figures/density_3d_pointcloud.png)
 
 # Documentation
 
