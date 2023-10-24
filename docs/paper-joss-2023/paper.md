@@ -76,7 +76,7 @@ related to the model and discretization. Calling the `solve` method within the
 script invokes the solver to construct a stationary solution via the fixed point
 scheme mentioned above, which runs until convergence within a specified
 tolerance. Gravitational fields and matter quantities are saved in XMDF and XML
-format that can be consumed by Paraview as well as postprocessing scripts.
+format that can be consumed by visualization software like Paraview and VisIT, as well as postprocessing scripts.
 Multi-component solutions may be constructed from multiple `MaterialModel`s by
 combining models in a weighted sum.
 
