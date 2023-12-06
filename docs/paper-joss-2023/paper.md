@@ -63,7 +63,7 @@ using Anderson acceleration [@Walker:2011]. At each step of the fixed point
 method, the linear system of equations is solved using finite elements
 implemented with the FEniCS toolkit [@Logg:2012]. The computational domain is
 taken to be the half-meridional plane $\{(r,z): r>0, z>0 \}$ in cylindrical
-coordinates, with a semi-circular outer boundary \autoref{fig:Solution}. Details
+coordinates, with a semi-circular outer boundary; see \autoref{fig:Solution}. Details
 of the mathematical formulation and implementation can be found in [@Ames:2016]
 
 # Functionality
