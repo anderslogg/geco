@@ -6,7 +6,7 @@ cppfiles = [pj('geco', 'cppcode', f) for f in listdir('geco/cppcode')]
 meshfiles = [pj('geco', 'meshes', f) for f in listdir('geco/meshes')]
 
 setup(name='GECo',
-      version='1.0.0',
+      version='1.0.1',
       packages=['geco'],
       scripts=[pj('bin', 'geco'),
                pj('bin', 'geco-postprocess-data'),
