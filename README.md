@@ -44,8 +44,9 @@ If you use GECo in your work please cite the following papers:
         month = dec,
         doi = {10.21105/joss.05979},
         url = {https://joss.theoj.org/papers/10.21105/joss.05979}
-}
+    }
 
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.05979/status.svg)](https://doi.org/10.21105/joss.05979)
 
 ## License
 
