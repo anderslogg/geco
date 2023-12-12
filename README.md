@@ -20,7 +20,7 @@ and contributions to postprocessing capabilities by Eric Malekos.
 
 ## Citing GECo
 
-If you use GECo in your work please cite the following paper:
+If you use GECo in your work please cite the following papers:
 
     @article{GECo2016,
         author = {Ames, Ellery and Andr{\'e}asson, H{\aa}kan and Logg, Anders},
@@ -32,6 +32,20 @@ If you use GECo in your work please cite the following paper:
         pages = {155008},
         doi = {10.1088/0264-9381/33/15/155008}
     }
+
+    @article{Ames_GECo_A_collection_2023,
+        author = {Ames, Ellery and Logg, Anders},
+        title = {{GECo: A collection of solvers for the self-gravitating Vlasov equations}},
+        journal = {Journal of Open Source Software},
+        year = {2023},
+        volume = {8},
+        number = {92},
+        pages = {5979},
+        month = dec,
+        doi = {10.21105/joss.05979},
+        url = {https://joss.theoj.org/papers/10.21105/joss.05979}
+}
+
 
 ## License
 
